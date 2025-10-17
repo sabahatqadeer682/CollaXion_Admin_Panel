@@ -20,10 +20,10 @@ const ForgotPasswordScreen = () => {
             return;
         }
 
-        // Simulate reset email sent
+        // reset email sent
         setError("");
         setMessage("Password reset link sent to your email!");
-        setTimeout(() => navigate("/"), 2000); // Redirect back to login after 2s
+        setTimeout(() => navigate("/"), 2000);
     };
 
     return (
