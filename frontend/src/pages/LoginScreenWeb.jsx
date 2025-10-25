@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const LoginScreenWeb = () => {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
+    // ✅ Hardcoded Admin Credentials
+    const ADMIN_USERNAME = "admin";
+    const ADMIN_PASSWORD = "admin123";
+
     const validate = () => {
         const newErrors = {};
-        if (!email) newErrors.email = "Please enter your email address";
-        else if (!/\S+@\S+\.\S+/.test(email))
-            newErrors.email = "Please enter a valid email address";
 
+        if (!username) newErrors.username = "Please enter your username";
         if (!password) newErrors.password = "Please enter your password";
         else if (password.length < 6)
             newErrors.password = "Password must be at least 6 characters";
@@ -24,7 +26,14 @@ const LoginScreenWeb = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (validate()) {
-            navigate("/dashboard");
+            // ✅ Check hardcoded credentials
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                navigate("/dashboard");
+            } else {
+                setErrors({
+                    general: "Invalid admin credentials. Please try again.",
+                });
+            }
         }
     };
 
@@ -54,19 +63,27 @@ const LoginScreenWeb = () => {
                     <p style={styles.subtitle}>Login to your admin dashboard</p>
 
                     <form onSubmit={handleSubmit} style={styles.form}>
+                        {errors.general && (
+                            <p style={{ ...styles.error, textAlign: "center" }}>
+                                {errors.general}
+                            </p>
+                        )}
+
                         <div style={styles.inputGroup}>
-                            <label style={styles.label}>Email Address</label>
+                            <label style={styles.label}>Username</label>
                             <input
-                                type="email"
-                                placeholder="admin@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                type="text"
+                                placeholder="Enter your username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 style={{
                                     ...styles.input,
-                                    borderColor: errors.email ? "#e63946" : "#d1d5db",
+                                    borderColor: errors.username ? "#e63946" : "#d1d5db",
                                 }}
                             />
-                            {errors.email && <p style={styles.error}>{errors.email}</p>}
+                            {errors.username && (
+                                <p style={styles.error}>{errors.username}</p>
+                            )}
                         </div>
 
                         <div style={styles.inputGroup}>
@@ -81,23 +98,15 @@ const LoginScreenWeb = () => {
                                     borderColor: errors.password ? "#e63946" : "#d1d5db",
                                 }}
                             />
-                            {errors.password && <p style={styles.error}>{errors.password}</p>}
+                            {errors.password && (
+                                <p style={styles.error}>{errors.password}</p>
+                            )}
                         </div>
 
                         <button type="submit" style={styles.button}>
                             Login
                         </button>
                     </form>
-
-                    <p style={styles.footerText}>
-                        Forgot password?{" "}
-                        <span
-                            style={styles.link}
-                            onClick={() => navigate("ForgotPassword")}
-                        >
-                            Reset here
-                        </span>
-                    </p>
                 </div>
             </div>
         </div>
@@ -216,17 +225,6 @@ const styles = {
         borderRadius: "8px",
         cursor: "pointer",
         transition: "all 0.3s ease",
-    },
-    footerText: {
-        marginTop: "20px",
-        fontSize: "0.9rem",
-        color: "#6b7280",
-    },
-    link: {
-        color: "#193648",
-        fontWeight: "500",
-        textDecoration: "none",
-        cursor: "pointer",
     },
 };
 
