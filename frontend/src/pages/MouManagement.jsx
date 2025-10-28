@@ -1,14 +1,7 @@
 // MouManagement.jsx
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  PlusCircle,
-  Clock,
-  AlertTriangle,
-  Search,
-  Filter,
-  X,
-} from "lucide-react";
+import { PlusCircle, Clock, AlertTriangle, Search, Filter, X } from "lucide-react";
 import jsPDF from "jspdf";
 
 const MouManagement = () => {
@@ -23,7 +16,7 @@ const MouManagement = () => {
     },
     {
       id: 2,
-      university: "FAST NUCES",
+      university: "Riphah International University",
       industry: "InnoSoft Solutions",
       startDate: "2023-08-01",
       endDate: "2024-08-01",
@@ -31,7 +24,7 @@ const MouManagement = () => {
     },
     {
       id: 3,
-      university: "COMSATS University",
+      university: "Riphah International University",
       industry: "Alpha Robotics",
       startDate: "2024-07-05",
       endDate: "2026-07-05",
@@ -54,8 +47,8 @@ const MouManagement = () => {
   useEffect(() => {
     setActivityLog([
       "✅ MOU created between Riphah & TechNova (Jan 10, 2025)",
-      "⚠️ MOU expired: FAST NUCES × InnoSoft (Aug 1, 2024)",
-      "📄 Draft prepared for COMSATS × Alpha Robotics",
+      "⚠️ MOU expired: Riphah × InnoSoft (Aug 1, 2024)",
+      "📄 Draft prepared for Riphah × Alpha Robotics",
     ]);
   }, []);
 
@@ -101,7 +94,13 @@ const MouManagement = () => {
       `✅ MOU created between ${newMou.university} & ${newMou.industry}`,
       ...a,
     ]);
-    setFormData({ university: "", industry: "", startDate: "", endDate: "", description: "" });
+    setFormData({
+      university: "",
+      industry: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+    });
     setShowModal(false);
     generatePDF(newMou);
   };
@@ -135,7 +134,7 @@ const MouManagement = () => {
             <Search size={16} color="#2b5b94" />
             <input
               style={styles.searchInput}
-              placeholder="Search university or industry..."
+              placeholder="Search through industry name ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -166,7 +165,7 @@ const MouManagement = () => {
         </div>
       </div>
 
-      {/* Summary row */}
+      {/* Summary Cards */}
       <div style={styles.summaryRow}>
         <div style={styles.statCard}>
           <div style={styles.statTitle}>Total MOUs</div>
@@ -186,7 +185,7 @@ const MouManagement = () => {
         </div>
       </div>
 
-      {/* Expiry alerts */}
+      {/* Expiry Alert */}
       {expiringSoon.length > 0 && (
         <div style={styles.alert}>
           <AlertTriangle size={18} color="#a35b00" />
@@ -203,26 +202,30 @@ const MouManagement = () => {
         </div>
       )}
 
-      {/* Grid: left = list, right = activity log */}
+      {/* Main Content */}
       <div style={styles.grid}>
         <div style={styles.leftCol}>
-          {/* Card list */}
           <div style={styles.cardGrid}>
             {filtered.length === 0 ? (
               <div style={styles.empty}>
                 <div style={{ fontSize: 18, fontWeight: 600, color: "#19405f" }}>
                   No MOUs match your search.
                 </div>
-                <div style={{ color: "#2b5b94", marginTop: 8 }}>Try clearing filters or add a new MOU.</div>
+                <div style={{ color: "#2b5b94", marginTop: 8 }}>
+                  Try clearing filters or add a new MOU.
+                </div>
               </div>
             ) : (
               filtered.map((m) => {
-                const progress = calcProgressLocal(m.startDate, m.endDate);
+                const progress = calcProgress(m.startDate, m.endDate);
                 return (
                   <motion.div
                     key={m.id}
                     whileHover={{ translateY: -6, boxShadow: "0 16px 30px rgba(0,0,0,0.08)" }}
-                    style={{ ...styles.card, ...(isExpired(m) ? styles.expiredCard : {}) }}
+                    style={{
+                      ...styles.card,
+                      ...(isExpired(m) ? styles.expiredCard : {}),
+                    }}
                   >
                     <div style={styles.cardHeader}>
                       <div>
@@ -242,10 +245,15 @@ const MouManagement = () => {
                     <div style={styles.progressWrap}>
                       <div style={styles.progressLabel}>
                         <div style={{ fontSize: 12, color: "#2b5b94" }}>
-                          Progress: {calcProgress(m.startDate, m.endDate)}%
+                          Progress: {progress}%
                         </div>
-                        <div style={{ fontSize: 12, color: isExpired(m) ? "#9a2f2f" : "#2b5b94" }}>
-                          {isExpired(m) ? "Expired" : isOngoing(m) ? "Ongoing" : "Completed"}
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: isExpired(m) ? "#9a2f2f" : "#2b5b94",
+                          }}
+                        >
+                          {isExpired(m) ? "Expired" : "Ongoing"}
                         </div>
                       </div>
 
@@ -253,7 +261,7 @@ const MouManagement = () => {
                         <div
                           style={{
                             ...styles.progressFill,
-                            width: `${calcProgress(m.startDate, m.endDate)}%`,
+                            width: `${progress}%`,
                           }}
                         />
                       </div>
@@ -275,6 +283,7 @@ const MouManagement = () => {
           </div>
         </div>
 
+        {/* Activity Panel */}
         <div style={styles.rightCol}>
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
@@ -295,123 +304,118 @@ const MouManagement = () => {
           <div style={styles.helpCard}>
             <div style={{ fontWeight: 600, color: "#123b6e" }}>Tips</div>
             <div style={{ marginTop: 8, color: "#2b5b94" }}>
-              Use search & filter to quickly find MOUs. Click "Create MOU" to add and auto-generate a PDF.
+              Use search & filter to quickly find MOUs. Click "Create MOU" to add and auto-generate
+              a PDF.
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal: Glassmorphism style */}
-<AnimatePresence>
-  {showModal && (
-    <motion.div
-      style={styles.modalOverlay}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        style={styles.modalCard}
-        initial={{ y: 40, scale: 0.98, opacity: 0 }}
-        animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 20, scale: 0.96, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      >
-        <div style={styles.modalHeader}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#123b6e" }}>
-              Create New MOU
-            </div>
-            <div style={{ fontSize: 13, color: "#27547f" }}>
-              Fill required details and save.
-            </div>
-          </div>
-          <div onClick={() => setShowModal(false)} style={{ cursor: "pointer" }}>
-            <X size={20} color="#2b5b94" />
-          </div>
-        </div>
+      {/* Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            style={styles.modalOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              style={styles.modalCard}
+              initial={{ y: 40, scale: 0.98, opacity: 0 }}
+              animate={{ y: 0, scale: 1, opacity: 1 }}
+              exit={{ y: 20, scale: 0.96, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <div style={styles.modalHeader}>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#123b6e" }}>
+                    Create New MOU
+                  </div>
+                  <div style={{ fontSize: 13, color: "#27547f" }}>
+                    Fill required details and save.
+                  </div>
+                </div>
+                <div onClick={() => setShowModal(false)} style={{ cursor: "pointer" }}>
+                  <X size={20} color="#2b5b94" />
+                </div>
+              </div>
 
-        <form onSubmit={handleCreate} style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 14 }}>
-          <input
-            style={styles.input}
-            placeholder="University name"
-            value={formData.university}
-            required
-            onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-          />
-
-          <input
-            style={styles.input}
-            placeholder="Industry / Partner"
-            value={formData.industry}
-            required
-            onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-          />
-
-          <div style={{ display: "flex", gap: 12 }}>
-            <input
-              type="date"
-              style={{ ...styles.input, flex: 1 }}
-              value={formData.startDate}
-              required
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-            />
-            <input
-              type="date"
-              style={{ ...styles.input, flex: 1 }}
-              value={formData.endDate}
-              required
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-            />
-          </div>
-
-          <textarea
-            style={{ ...styles.input, minHeight: 100, resize: "vertical", paddingTop: 10 }}
-            placeholder="Short description (purpose, scope, etc.)"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
-            <button type="submit" style={styles.saveBtn}>
-              Save & Generate PDF
-            </button>
-            <button type="button" style={styles.ghostBtn} onClick={() => setShowModal(false)}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
-
-      
+              <form
+                onSubmit={handleCreate}
+                style={{
+                  marginTop: 20,
+                  display: "grid",
+                  gap: 14,
+                }}
+              >
+                <input
+                  style={styles.input}
+                  placeholder="University name"
+                  value={formData.university}
+                  required
+                  onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                />
+                <input
+                  style={styles.input}
+                  placeholder="Industry / Partner"
+                  value={formData.industry}
+                  required
+                  onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                />
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <input
+                    type="date"
+                    style={{ ...styles.input, flex: 1, minWidth: 180 }}
+                    value={formData.startDate}
+                    required
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                  <input
+                    type="date"
+                    style={{ ...styles.input, flex: 1, minWidth: 180 }}
+                    value={formData.endDate}
+                    required
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+                <textarea
+                  style={{
+                    ...styles.input,
+                    minHeight: 100,
+                    resize: "vertical",
+                    paddingTop: 10,
+                  }}
+                  placeholder="Short description (purpose, scope, etc.)"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                />
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
+                  <button type="submit" style={styles.saveBtn}>
+                    Save & Generate PDF
+                  </button>
+                  <button
+                    type="button"
+                    style={styles.ghostBtn}
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-// Local helper used in map to avoid repeated date parsing
-function calcProgressLocal(start, end) {
-  const s = new Date(start).getTime();
-  const e = new Date(end).getTime();
-  if (isNaN(s) || isNaN(e) || e <= s) return 100;
-  const now = Date.now();
-  const total = e - s;
-  const elapsed = Math.max(0, Math.min(now - s, total));
-  return Math.round((elapsed / total) * 100);
-}
-
-function calcProgress(start, end) {
-  return calcProgressLocal(start, end);
-}
-
-// ===== styles =====
+// ===== Styles =====
 const styles = {
   page: {
     minHeight: "100vh",
     padding: 36,
-    // light-blue gradient (same feel as earlier)
     background: "linear-gradient(135deg, #E6EEF8 0%, #B9CDF4 100%)",
     fontFamily: "'Poppins', sans-serif",
     color: "#173248",
@@ -425,11 +429,7 @@ const styles = {
   },
   title: { fontSize: 24, margin: 0, fontWeight: 700, color: "#123b6e" },
   subtitle: { marginTop: 4, fontSize: 13, color: "#3a6088" },
-  headerActions: {
-    display: "flex",
-    gap: 12,
-    alignItems: "center",
-  },
+  headerActions: { display: "flex", gap: 12, alignItems: "center" },
   searchWrapper: {
     display: "flex",
     gap: 8,
@@ -438,7 +438,6 @@ const styles = {
     padding: "8px 10px",
     borderRadius: 12,
     border: "1px solid rgba(255,255,255,0.6)",
-    boxShadow: "0 6px 18px rgba(29,86,140,0.06)",
   },
   searchInput: {
     border: "none",
@@ -474,157 +473,142 @@ const styles = {
     padding: "10px 14px",
     borderRadius: 10,
     cursor: "pointer",
-    boxShadow: "0 8px 22px rgba(30,79,145,0.18)",
   },
-
   summaryRow: { display: "flex", gap: 12, marginTop: 10, marginBottom: 18, flexWrap: "wrap" },
   statCard: {
     background: "rgba(255,255,255,0.85)",
     padding: 12,
     borderRadius: 12,
     minWidth: 140,
-    boxShadow: "0 8px 30px rgba(23,58,92,0.05)",
-    border: "1px solid rgba(255,255,255,0.6)",
   },
   statTitle: { fontSize: 13, color: "#27547f" },
-  statValue: { fontSize: 20, fontWeight: 700, color: "#123b6e", marginTop: 6 },
-
+  statValue: { fontSize: 20, fontWeight: 600, color: "#123b6e" },
   alert: {
-    background: "rgba(255,245,225,1)",
-    borderRadius: 12,
-    padding: 12,
     display: "flex",
-    alignItems: "flex-start",
-    gap: 10,
-    marginBottom: 16,
-    border: "1px solid rgba(170,120,0,0.12)",
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 320px",
-    gap: 18,
-    alignItems: "start",
-  },
-
-  leftCol: {},
-  rightCol: {},
-
-  cardGrid: { display: "grid", gap: 14 },
-
-  card: {
-    background: "rgba(255,255,255,0.85)",
-    borderRadius: 14,
+    background: "#fff6e6",
     padding: 14,
-    border: "1px solid rgba(255,255,255,0.6)",
-    boxShadow: "0 10px 26px rgba(21,65,106,0.04)",
+    borderRadius: 12,
+    marginBottom: 18,
   },
-  expiredCard: {
-    opacity: 0.7,
-    background: "rgba(250,245,245,0.9)",
+  grid: { display: "flex", gap: 20, flexWrap: "wrap" },
+  leftCol: { flex: 2, minWidth: 400 },
+  rightCol: { flex: 1, minWidth: 260 },
+  cardGrid: { display: "grid", gap: 14 },
+  card: {
+    background: "rgba(255,255,255,0.9)",
+    borderRadius: 14,
+    padding: 18,
+    boxShadow: "0 3px 8px rgba(0,0,0,0.05)",
   },
-  cardHeader: { display: "flex", justifyContent: "space-between", gap: 12 },
-  cardTitle: { fontSize: 16, fontWeight: 700, color: "#123b6e" },
-  cardSubtitle: { fontSize: 13, color: "#27547f", marginTop: 6 },
-  desc: { marginTop: 10, color: "#2b5b94", fontSize: 14 },
-  progressWrap: { marginTop: 12 },
-  progressLabel: { display: "flex", justifyContent: "space-between", marginBottom: 8 },
+  expiredCard: { borderLeft: "4px solid #a33f3f" },
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardTitle: { fontSize: 16, fontWeight: 600, color: "#123b6e" },
+  cardSubtitle: { fontSize: 13, color: "#2b5b94" },
+  desc: { fontSize: 13, color: "#2b5b94", marginTop: 6 },
+  progressWrap: { marginTop: 8 },
+  progressLabel: { display: "flex", justifyContent: "space-between" },
   progressBar: {
-    height: 9,
-    background: "rgba(28,64,102,0.06)",
-    borderRadius: 8,
-    overflow: "hidden",
+    height: 8,
+    borderRadius: 10,
+    background: "rgba(39,84,127,0.2)",
   },
   progressFill: {
-    height: "100%",
-    background: "linear-gradient(90deg,#3b82f6,#60a5fa)",
-    transition: "width 0.5s ease",
+    height: 8,
+    borderRadius: 10,
+    background: "linear-gradient(90deg,#4a90e2,#1E4F91)",
   },
-
-  cardActions: { marginTop: 12, display: "flex", gap: 8, justifyContent: "flex-end" },
+  cardActions: { display: "flex", justifyContent: "flex-end", marginTop: 10 },
   pdfBtn: {
-    background: "linear-gradient(90deg,#4CAF50,#3A8C42)",
-    color: "#fff",
-    padding: "8px 12px",
-    borderRadius: 8,
+    background: "rgba(39,84,127,0.1)",
     border: "none",
+    padding: "6px 10px",
+    borderRadius: 8,
     cursor: "pointer",
+    fontSize: 12,
+    color: "#123b6e",
   },
-
   activity: {
     background: "rgba(255,255,255,0.9)",
-    padding: 14,
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.6)",
-    boxShadow: "0 10px 20px rgba(23,58,92,0.03)",
+    borderRadius: 14,
+    padding: 18,
   },
-  activityHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  activityList: { display: "flex", flexDirection: "column", gap: 8, maxHeight: 320, overflow: "auto" },
+  activityHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  activityList: { display: "flex", flexDirection: "column", gap: 8 },
   activityItem: {
-    background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,250,255,0.96))",
-    padding: 10,
-    borderRadius: 8,
-    color: "#1d4b77",
     fontSize: 13,
-    border: "1px solid rgba(30,78,119,0.04)",
+    color: "#2b5b94",
+    background: "rgba(220,230,255,0.5)",
+    padding: "6px 10px",
+    borderRadius: 8,
   },
-
   helpCard: {
-    padding: 12,
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.92)",
-    border: "1px solid rgba(255,255,255,0.6)",
+    background: "rgba(255,255,255,0.9)",
+    borderRadius: 14,
+    padding: 18,
   },
-
-  // Modal glassmorphism
+  empty: {
+    textAlign: "center",
+    padding: 40,
+    background: "rgba(255,255,255,0.7)",
+    borderRadius: 12,
+  },
   modalOverlay: {
     position: "fixed",
-    inset: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0,0,0,0.35)",
     display: "flex",
-    justifyContent: "center",
     alignItems: "center",
-    background: "rgba(15,30,45,0.28)",
-    backdropFilter: "blur(4px)",
-    zIndex: 1200,
-    padding: 24,
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: 20,
   },
   modalCard: {
-    width: 520,
-    borderRadius: 16,
-    padding: 20,
-    background: "linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.62))",
-    boxShadow: "0 20px 50px rgba(20,60,100,0.18)",
-    border: "1px solid rgba(255,255,255,0.5)",
-    backdropFilter: "blur(8px)",
+    background: "#fff",
+    borderRadius: 18,
+    padding: 28,
+    width: "min(620px, 95%)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
   },
-  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-
-  formRow: { marginTop: 12 },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   input: {
-    width: "100%",
     padding: "10px 12px",
     borderRadius: 10,
-    border: "1px solid rgba(30,78,119,0.08)",
-    background: "rgba(255,255,255,0.9)",
+    border: "1px solid #c4d4ea",
     outline: "none",
-    fontSize: 14,
+    background: "#f8fbff",
     color: "#123b6e",
+    fontSize: 13,
   },
   saveBtn: {
     background: "linear-gradient(90deg,#3A70B0,#1E4F91)",
     color: "#fff",
-    padding: "10px 14px",
-    borderRadius: 10,
     border: "none",
+    padding: "10px 16px",
+    borderRadius: 10,
     cursor: "pointer",
-    fontWeight: 600,
   },
   ghostBtn: {
     background: "transparent",
-    border: "1px solid rgba(30,78,119,0.12)",
-    padding: "10px 12px",
+    color: "#2b5b94",
+    border: "1px solid #2b5b94",
+    padding: "10px 16px",
     borderRadius: 10,
-    color: "#123b6e",
     cursor: "pointer",
   },
 };
