@@ -1,3 +1,5 @@
+
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -6,107 +8,74 @@ import {
   Users,
   CalendarPlus,
   GraduationCap,
-  Building2,
   Briefcase,
   Settings,
   LogOut,
-  UserCheck,
   BarChart3,
   Network,
+  Menu,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import collaxionLogo from "../images/collaxionlogo.jpeg";
 
 const MainDashboardWeb = () => {
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
   const [activeCard, setActiveCard] = useState(null);
   const [hoveredCard, setHoveredCard] = useState(null);
 
+  const toggleSidebar = () => setCollapsed(!collapsed);
+
   const cardData = [
-    {
-      id: 1,
-      icon: <FileSignature size={40} />,
-      title: "MOUs",
-      desc: "Track signed and pending Memorandums of Understanding.",
-      route: "/mou-management",
-    },
-    {
-      id: 2,
-      icon: <MapPin size={40} />,
-      title: "Nearby Industries",
-      desc: "View industries near your location on an interactive map.",
-      route: "/nearby-industries",
-    },
-    {
-      id: 3,
-      icon: <Users size={40} />,
-      title: "Student Approvals",
-      desc: "Manage and verify student internship applications.",
-    },
-   
-    {
-      id: 5,
-      icon: <CalendarPlus size={40} />,
-      title: "Advisory Meetings",
-      desc: "Schedule and manage advisory board meetings.",
-    },
-    {
-      id: 6,
-      icon: <Network size={40} />,
-      title: "Industry Activeness",
-      desc: "Monitor active partnerships and industry participation.",
-    },
-    {
-      id: 7,
-      icon: <BarChart3 size={40} />,
-      title: "Analytics Overview",
-      desc: "Visualize engagement metrics and collaboration data.",
-    },
-   
-    {
-      id: 9,
-      icon: <Briefcase size={40} />,
-      title: "Industry Projects",
-      desc: "View and manage projects offered by industries.",
-    },
+    { id: 1, icon: <FileSignature size={40} />, title: "MOUs", desc: "Track signed and pending Memorandums of Understanding.", route: "/mou-management" },
+    { id: 2, icon: <MapPin size={40} />, title: "Nearby Industries", desc: "View industries near your location on an interactive map.", route: "/nearby-industries" },
+    { id: 3, icon: <Users size={40} />, title: "Student Approvals", desc: "Manage and verify student internship applications." },
+    { id: 4, icon: <CalendarPlus size={40} />, title: "Advisory Meetings", desc: "Schedule and manage advisory board meetings." },
+    { id: 5, icon: <Network size={40} />, title: "Industry Activeness", desc: "Monitor active partnerships and industry participation." },
+    { id: 6, icon: <BarChart3 size={40} />, title: "Analytics Overview", desc: "Visualize engagement metrics and collaboration data." },
+    { id: 7, icon: <Briefcase size={40} />, title: "Industry Projects", desc: "View and manage projects offered by industries." },
   ];
 
+  const sidebarWidth = collapsed ? "80px" : "250px";
+
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container }}>
       {/* ===== Sidebar ===== */}
       <motion.aside
-        style={styles.sidebar}
-        initial={{ x: -50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{ ...styles.sidebar, width: sidebarWidth }}
+        animate={{ width: sidebarWidth }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
       >
-        <motion.div
-          style={styles.logoContainer}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7 }}
-        >
-          <div style={styles.logoCircle}>
-            <img src={collaxionLogo} alt="CollaXion Logo" style={styles.logoImg} />
+        {/* Top Section (Logo + Toggle) */}
+        <div style={styles.sidebarHeader}>
+          <div style={styles.logoContainer}>
+            <img src={collaxionLogo} alt="Logo" style={styles.logoImg} />
+            {!collapsed && (
+              <motion.h2
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                style={styles.logoText}
+              >
+                <span style={styles.logoC}>C</span>olla
+                <span style={styles.logoX}>X</span>ion
+              </motion.h2>
+            )}
           </div>
-          <h2 style={styles.logoText}>
-            Colla
-            <span
-              style={{
-                color: "#6CA9FF",
-                textShadow: "0 0 10px rgba(108,169,255,0.8)",
-              }}
-            >
-              Xion
-            </span>
-          </h2>
-        </motion.div>
+          <motion.button
+            onClick={toggleSidebar}
+            style={styles.toggleBtn}
+            whileTap={{ scale: 0.9 }}
+          >
+            <Menu size={20} />
+          </motion.button>
+        </div>
 
-        {/* Sidebar Navigation */}
+        {/* Navigation */}
         <nav style={styles.nav}>
           {[
             ["Manage MOUs", FileSignature, "/mou-management"],
-            ["Nearby Industries", MapPin, "/nearby-industries"], // ✅ now navigates
+            ["Nearby Industries", MapPin, "/nearby-industries"],
             ["Student Approvals", Users],
             ["Internship Management", GraduationCap],
             ["Advisory Meetings", CalendarPlus],
@@ -116,26 +85,33 @@ const MainDashboardWeb = () => {
               key={i}
               whileHover={{
                 scale: 1.05,
-                background: "rgba(108,169,255,0.15)",
-                borderLeft: "4px solid #6CA9FF",
+                background: "rgba(255,255,255,0.15)",
               }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              style={styles.navItem}
+              style={{
+                ...styles.navItem,
+                justifyContent: collapsed ? "center" : "flex-start",
+                padding: collapsed ? "10px 0" : "10px 12px",
+              }}
               onClick={() => path && navigate(path)}
             >
               <Icon size={18} style={styles.icon} />
-              <span>{label}</span>
+              {!collapsed && <span>{label}</span>}
             </motion.div>
           ))}
         </nav>
 
+        {/* Logout */}
         <motion.div
           whileHover={{ scale: 1.05, color: "#fff" }}
-          style={styles.logout}
+          style={{
+            ...styles.logout,
+            justifyContent: collapsed ? "center" : "flex-start",
+          }}
         >
           <LogOut size={16} style={styles.icon} />
-          <span>Logout</span>
+          {!collapsed && <span>Logout</span>}
         </motion.div>
       </motion.aside>
 
@@ -161,10 +137,10 @@ const MainDashboardWeb = () => {
         </motion.div>
 
         <p style={styles.subtitle}>
-          Monitor and manage all collaboration activities between Universities &
-          Industries
+          Monitor and manage all collaboration activities between Universities & Industries
         </p>
 
+        {/* Dashboard Cards */}
         <motion.section
           style={styles.cardsGrid}
           initial="hidden"
@@ -196,21 +172,21 @@ const MainDashboardWeb = () => {
                 style={{
                   ...styles.card,
                   background: isActive
-                    ? "#3A70B0"
+                    ? "#193648"
                     : isHovered
-                    ? "#E3ECFF"
-                    : "#fff",
+                      ? "#E2EEF9"
+                      : "#fff",
                   color: isActive ? "#fff" : "#193648",
                   boxShadow: isHovered
-                    ? "0 10px 25px rgba(0,0,0,0.15)"
-                    : "0 6px 14px rgba(0,0,0,0.1)",
+                    ? "0 12px 30px rgba(0,0,0,0.15)"
+                    : "0 6px 15px rgba(0,0,0,0.08)",
                 }}
               >
-                <div style={{ color: isActive ? "#fff" : "#3A70B0" }}>
+                <div style={{ color: isActive ? "#fff" : "#193648" }}>
                   {card.icon}
                 </div>
-                <h3>{card.title}</h3>
-                <p>{card.desc}</p>
+                <h3 style={styles.cardTitle}>{card.title}</h3>
+                <p style={styles.cardDesc}>{card.desc}</p>
               </motion.div>
             );
           })}
@@ -220,51 +196,53 @@ const MainDashboardWeb = () => {
   );
 };
 
-// ===== Styling =====
+// ===== Styles =====
 const styles = {
   container: {
     display: "flex",
     height: "100vh",
     fontFamily: "'Poppins', sans-serif",
-    background: "linear-gradient(135deg, #E6EEF8 0%, #B9CDF4 100%)",
+    background: "linear-gradient(135deg, #E2EEF9 0%, #FFFFFF 100%)",
   },
   sidebar: {
-    width: "250px",
-    background: "linear-gradient(180deg, #142A40 0%, #1D4065 100%)",
+    background: "#193648",
     color: "#fff",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    padding: "25px 20px",
-    boxShadow: "4px 0 15px rgba(0,0,0,0.15)",
-    borderTopRightRadius: "18px",
-    borderBottomRightRadius: "18px",
+    padding: "20px 15px",
+    boxShadow: "4px 0 20px rgba(0,0,0,0.2)",
+    transition: "all 0.3s ease",
+  },
+  sidebarHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "30px",
   },
   logoContainer: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     gap: "10px",
-    marginBottom: "35px",
   },
-  logoCircle: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "50%",
-    background: "rgba(255,255,255,0.12)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 8px rgba(255,255,255,0.2)",
-  },
-  logoImg: { width: "30px", height: "30px", borderRadius: "50%" },
+  logoImg: { width: "35px", height: "35px", borderRadius: "50%" },
   logoText: {
-    fontSize: "1.6rem",
+    fontSize: "1.5rem",
     fontWeight: "700",
     color: "#fff",
-    letterSpacing: "0.5px",
   },
-  nav: { display: "flex", flexDirection: "column", gap: "14px" },
+  logoC: { color: "#fff", fontSize: "1.7rem" },
+  logoX: {
+    color: "#6CA9FF",
+    textShadow: "0 0 10px rgba(108,169,255,0.8)",
+  },
+  toggleBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#fff",
+    cursor: "pointer",
+  },
+  nav: { display: "flex", flexDirection: "column", gap: "12px" },
   navItem: {
     display: "flex",
     alignItems: "center",
@@ -272,7 +250,6 @@ const styles = {
     cursor: "pointer",
     fontWeight: "500",
     color: "#d8e4f5",
-    padding: "10px 12px",
     borderRadius: "10px",
     transition: "all 0.3s ease",
   },
@@ -286,41 +263,18 @@ const styles = {
     cursor: "pointer",
     borderTop: "1px solid rgba(255,255,255,0.2)",
     paddingTop: "15px",
-    opacity: 0.9,
   },
   main: { flex: 1, padding: "30px 50px", overflowY: "auto" },
-  topbar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+  topbar: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   userBox: { display: "flex", alignItems: "center", gap: "10px" },
-  wavingHand: { fontSize: "1.8rem", display: "inline-block" },
+  wavingHand: { fontSize: "1.8rem" },
   username: { fontWeight: "500", color: "#193648", fontSize: "1.1rem" },
   title: { color: "#193648", fontSize: "1.8rem", fontWeight: "700" },
-  subtitle: {
-    color: "#3A70B0",
-    fontSize: "1rem",
-    marginTop: "10px",
-    textAlign: "left",
-    marginLeft: "5px",
-    marginBottom: "35px",
-  },
-  cardsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "25px",
-  },
-  card: {
-    background: "#fff",
-    borderRadius: "15px",
-    padding: "25px",
-    textAlign: "center",
-    boxShadow: "0 6px 14px rgba(0,0,0,0.1)",
-    transition: "all 0.3s ease",
-    cursor: "pointer",
-  },
+  subtitle: { color: "#3A70B0", fontSize: "1rem", marginTop: "10px", marginBottom: "35px" },
+  cardsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "25px" },
+  card: { background: "#fff", borderRadius: "18px", padding: "25px", textAlign: "center", transition: "all 0.3s ease", cursor: "pointer" },
+  cardTitle: { marginTop: "12px", fontSize: "1.1rem", fontWeight: "600" },
+  cardDesc: { fontSize: "0.9rem", opacity: 0.8, marginTop: "5px" },
 };
 
 export default MainDashboardWeb;
-
