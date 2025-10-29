@@ -33,7 +33,7 @@ const MainDashboardWeb = () => {
     { id: 1, icon: <FileSignature size={40} />, title: "MOUs", desc: "Track signed and pending Memorandums of Understanding.", route: "/mou-management" },
     { id: 2, icon: <MapPin size={40} />, title: "Nearby Industries", desc: "View industries near your location on an interactive map.", route: "/nearby-industries" },
     { id: 3, icon: <Users size={40} />, title: "Student Approvals", desc: "Manage and verify student internship applications." },
-    { id: 4, icon: <CalendarPlus size={40} />, title: "Advisory Meetings", desc: "Schedule and manage advisory board meetings." },
+    { id: 4, icon: <CalendarPlus size={40} />, title: "Advisory Meetings", desc: "Schedule and manage advisory board meetings.", route: "/AdvisoryMeetings" },
     { id: 5, icon: <Network size={40} />, title: "Industry Activeness", desc: "Monitor active partnerships and industry participation." },
     { id: 6, icon: <BarChart3 size={40} />, title: "Analytics Overview", desc: "Visualize engagement metrics and collaboration data." },
     { id: 7, icon: <Briefcase size={40} />, title: "Industry Projects", desc: "View and manage projects offered by industries." },
@@ -81,7 +81,7 @@ const MainDashboardWeb = () => {
             ["Nearby Industries", MapPin, "/nearby-industries"],
             ["Student Approvals", Users],
             ["Internship Management", GraduationCap],
-            ["Advisory Meetings", CalendarPlus],
+            ["Advisory Meetings", CalendarPlus, "/AdvisoryMeetings"],
             ["System Settings", Settings],
           ].map(([label, Icon, path], i) => (
             <motion.div
