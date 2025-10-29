@@ -1,148 +1,75 @@
+// src/pages/SplashScreenWeb.jsx
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import LoginScreenWeb from "./LoginScreenWeb";
+import collaxionLogo from "../images/collaxionlogo.jpeg";
+
+const letters = ["C", "o", "l", "l", "a", "X", "i", "o", "n"];
 
 const SplashScreenWeb = () => {
-  const [step, setStep] = useState(0);
+  const [showText, setShowText] = useState(false);
+  const [showTagline, setShowTagline] = useState(false);
+  const [goToLogin, setGoToLogin] = useState(false);
 
   useEffect(() => {
     const timers = [
-      setTimeout(() => setStep(1), 500),   // CX appears
-      setTimeout(() => setStep(2), 1800),  // letters generate
-      setTimeout(() => setStep(3), 3200),  // tagline fade
-      setTimeout(() => setStep(4), 5200),  // move to login
+      setTimeout(() => setShowText(true), 1500),  // Show CollaXion text
+      setTimeout(() => setShowTagline(true), 3200), // Tagline appear
+      setTimeout(() => setGoToLogin(true), 5500),   // Go to login
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  if (step >= 4) {
-    return <LoginScreenWeb />;
-  }
+  if (goToLogin) return <LoginScreenWeb />;
 
   return (
     <div style={styles.container}>
-      <div style={styles.logoWrapper}>
-        {/* Step 1 — CX Logo */}
-        {step === 1 && (
-          <div className="cx-start">
-            <span className="c">C</span>
-            <span className="x">X</span>
-          </div>
-        )}
-
-        {/* Step 2 — Morph into CollaXion */}
-        {step >= 2 && (
-          <div className="collaxion">
-            <span className="c moveC">C</span>
-            <span className="midletters">olla</span>
-            <span className="x moveX">X</span>
-            <span className="endletters">ion</span>
-          </div>
-        )}
-      </div>
-
-      {/* Step 3 — Tagline */}
-      {step >= 3 && (
-        <p className="tagline">Where Collaboration Meets Innovation</p>
+      {/* Step 1: Logo animation */}
+      {!showText && (
+        <motion.img
+          src={collaxionLogo}
+          alt="CollaXion Logo"
+          style={styles.logo}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        />
       )}
 
-      <style>{`
-        /* ================= BASE ================ */
-        .cx-start {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 5rem;
-          color: #193648;
-          letter-spacing: -5px;
-          opacity: 0;
-          animation: fadeInScale 1.2s ease forwards;
-        }
+      {/* Step 2: CollaXion animated text */}
+      {showText && (
+        <motion.h1 style={styles.title}>
+          {letters.map((letter, index) => (
+            <motion.span
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.12, duration: 0.35 }}
+              style={letter === "X" ? styles.xLetter : {}}
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </motion.h1>
+      )}
 
-        .cx-start .x {
-          background: linear-gradient(90deg, #3a70b0, #193648);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          margin-left: -6px;
-        }
-
-        .collaxion {
-          font-weight: 700;
-          font-size: 4.2rem;
-          color: #193648;
-          display: inline-flex;
-          opacity: 0;
-          animation: fadeInWord 1s ease forwards;
-          position: relative;
-          letter-spacing: 2px;
-        }
-
-        .moveC {
-          animation: moveC 1.6s ease forwards;
-          display: inline-block;
-        }
-
-        .moveX {
-          animation: moveX 1.6s ease forwards;
-          display: inline-block;
-          background: linear-gradient(90deg, #3a70b0, #193648);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .midletters,
-        .endletters {
-          opacity: 0;
-          animation: fadeInLetters 1.3s ease forwards;
-          animation-delay: 0.6s;
-        }
-
-        .tagline {
-          margin-top: 20px;
-          font-size: 1.1rem;
-          color: #1f2e57;
-          font-weight: 500;
-          opacity: 0;
-          transform: translateY(10px);
-          animation: taglineFade 1.3s ease forwards;
-        }
-
-        /* ================= ANIMATIONS ================ */
-        @keyframes fadeInScale {
-          0% { transform: scale(0.7); opacity: 0; }
-          50% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes fadeInWord {
-          0% { opacity: 0; transform: scale(0.95); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes fadeInLetters {
-          0% { opacity: 0; transform: translateY(10px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes moveC {
-          0% { transform: translateX(40px) scale(1.4); opacity: 0.8; }
-          100% { transform: translateX(0) scale(1); opacity: 1; }
-        }
-
-        @keyframes moveX {
-          0% { transform: translateX(-50px) scale(1.4); opacity: 0.8; }
-          100% { transform: translateX(0) scale(1); opacity: 1; }
-        }
-
-        @keyframes taglineFade {
-          0% { opacity: 0; transform: translateY(15px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* Step 3: Tagline */}
+      {showTagline && (
+        <motion.p
+          style={styles.tagline}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          Where Collaboration Meets Innovation
+        </motion.p>
+      )}
     </div>
   );
 };
 
+// 🎨 Styles
 const styles = {
   container: {
     display: "flex",
@@ -150,14 +77,39 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     height: "100vh",
-    background: "linear-gradient(135deg, #eaf1fb 0%, #dce8f6 40%, #b3cdee 100%)",
+    width: "100vw",
+    background: "linear-gradient(135deg, #f4f8fc 0%, #e4edf7 100%)",
     fontFamily: "'Poppins', sans-serif",
     overflow: "hidden",
   },
-  logoWrapper: {
+  logo: {
+    width: "110px",
+    height: "110px",
+    borderRadius: "20px",
+    marginBottom: "8px", // less gap between logo and text
+    boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+  },
+  title: {
+    fontSize: "3.3rem",
+    fontWeight: "800",
+    color: "#193648",
+    textShadow: "1.5px 1.5px 6px rgba(0,0,0,0.18)",
     display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+    gap: "2px", // tight letters
+    lineHeight: "1", // removes extra vertical space
+  },
+  xLetter: {
+    background: "linear-gradient(90deg, #3a70b0, #193648)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+  tagline: {
+    fontSize: "1.05rem",
+    color: "#193648",
+    marginTop: "4px", // 🔹 tightened spacing
+    fontWeight: "500",
+    opacity: 0.95,
+    letterSpacing: "0.5px",
   },
 };
 

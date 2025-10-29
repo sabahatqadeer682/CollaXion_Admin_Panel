@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -25,6 +23,11 @@ const MainDashboardWeb = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
 
   const toggleSidebar = () => setCollapsed(!collapsed);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Agar tum token use kar rahi ho
+    navigate("/login"); // Redirect to login page
+  };
 
   const cardData = [
     { id: 1, icon: <FileSignature size={40} />, title: "MOUs", desc: "Track signed and pending Memorandums of Understanding.", route: "/mou-management" },
@@ -109,6 +112,7 @@ const MainDashboardWeb = () => {
             ...styles.logout,
             justifyContent: collapsed ? "center" : "flex-start",
           }}
+          onClick={handleLogout} // Bind logout function here
         >
           <LogOut size={16} style={styles.icon} />
           {!collapsed && <span>Logout</span>}
@@ -230,12 +234,10 @@ const styles = {
     fontSize: "1.5rem",
     fontWeight: "700",
     color: "#fff",
+    textShadow: "0 0 10px rgba(247, 248, 250, 0)",
   },
   logoC: { color: "#fff", fontSize: "1.7rem" },
-  logoX: {
-    color: "#6CA9FF",
-    textShadow: "0 0 10px rgba(108,169,255,0.8)",
-  },
+  logoX: { color: "#fff" },
   toggleBtn: {
     background: "transparent",
     border: "none",
