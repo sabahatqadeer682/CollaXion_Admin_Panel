@@ -8,6 +8,8 @@ import MainDashboardWeb from "./MainDashboardWeb";
 import MouManagement from "./MouManagement";
 import NearbyIndustries from "./NearbyIndustries";
 import AdvisoryMeetings from "./AdvisoryMeetings";
+import EventCreation from "./EventCreation";
+import SystemSettings from "./SystemSettings";
 
 const NavigatorWeb = () => {
   return (
@@ -20,6 +22,8 @@ const NavigatorWeb = () => {
         <Route path="/mou-management" element={<MouManagement />} />
         <Route path="/AdvisoryMeetings" element={<AdvisoryMeetings />} />
         <Route path="/nearby-industries" element={<NearbyIndustries />} />
+        <Route path="/event-creation" element={<EventCreation />} />
+        <Route path="/system-settings" element={<SystemSettings />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
