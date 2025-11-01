@@ -10,6 +10,10 @@ import NearbyIndustries from "./NearbyIndustries";
 import AdvisoryMeetings from "./AdvisoryMeetings";
 import EventCreation from "./EventCreation";
 import SystemSettings from "./SystemSettings";
+import IndustryActiveness from "./IndustryActiveness";
+import IndustryProjects from "./IndustryProjects";
+import RatingsFeedback from "./RatingsFeedback";
+
 
 const NavigatorWeb = () => {
   return (
@@ -24,6 +28,10 @@ const NavigatorWeb = () => {
         <Route path="/nearby-industries" element={<NearbyIndustries />} />
         <Route path="/event-creation" element={<EventCreation />} />
         <Route path="/system-settings" element={<SystemSettings />} />
+        <Route path="/industry-activeness" element={<IndustryActiveness />} />
+        <Route path="/industry-projects" element={<IndustryProjects />} />
+        <Route path="/ratings-feedback" element={<RatingsFeedback />} />
+
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

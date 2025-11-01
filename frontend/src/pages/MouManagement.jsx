@@ -361,7 +361,7 @@ const MouManagement = () => {
             <Search size={16} color="#193648" />
             <input
               style={styles.searchInput}
-              placeholder="Search industry/university..."
+              placeholder="Search by industry name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -508,6 +508,7 @@ const MouManagement = () => {
             animate={{ opacity: 1 }}
             style={styles.activity}
           >
+            
             <div style={styles.activityHeader}>
               <h3 style={{ margin: 0 }}>Tips</h3>
             </div>
@@ -517,6 +518,51 @@ const MouManagement = () => {
               • Create MOUs efficiently with auto-MOU generation.<br />
             </div>
           </motion.div>
+          {/* Industry Engagement Tracking */}
+<div style={styles.activity}>
+  <div style={styles.activityHeader}>
+    <h3 style={{ margin: 0 }}>Industry Engagement Tracking</h3>
+  </div>
+  <div style={{ fontSize: 12, color: "#193648" }}>
+    {[
+      { name: "TechNova Pvt Ltd", activity: 90 },
+      { name: "InnoSoft Solutions", activity: 70 },
+      { name: "NextGen Robotics", activity: 50 },
+      { name: "CloudEdge Systems", activity: 40 },
+      { name: "GreenEnergy Labs", activity: 30 },
+    ].map((ind, i) => ( 
+      <div key={i} style={{ marginBottom: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+          <span>{ind.name}</span>
+          <span>{ind.activity}%</span>
+        </div>
+        <div style={{ height: 6, borderRadius: 3, background: "#e0e0e0", overflow: "hidden", marginTop: 3 }}>
+          <div
+            style={{
+              width: `${ind.activity}%`,
+              height: "100%",
+              background: "#447da0ff",
+            }}
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+{/* System Suggested Industries */}
+<div style={styles.activity}>
+  <div style={styles.activityHeader}>
+    <h3 style={{ margin: 0 }}>System Suggested Industries</h3>
+  </div>
+  <div style={{ fontSize: 12, color: "#193648", lineHeight: 1.6 }}>
+    <div>• AI Dynamics Pvt Ltd — ideal for research collaboration</div>
+    <div>• VisionWare Technologies — recommended for internships</div>
+    <div>• DataBridge Analytics — suggested for consultancy</div>
+    <div>• AutoSmart Industries — emerging in industrial automation</div>
+  </div>
+</div>
+
 
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
@@ -669,7 +715,7 @@ const styles = {
   searchInput: { border: "none", outline: "none", padding: 4, width: 180 },
   filterWrapper: { display: "flex", alignItems: "center", background: "#fff", borderRadius: 6, padding: "4px 8px", gap: 4, border: "1px solid #ccc" },
   filterSelect: { border: "none", outline: "none", background: "transparent", fontSize: 13 },
-  createBtn: { display: "flex", alignItems: "center", gap: 6, background: "#193648", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontWeight: 600 },
+  createBtn: { display: "flex", alignItems: "center", gap: 6, background: "#174866ff", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontWeight: 600 },
   summaryRow: { display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 },
   statCard: { flex: 1, minWidth: 120, background: "#fff", padding: 12, borderRadius: 6, boxShadow: "0 4px 8px rgba(0,0,0,0.05)" },
   statTitle: { fontSize: 12, color: "#2b5b94" },
@@ -688,12 +734,12 @@ const styles = {
   progressWrap: { marginTop: 6 },
   progressLabel: { display: "flex", justifyContent: "space-between", marginBottom: 4 },
   progressBar: { height: 6, borderRadius: 3, background: "#e0e0e0", overflow: "hidden" },
-  progressFill: { height: "100%", background: "#193648" },
+  progressFill: { height: "100%", background: "#115077ff" },
   cardActions: { marginTop: 6, textAlign: "right" },
   pdfBtn: { background: "#2b5b94", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 4, cursor: "pointer" },
   activity: { background: "#fff", borderRadius: 6, padding: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" },
   activityHeader: { display: "flex", justifyContent: "space-between", marginBottom: 8 },
-  activityList: { fontSize: 12, color: "#193648" },
+  activityList: { fontSize: 12, color: "#37576bff" },
   activityItem: { marginBottom: 4 },
   empty: { padding: 40, textAlign: "center" },
   modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.35)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 99 },

@@ -50,7 +50,7 @@ const initialSettings = {
   profile: {
     displayName: "Admin",
     email: "admin@collaxion.local",
-    avatar: null, // dataURL or null
+    avatar: null,
   },
 };
 
@@ -91,7 +91,7 @@ const SystemSettings = () => {
     flash("Profile image updated (preview)");
   };
 
-  // PROFILE: change password (validates against hardcoded admin password)
+  // PROFILE: change password
   const handleChangePassword = (e) => {
     e.preventDefault();
     if (passwordForm.current !== HARDCODED_ADMIN.password) {
@@ -106,10 +106,8 @@ const SystemSettings = () => {
       alert("New password and confirm do not match.");
       return;
     }
-    // simulate saving password (in-memory)
     setAdminPassword(passwordForm.newPass);
-    // update hardcoded? we only change in-session variable; true hardcoded remains but for this module we'll accept as changed
-    HARDCODED_ADMIN.password = passwordForm.newPass; // note: mutating for session convenience
+    HARDCODED_ADMIN.password = passwordForm.newPass; 
     setPasswordForm({ current: "", newPass: "", confirm: "" });
     flash("Password changed");
   };
@@ -154,24 +152,31 @@ const SystemSettings = () => {
     reader.readAsText(f);
   };
 
-  // INTEGRATIONS toggle
+  // 🔹 Session-only toggle functions
+  const togglePref = (key) => {
+    setSettings((prev) => ({
+      ...prev,
+      preferences: { ...prev.preferences, [key]: !prev.preferences[key] },
+    }));
+  };
+
   const toggleIntegration = (key) => {
-    setSettings((s) => ({ ...s, integrations: { ...s.integrations, [key]: !s.integrations[key] } }));
-    flash("Integration updated");
+    setSettings((prev) => ({
+      ...prev,
+      integrations: { ...prev.integrations, [key]: !prev.integrations[key] },
+    }));
   };
 
-  // Security: enable/disable 2FA
   const toggle2FA = () => {
-    setSettings((s) => ({ ...s, security: { ...s.security, twoFA: !s.security.twoFA } }));
-    flash("Security updated");
+    setSettings((prev) => ({
+      ...prev,
+      security: { ...prev.security, twoFA: !prev.security.twoFA },
+    }));
   };
-
-  // Preferences: toggles
-  const togglePref = (key) =>
-    setSettings((s) => ({ ...s, preferences: { ...s.preferences, [key]: !s.preferences[key] } }));
 
   // Language change
-  const changeLanguage = (lang) => setSettings((s) => ({ ...s, preferences: { ...s.preferences, language: lang } }));
+  const changeLanguage = (lang) =>
+    setSettings((s) => ({ ...s, preferences: { ...s.preferences, language: lang } }));
 
   // Profile save (displayName + email)
   const handleProfileSave = (e) => {
@@ -183,7 +188,7 @@ const SystemSettings = () => {
     flash("Profile saved");
   };
 
-  // Simple style helper for active section
+  // Sidebar button helper
   const sectionBtn = (key, label, Icon) => (
     <button
       onClick={() => setActiveSection(key)}
@@ -209,6 +214,8 @@ const SystemSettings = () => {
       <div style={{ opacity: 0.6, fontSize: 12 }}>{activeSection === key ? "Active" : ""}</div>
     </button>
   );
+
+
 
   return (
     <div style={styles.page}>
@@ -594,11 +601,13 @@ const styles = {
     color: "#0B2B3A",
   },
   container: {
-    display: "flex",
-    gap: 24,
-    maxWidth: 1200,
-    margin: "0 auto",
-  },
+  display: "flex",
+  gap: 24,
+  width: "100%",
+  height: "100%",
+  margin: 0,
+},
+
   sidebar: {
     width: 320,
     background: "#FFFFFF",

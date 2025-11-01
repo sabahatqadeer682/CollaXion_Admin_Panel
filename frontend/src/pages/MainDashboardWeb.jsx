@@ -13,6 +13,7 @@ import {
   Network,
   Menu,
   CalendarCog,
+  
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import collaxionLogo from "../images/collaxionlogo.jpeg";
@@ -58,18 +59,15 @@ const MainDashboardWeb = () => {
       icon: <Network size={40} />,
       title: "Industry Activeness",
       desc: "Monitor active partnerships and industry participation.",
+      route: "/industry-activeness",
     },
-    {
-      id: 6,
-      icon: <BarChart3 size={40} />,
-      title: "Analytics Overview",
-      desc: "Visualize engagement metrics and collaboration data.",
-    },
+   
     {
       id: 7,
       icon: <Briefcase size={40} />,
       title: "Industry Projects",
       desc: "View and manage projects offered by industries.",
+      route: "/industry-projects",
     },
     // 🆕 New Cards Added
     {
@@ -79,6 +77,13 @@ const MainDashboardWeb = () => {
       desc: "Create and manage university–industry collaborative events.",
       route: "/event-creation",
     },
+        {
+  id: 6,
+  icon: <BarChart3 size={40} />,
+  title: "Ratings & Feedback",
+  desc: "View ratings and feedback from both students and industries.",
+  route: "/ratings-feedback",
+},
     {
       id: 9,
       icon: <Settings size={40} />,
@@ -86,6 +91,8 @@ const MainDashboardWeb = () => {
       desc: "Configure system preferences, permissions, and access controls.",
       route: "/system-settings",
     },
+
+
   ];
 
   const sidebarWidth = collapsed ? "80px" : "250px";
@@ -128,9 +135,13 @@ const MainDashboardWeb = () => {
           {[
             ["Manage MOUs", FileSignature, "/mou-management"],
             ["Nearby Industries", MapPin, "/nearby-industries"],
-            ["Internship Management", GraduationCap],
+            ["Internships & projects", GraduationCap, "/industry-projects"],
+            ["Event Creation", CalendarCog, "/event-creation"],
             ["Advisory Meetings", CalendarPlus, "/AdvisoryMeetings"],
-            ["System Settings", Settings, "/system-settings"],
+            ["Industry Engagement", Network, "/industry-activeness"],
+            ["Ratings & Feedback", BarChart3, "/ratings-feedback"],
+            ["System Settings", Settings, "/system-settings"]
+            
           ].map(([label, Icon, path], i) => (
             <motion.div
               key={i}

@@ -37,14 +37,7 @@ const AdvisoryMeeting = () => {
       alert("Please fill all meeting details!");
       return;
     }
-
-    const newData = {
-      ...newMeeting,
-      id: Date.now(),
-      status: "Scheduled",
-      boardMembers,
-    };
-
+    const newData = { ...newMeeting, id: Date.now(), status: "Scheduled", boardMembers };
     setMeetings([...meetings, newData]);
     setNewMeeting({ agenda: "", date: "", time: "", venue: "" });
     setShowInviteModal(true);
@@ -79,20 +72,21 @@ const AdvisoryMeeting = () => {
 
   return (
     <div className="page-container">
-      {/* ===== Header ===== */}
+      {/* ===== Enhanced Header ===== */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         className="advisory-header"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <img src={collaxionLogo} alt="CollaXion" className="advisory-logo" />
           <div className="advisory-title">
             <h1>Advisory Board Meeting Management</h1>
-            <p>Organize, schedule, and track official advisory meetings efficiently.</p>
+            <p>Efficiently organize, schedule, and track advisory board meetings.</p>
           </div>
         </div>
+       
       </motion.div>
 
       {/* ===== Tabs ===== */}
@@ -195,16 +189,16 @@ const AdvisoryMeeting = () => {
         </motion.div>
       )}
 
-      {/* ===== Glass Invitation Modal (Enhanced) ===== */}
+      {/* ===== Invitation Modal (Card Style) ===== */}
       {showInviteModal && (
         <div className="modal-overlay">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="glass-modal-box"
+            className="card-modal-box"
           >
-            <h2 className="section-title flex items-center gap-2 mb-4">
+            <h2 className="modal-title flex items-center gap-2 mb-5">
               <Mail /> Send Invitations to Industry Representatives
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -217,7 +211,7 @@ const AdvisoryMeeting = () => {
                   <div className="rep-content">
                     <h4>{rep.name}</h4>
                     {rep.suggested && (
-                      <div className="suggested-badge" title="System Suggested">⭐</div>
+                      <span className="suggested-badge">System Suggested</span>
                     )}
                   </div>
                 </div>
@@ -300,17 +294,26 @@ const AdvisoryMeeting = () => {
         </motion.div>
       )}
 
-      {/* ===== Inline CSS (Original + Glass Modal Enhancements) ===== */}
+      {/* ===== Inline CSS ===== */}
       <style>{`
         body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #e2eef9 0%, #ffffff 100%); }
         .page-container { padding: 40px 20px; min-height: 100vh; }
-        .advisory-header { display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 25px 40px; border-radius: 18px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); margin-bottom: 40px; }
-        .advisory-logo { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .advisory-title h1 { font-size: 1.9rem; font-weight: 700; color: #193648; }
-        .advisory-title p { color: #3a70b0; font-size: 0.9rem; margin-top: 5px; }
+
+        /* ===== Header ===== */
+        .advisory-header { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #193648, #3a70b0); padding: 25px 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.12); margin-bottom: 40px; color: white; }
+        .advisory-logo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .advisory-title h1 { font-size: 2rem; font-weight: 700; }
+        .advisory-title p { font-size: 0.95rem; margin-top: 6px; color: #dce3f2; }
+        .header-actions { display: flex; gap: 12px; }
+        .quick-action-btn { background: rgba(255,255,255,0.15); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; }
+        .quick-action-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+
+        /* ===== Tabs ===== */
         .tab-buttons { display: flex; justify-content: center; gap: 20px; margin-bottom: 40px; }
         .tab-buttons button { padding: 10px 25px; border-radius: 12px; background: #e4e9f1; color: #193648; font-weight: 500; cursor: pointer; border: none; transition: all 0.3s ease; }
         .tab-buttons button.active { background: #193648; color: white; transform: scale(1.05); }
+
+        /* ===== Meeting Card ===== */
         .meeting-card { background: white; border-radius: 20px; padding: 40px; max-width: 900px; margin: auto; box-shadow: 0 10px 35px rgba(0,0,0,0.1); border: 1px solid #edf1f7; }
         input[type='text'], input[type='date'], input[type='time'] { width: 100%; padding: 10px 15px; margin-top: 5px; border: 1.5px solid #d3d9e1; border-radius: 10px; outline: none; transition: all 0.3s ease; }
         input:focus { border-color: #193648; box-shadow: 0 0 0 3px rgba(25,54,72,0.2); }
@@ -321,6 +324,8 @@ const AdvisoryMeeting = () => {
         .member-card p { color: #3a70b0; font-size: 0.85rem; margin-top: 4px; }
         .schedule-btn { background: #193648; color: white; padding: 12px 35px; border-radius: 12px; font-weight: 500; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; transition: all 0.3s ease; margin-top: 25px; }
         .schedule-btn:hover { background: #204d76; transform: scale(1.05); }
+
+        /* ===== Table ===== */
         .table-container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 18px; box-shadow: 0 10px 35px rgba(0,0,0,0.1); border: 1px solid #edf1f7; }
         table { width: 100%; border-collapse: collapse; text-align: center; }
         th { background: #193648; color: white; padding: 12px; font-size: 0.9rem; }
@@ -329,20 +334,19 @@ const AdvisoryMeeting = () => {
         .upload-label { color: #193648; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .upload-label:hover { text-decoration: underline; }
 
-        /* ===== Glass Modal Enhancements ===== */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:999; }
-        .glass-modal-box { background: rgba(255,255,255,0.25); backdrop-filter: blur(16px); border-radius: 20px; padding: 35px; width: 650px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.35); transition: all 0.3s ease; }
-        .rep-card { position: relative; background: rgba(255,255,255,0.2); border-radius: 16px; padding: 18px; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.35); }
-        .rep-card:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .rep-card.selected { border-color: #193648; background: rgba(234,242,250,0.5); }
+        /* ===== Card Modal ===== */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); display:flex; justify-content:center; align-items:center; z-index:999; }
+        .card-modal-box { background: #fff; border-radius: 20px; padding: 35px; width: 700px; max-width: 95%; box-shadow: 0 15px 40px rgba(0,0,0,0.25); border: 1px solid #e2e8f0; transition: all 0.3s ease; }
+        .modal-title { font-weight: 600; font-size: 1.2rem; color: #193648; }
+        .rep-card { position: relative; background: #f3f4f6; border-radius: 16px; padding: 18px; cursor: pointer; transition: all 0.3s ease; border: 1px solid #d1d5db; }
+        .rep-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .rep-card.selected { border-color: #193648; background: #e4f0ff; }
         .rep-content { display: flex; align-items: center; justify-content: space-between; }
-        .suggested-badge { background: linear-gradient(135deg, #ffcd3c, #ff9c3c); color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .cancel-btn, .send-btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; }
-        .cancel-btn { background: #e4e9f1; color: #193648; }
-        .send-btn { background: #193648; color: white; }
+        .suggested-badge { background: #ffe8b0; color: #b87b00; font-weight: 600; font-size: 0.75rem; padding: 3px 7px; border-radius: 6px; }
+        .cancel-btn { padding: 10px 25px; border-radius: 12px; background: #f3f4f6; color: #193648; font-weight: 500; cursor: pointer; border: none; transition: all 0.3s ease; }
+        .cancel-btn:hover { background: #e2e8f0; }
+        .send-btn { padding: 10px 25px; border-radius: 12px; background: #193648; color: white; font-weight: 500; cursor: pointer; border: none; transition: all 0.3s ease; }
         .send-btn:hover { background: #204d76; }
-
-        .records-table tr:hover { background: rgba(25,54,72,0.05); transition: background 0.3s ease; }
       `}</style>
     </div>
   );
