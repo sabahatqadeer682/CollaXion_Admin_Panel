@@ -17,12 +17,6 @@ import {
   Tag,
 } from "lucide-react";
 
-/**
- * CollaXion Event Dashboard
- * - Inline CSS only
- * - Mock events + add-new-event modal
- * - Tabs (All, Upcoming, Workshops, Seminars, Webinars, Industry Visits, Competitions)
- */
 
 const now = new Date("2025-10-30"); // consistent with developer timezone/date note
 

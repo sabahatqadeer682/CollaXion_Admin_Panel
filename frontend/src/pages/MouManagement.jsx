@@ -1,56 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; 
 import { motion } from "framer-motion";
-import { PlusCircle, Clock, AlertTriangle, Search, Filter, X } from "lucide-react";
+import { PlusCircle, Clock, AlertTriangle, Search, Filter, X, Trash2 } from "lucide-react";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import axios from 'axios';
+
+const API_URL = "http://localhost:5000/api/mous";
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB limit
 
 const MouManagement = () => {
-  // Function to load MOUs from localStorage or return default if none
-  const loadMous = () => {
-    try {
-      const storedMous = localStorage.getItem("mouList");
-      return storedMous ? JSON.parse(storedMous) : [
-        {
-          id: 1,
-          university: "Riphah International University",
-          industry: "TechNova Pvt Ltd",
-          startDate: "2025-01-10",
-          endDate: "2026-01-10",
-          description: "Collaboration for joint research and internship programs.",
-          extraDetails: ["Joint lab access", "Monthly progress report submission"],
-        },
-        {
-          id: 2,
-          university: "Riphah International University",
-          industry: "InnoSoft Solutions",
-          startDate: "2023-08-01",
-          endDate: "2024-08-01",
-          description: "Expired MOU for training programs and joint projects.",
-          extraDetails: [],
-        },
-      ];
-    } catch (error) {
-      console.error("Failed to load MOUs from local storage:", error);
-      return []; // Return empty array or a safe default on error
-    }
-  };
-
-  const [mous, setMous] = useState(loadMous); // Initialize state with loaded MOUs
-
-  // Save MOUs to local storage whenever `mous` changes
-  useEffect(() => {
-    try {
-      localStorage.setItem("mouList", JSON.stringify(mous));
-    } catch (error) {
-      console.error("Failed to save MOUs to local storage:", error);
-    }
-  }, [mous]);
-
+  const [mous, setMous] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [activityLog, setActivityLog] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Minimal form fields (simple form as requested)
   const [formData, setFormData] = useState({
     title: "",
     university: "",
@@ -59,16 +24,37 @@ const MouManagement = () => {
     startDate: "",
     endDate: "",
     attachment: null,
-    // optional: short description stored to fill "Purpose" in the PDF
     description: "",
   });
 
+  // Fetch MOUs from backend
   useEffect(() => {
-    setActivityLog([
-      "✅ MOU created between Riphah & TechNova (Jan 10, 2025)",
-      "⚠️ MOU expired: Riphah × InnoSoft (Aug 1, 2024)",
-    ]);
+    fetchMous();
   }, []);
+
+  const fetchMous = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(API_URL);
+      setMous(response.data);
+      
+      // Build activity log from fetched MOUs
+      const logs = response.data.slice(0, 5).map(m => {
+        const isExp = new Date(m.endDate).getTime() <= Date.now();
+        return isExp 
+          ? `⚠️ MOU expired: ${m.university} × ${m.industry} (${m.endDate})`
+          : `✅ MOU created: ${m.title} between ${m.university} & ${m.industry} (${m.startDate})`;
+      });
+      setActivityLog(logs);
+    } catch (error) {
+      console.error("Error fetching MOUs:", error);
+      setError("Failed to load MOUs from server");
+      setActivityLog(["❌ Error loading MOUs from server"]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calcProgress = (start, end) => {
     const s = new Date(start).getTime();
@@ -103,40 +89,134 @@ const MouManagement = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    const newMou = {
-      ...formData,
-      id: mous.length + Math.floor(Math.random() * 1000000) + 1,
-      extraDetails: [], // keep empty by default for simple form
-      signatories: { university: "", industry: "" }, // left blank for signatures
-      universityContact: { name: "", designation: "", email: "" },
-      industryContact: { name: "", designation: "", email: "" },
-      status: "Draft",
-    };
+    
+    try {
+      // Validate file size
+      if (formData.attachment && formData.attachment.size > MAX_FILE_SIZE) {
+        alert(`File size too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+        return;
+      }
 
-    setMous((s) => [newMou, ...s]);
-    setActivityLog((a) => [
-      `✅ MOU created: ${newMou.title || "Untitled"} between ${newMou.university} & ${newMou.industry} (Starts ${newMou.startDate})`,
-      ...a,
-    ]);
+      // Convert attachment to base64 if exists
+      let attachmentData = null;
+      let attachmentName = null;
+      let attachmentType = null;
+      
+      if (formData.attachment) {
+        const reader = new FileReader();
+        attachmentData = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(formData.attachment);
+        });
+        attachmentName = formData.attachment.name;
+        attachmentType = formData.attachment.type;
+      }
 
-    await generateFormalMouPDF(newMou);
+      const newMouData = {
+        title: formData.title,
+        university: formData.university,
+        industry: formData.industry,
+        collaborationType: formData.collaborationType,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        description: formData.description,
+        extraDetails: [],
+        signatories: { university: "", industry: "" },
+        universityContact: { name: "", designation: "", email: "" },
+        industryContact: { name: "", designation: "", email: "" },
+        status: "Draft",
+        attachmentData,
+        attachmentName,
+        attachmentType
+      };
 
-    // reset minimal form
-    setFormData({
-      title: "",
-      university: "",
-      industry: "",
-      collaborationType: "",
-      startDate: "",
-      endDate: "",
-      attachment: null,
-      description: "",
-    });
-    setShowModal(false);
+      // Generate PDF and get base64
+      console.log("Generating PDF...");
+      const pdfBase64 = await generateFormalMouPDF(newMouData, true);
+      newMouData.pdfData = pdfBase64;
+
+      // Check total data size
+      const dataSize = JSON.stringify(newMouData).length;
+      console.log(`Total MOU data size: ${(dataSize / 1024 / 1024).toFixed(2)} MB`);
+      
+      if (dataSize > 15 * 1024 * 1024) {
+        alert("MOU data too large (>15MB). Try without attachment or use a smaller file.");
+        return;
+      }
+
+      // Save to backend with timeout
+      console.log("Saving to backend...");
+      const response = await axios.post(API_URL, newMouData, {
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log("MOU saved successfully:", response.data);
+
+      // Update local state
+      setMous((s) => [response.data, ...s]);
+      setActivityLog((a) => [
+        `✅ MOU created: ${response.data.title} between ${response.data.university} & ${response.data.industry} (Starts ${response.data.startDate})`,
+        ...a.slice(0, 4), // Keep only last 5 logs
+      ]);
+
+      // Preview PDF in new tab
+      const pdfBytes = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+
+      // Reset form
+      setFormData({
+        title: "",
+        university: "",
+        industry: "",
+        collaborationType: "",
+        startDate: "",
+        endDate: "",
+        attachment: null,
+        description: "",
+      });
+      setShowModal(false);
+      alert("MOU created successfully!");
+      
+    } catch (error) {
+      console.error("Error creating MOU:", error);
+      
+      // Detailed error logging
+      if (error.response) {
+        console.error("Server response:", error.response.data);
+        console.error("Status code:", error.response.status);
+        alert(`Failed to create MOU: ${error.response.data.message || error.response.data.error || 'Server error'}`);
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        alert("Failed to create MOU: No response from server. Check if backend is running.");
+      } else {
+        console.error("Error details:", error.message);
+        alert(`Failed to create MOU: ${error.message}`);
+      }
+    }
   };
 
-  // ---------- PDF generation: formal, black & white, preview in new tab ----------
-  const generateFormalMouPDF = async (mou) => {
+  const handleDelete = async (mouId) => {
+    if (!window.confirm("Are you sure you want to delete this MOU?")) return;
+    
+    try {
+      await axios.delete(`${API_URL}/${mouId}`);
+      setMous((s) => s.filter(m => m._id !== mouId));
+      setActivityLog((a) => [`🗑️ MOU deleted`, ...a.slice(0, 4)]);
+      alert("MOU deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting MOU:", error);
+      alert(`Failed to delete MOU: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  // Generate PDF - now returns base64 when returnBase64 is true
+  const generateFormalMouPDF = async (mou, returnBase64 = false) => {
     try {
       const pdfDoc = await PDFDocument.create();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -149,7 +229,7 @@ const MouManagement = () => {
       let page = pdfDoc.addPage([pageWidth, pageHeight]);
       let y = page.getHeight() - 70;
       const lineHeight = 16;
-      const textColor = rgb(0, 0, 0); // black
+      const textColor = rgb(0, 0, 0);
 
       // Centered Title
       const title = "MEMORANDUM OF UNDERSTANDING (MOU)";
@@ -159,12 +239,11 @@ const MouManagement = () => {
 
       y -= 28;
 
-      // Intro paragraph (formal tone)
+      // Intro paragraph
       const intro = `This Memorandum of Understanding (MOU) is made and entered into by and between ${mou.university || "the University"} (hereinafter referred to as "the University") and ${mou.industry || "the Industry"} (hereinafter referred to as "the Industry").`;
       y = drawWrappedText(pdfDoc, page, intro, left, y, right, font, 11, lineHeight);
 
       y -= 8;
-      // Reference / Dates summary block (small)
       const refLine = `Title: ${mou.title || "—"}    |    Type: ${mou.collaborationType || "—"}    |    Effective: ${mou.startDate || "—"} to ${mou.endDate || "—"}`;
       y = drawWrappedText(pdfDoc, page, refLine, left, y, right, font, 10, lineHeight);
 
@@ -188,7 +267,7 @@ const MouManagement = () => {
 
       y -= 6;
 
-      // 3. Scope / Responsibilities
+      // 3. Scope
       y = drawSectionHeading(page, "3. SCOPE & RESPONSIBILITIES", left, y, boldFont, 12);
       const scopeLines = [
         `${mou.university || "The University"} agrees to provide academic supervision, access to subject matter expertise and student involvement as appropriate.`,
@@ -224,60 +303,49 @@ const MouManagement = () => {
 
       // 7. Signatures
       if (y < 170) {
-        // new page for signatures if needed
         ({ page, y } = addNewPageWithY(pdfDoc));
       }
       page.drawText("7. SIGNATURES", { x: left, y, font: boldFont, size: 12, color: textColor });
       y -= (lineHeight + 6);
 
-      // Two-column signature block
       const sigBlockTop = y;
       const colWidth = (pageWidth - left * 2) / 2;
       const leftX = left;
       const rightX = left + colWidth + 10;
 
-      // University block
       page.drawText("For the University:", { x: leftX, y: sigBlockTop, font: font, size: 11, color: textColor });
       page.drawText(`Name & Title: ____________________________`, { x: leftX, y: sigBlockTop - lineHeight, font: font, size: 11 });
       page.drawText(`Signature: _______________________________`, { x: leftX, y: sigBlockTop - lineHeight * 2, font: font, size: 11 });
       page.drawText(`Date: _________________________________`, { x: leftX, y: sigBlockTop - lineHeight * 3, font: font, size: 11 });
 
-      // Industry block
       page.drawText("For the Industry:", { x: rightX, y: sigBlockTop, font: font, size: 11, color: textColor });
       page.drawText(`Name & Title: ____________________________`, { x: rightX, y: sigBlockTop - lineHeight, font: font, size: 11 });
       page.drawText(`Signature: _______________________________`, { x: rightX, y: sigBlockTop - lineHeight * 2, font: font, size: 11 });
       page.drawText(`Date: _________________________________`, { x: rightX, y: sigBlockTop - lineHeight * 3, font: font, size: 11 });
 
-      // Optionally append the uploaded file as extra pages
-      if (mou.attachment) {
+      // Handle attachment (only for small files)
+      if (mou.attachmentData && mou.attachmentType && !returnBase64) {
         try {
-          const file = mou.attachment;
-          const mime = file.type || "";
-
-          if (mime === "application/pdf") {
-            const attachedBytes = await file.arrayBuffer();
-            const attachedPdf = await PDFDocument.load(attachedBytes);
+          const attachmentBytes = Uint8Array.from(atob(mou.attachmentData), c => c.charCodeAt(0));
+          
+          if (mou.attachmentType === "application/pdf") {
+            const attachedPdf = await PDFDocument.load(attachmentBytes);
             const copiedPages = await pdfDoc.copyPages(attachedPdf, attachedPdf.getPageIndices());
             copiedPages.forEach((p) => pdfDoc.addPage(p));
-          } else if (mime.startsWith("image/")) {
-            const imgBytes = await file.arrayBuffer();
+          } else if (mou.attachmentType.startsWith("image/")) {
             let embeddedImage;
-            if (mime === "image/jpeg" || mime === "image/jpg") {
-              embeddedImage = await pdfDoc.embedJpg(imgBytes);
+            if (mou.attachmentType === "image/jpeg" || mou.attachmentType === "image/jpg") {
+              embeddedImage = await pdfDoc.embedJpg(attachmentBytes);
             } else {
-              embeddedImage = await pdfDoc.embedPng(imgBytes);
+              embeddedImage = await pdfDoc.embedPng(attachmentBytes);
             }
             const imgPage = pdfDoc.addPage([pageWidth, pageHeight]);
             const pw = imgPage.getWidth() - 100;
             const ph = imgPage.getHeight() - 100;
             const dims = embeddedImage.scale(1);
-            let iw = dims.width;
-            let ih = dims.height;
-            const widthRatio = pw / iw;
-            const heightRatio = ph / ih;
-            const scale = Math.min(widthRatio, heightRatio, 1);
-            const drawW = iw * scale;
-            const drawH = ih * scale;
+            const scale = Math.min(pw / dims.width, ph / dims.height, 1);
+            const drawW = dims.width * scale;
+            const drawH = dims.height * scale;
             const x = (imgPage.getWidth() - drawW) / 2;
             const yImg = (imgPage.getHeight() - drawH) / 2;
             imgPage.drawImage(embeddedImage, { x, y: yImg, width: drawW, height: drawH });
@@ -287,24 +355,28 @@ const MouManagement = () => {
         }
       }
 
-      // Save PDF and open in new tab for preview (user requested preview)
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank"); // open preview in new tab
-      // do not automatically download; user can save from the preview tab
+      
+      if (returnBase64) {
+        // Return base64 string for storage
+        return btoa(String.fromCharCode(...pdfBytes));
+      } else {
+        // Open in new tab for preview/download
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      }
     } catch (err) {
       console.error("Error generating MOU PDF:", err);
+      throw err;
     }
   };
 
-  // Helper: draw wrapped text and return new y
   const drawWrappedText = (pdfDoc, page, text, x, y, rightLimit, font, size, lineHeight) => {
-    const maxChars = Math.floor((rightLimit - x) / (size * 0.6)); // rough char-width calc
+    const maxChars = Math.floor((rightLimit - x) / (size * 0.6));
     const lines = wrapText(text, maxChars);
     for (const line of lines) {
       if (y < 70) {
-        // add new page if needed
         const np = pdfDoc.addPage([612, 792]);
         page = np;
         y = np.getHeight() - 60;
@@ -315,21 +387,18 @@ const MouManagement = () => {
     return y;
   };
 
-  // Helper: draw a section heading and return new y
   const drawSectionHeading = (page, text, x, y, boldFont, size) => {
     page.drawText(text, { x, y, font: boldFont, size, color: rgb(0,0,0) });
     y -= size + 4;
     return y;
   };
 
-  // Add a new page and return page + y
   const addNewPageWithY = (pdfDoc) => {
     const page = pdfDoc.addPage([612, 792]);
     const y = page.getHeight() - 60;
     return { page, y };
   };
 
-  // Simple wrapper by words
   const wrapText = (text = "", maxChars = 90) => {
     if (!text) return [""];
     const words = text.split(" ");
@@ -347,7 +416,7 @@ const MouManagement = () => {
     return lines;
   };
 
-  // ---------- Render ----------
+  // Render
   return (
     <div style={styles.page}>
       {/* Header */}
@@ -424,7 +493,7 @@ const MouManagement = () => {
             <strong style={{ color: "#8a5b00" }}>{expiringSoon.length} MOUs expiring soon</strong>
             <div style={{ fontSize: 13, color: "#6b4f00", marginTop: 6 }}>
               {expiringSoon.map((m) => (
-                <div key={m.id}>
+                <div key={m._id}>
                   • {m.university} × {m.industry} — ends {m.endDate}
                 </div>
               ))}
@@ -433,136 +502,152 @@ const MouManagement = () => {
         </motion.div>
       )}
 
+      {/* Error Display */}
+      {error && (
+        <div style={{ ...styles.alert, background: "#ffebee" }}>
+          <AlertTriangle size={18} color="#c62828" />
+          <div style={{ marginLeft: 12, color: "#c62828" }}>{error}</div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div style={styles.grid}>
         <div style={styles.leftCol}>
-          <div style={styles.cardGrid}>
-            {filtered.length === 0 ? (
-              <div style={styles.empty}>
-                <div style={{ fontSize: 18, fontWeight: 600, color: "#193648" }}>
-                  No MOUs match your search.
+          {loading ? (
+            <div style={styles.empty}>Loading MOUs...</div>
+          ) : (
+            <div style={styles.cardGrid}>
+              {filtered.length === 0 ? (
+                <div style={styles.empty}>
+                  <div style={{ fontSize: 18, fontWeight: 600, color: "#193648" }}>
+                    No MOUs match your search.
+                  </div>
+                  <div style={{ color: "#2b5b94", marginTop: 8 }}>
+                    Try clearing filters or add a new MOU.
+                  </div>
                 </div>
-                <div style={{ color: "#2b5b94", marginTop: 8 }}>
-                  Try clearing filters or add a new MOU.
-                </div>
-              </div>
-            ) : (
-              filtered.map((m) => {
-                const progress = calcProgress(m.startDate, m.endDate);
-                return (
-                  <motion.div
-                    key={m.id}
-                    whileHover={{ translateY: -4, boxShadow: "0 12px 20px rgba(0,0,0,0.08)" }}
-                    style={{ ...styles.card, ...(isExpired(m) ? styles.expiredCard : {}) }}
-                  >
-                    <div style={styles.cardHeader}>
-                      <div>
-                        <div style={styles.cardTitle}>{m.university}</div>
-                        <div style={styles.cardSubtitle}>Partner: {m.industry}</div>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <Clock size={18} color="#193648" />
-                        <div style={{ fontSize: 12, color: "#193648", marginTop: 6 }}>
-                          {m.startDate} → {m.endDate}
+              ) : (
+                filtered.map((m) => {
+                  const progress = calcProgress(m.startDate, m.endDate);
+                  return (
+                    <motion.div
+                      key={m._id}
+                      whileHover={{ translateY: -4, boxShadow: "0 12px 20px rgba(0,0,0,0.08)" }}
+                      style={{ ...styles.card, ...(isExpired(m) ? styles.expiredCard : {}) }}
+                    >
+                      <div style={styles.cardHeader}>
+                        <div>
+                          <div style={styles.cardTitle}>{m.university}</div>
+                          <div style={styles.cardSubtitle}>Partner: {m.industry}</div>
                         </div>
-                      </div>
-                    </div>
-
-                    <div style={styles.desc}>{m.description || "—"}</div>
-
-                    <div style={styles.progressWrap}>
-                      <div style={styles.progressLabel}>
-                        <div style={{ fontSize: 12, color: "#193648" }}>
-                          Progress: {progress}%
-                        </div>
-                        <div style={{ fontSize: 12, color: isExpired(m) ? "#9a2f2f" : "#193648" }}>
-                          {isExpired(m) ? "Expired" : "Ongoing"}
+                        <div style={{ textAlign: "right" }}>
+                          <Clock size={18} color="#193648" />
+                          <div style={{ fontSize: 12, color: "#193648", marginTop: 6 }}>
+                            {m.startDate} → {m.endDate}
+                          </div>
                         </div>
                       </div>
 
-                      <div style={styles.progressBar}>
-                        <div style={{ ...styles.progressFill, width: `${progress}%` }} />
-                      </div>
-                    </div>
+                      <div style={styles.desc}>{m.description || "—"}</div>
 
-                    <div style={styles.cardActions}>
-                      <button
-                        style={styles.pdfBtn}
-                        onClick={() => generateFormalMouPDF(m)}
-                        title="Download MOU PDF"
-                      >
-                        Download PDF
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
+                      <div style={styles.progressWrap}>
+                        <div style={styles.progressLabel}>
+                          <div style={{ fontSize: 12, color: "#193648" }}>
+                            Progress: {progress}%
+                          </div>
+                          <div style={{ fontSize: 12, color: isExpired(m) ? "#9a2f2f" : "#193648" }}>
+                            {isExpired(m) ? "Expired" : "Ongoing"}
+                          </div>
+                        </div>
+
+                        <div style={styles.progressBar}>
+                          <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+                        </div>
+                      </div>
+
+                      <div style={styles.cardActions}>
+                        <button
+                          style={styles.pdfBtn}
+                          onClick={() => generateFormalMouPDF(m)}
+                          title="Download MOU PDF"
+                        >
+                          Download PDF
+                        </button>
+                        <button
+                          style={styles.deleteBtn}
+                          onClick={() => handleDelete(m._id)}
+                          title="Delete MOU"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Right Panel Tips & Activity */}
+        {/* Right Panel */}
         <div style={styles.rightCol}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             style={styles.activity}
           >
-            
             <div style={styles.activityHeader}>
               <h3 style={{ margin: 0 }}>Tips</h3>
             </div>
             <div style={{ fontSize: 12, color: "#193648" }}>
               • Use search & filter to quickly find MOUs.<br />
               • Preview the formal MOU in a new tab before saving.<br />
-              • Create MOUs efficiently with auto-MOU generation.<br />
+              • Keep attachments under 5MB for best performance.<br />
             </div>
           </motion.div>
-          {/* Industry Engagement Tracking */}
-<div style={styles.activity}>
-  <div style={styles.activityHeader}>
-    <h3 style={{ margin: 0 }}>Industry Engagement Tracking</h3>
-  </div>
-  <div style={{ fontSize: 12, color: "#193648" }}>
-    {[
-      { name: "TechNova Pvt Ltd", activity: 90 },
-      { name: "InnoSoft Solutions", activity: 70 },
-      { name: "NextGen Robotics", activity: 50 },
-      { name: "CloudEdge Systems", activity: 40 },
-      { name: "GreenEnergy Labs", activity: 30 },
-    ].map((ind, i) => ( 
-      <div key={i} style={{ marginBottom: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-          <span>{ind.name}</span>
-          <span>{ind.activity}%</span>
-        </div>
-        <div style={{ height: 6, borderRadius: 3, background: "#e0e0e0", overflow: "hidden", marginTop: 3 }}>
-          <div
-            style={{
-              width: `${ind.activity}%`,
-              height: "100%",
-              background: "#447da0ff",
-            }}
-          />
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
 
-{/* System Suggested Industries */}
-<div style={styles.activity}>
-  <div style={styles.activityHeader}>
-    <h3 style={{ margin: 0 }}>System Suggested Industries</h3>
-  </div>
-  <div style={{ fontSize: 12, color: "#193648", lineHeight: 1.6 }}>
-    <div>• AI Dynamics Pvt Ltd — ideal for research collaboration</div>
-    <div>• VisionWare Technologies — recommended for internships</div>
-    <div>• DataBridge Analytics — suggested for consultancy</div>
-    <div>• AutoSmart Industries — emerging in industrial automation</div>
-  </div>
-</div>
+          <div style={styles.activity}>
+            <div style={styles.activityHeader}>
+              <h3 style={{ margin: 0 }}>Industry Engagement Tracking</h3>
+            </div>
+            <div style={{ fontSize: 12, color: "#193648" }}>
+              {[
+                { name: "TechNova Pvt Ltd", activity: 90 },
+                { name: "InnoSoft Solutions", activity: 70 },
+                { name: "NextGen Robotics", activity: 50 },
+                { name: "CloudEdge Systems", activity: 40 },
+                { name: "GreenEnergy Labs", activity: 30 },
+              ].map((ind, i) => ( 
+                <div key={i} style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                    <span>{ind.name}</span>
+                    <span>{ind.activity}%</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: "#e0e0e0", overflow: "hidden", marginTop: 3 }}>
+                    <div
+                      style={{
+                        width: `${ind.activity}%`,
+                        height: "100%",
+                        background: "#447da0ff",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
+          <div style={styles.activity}>
+            <div style={styles.activityHeader}>
+              <h3 style={{ margin: 0 }}>System Suggested Industries</h3>
+            </div>
+            <div style={{ fontSize: 12, color: "#193648", lineHeight: 1.6 }}>
+              <div>• AI Dynamics Pvt Ltd — ideal for research collaboration</div>
+              <div>• VisionWare Technologies — recommended for internships</div>
+              <div>• DataBridge Analytics — suggested for consultancy</div>
+              <div>• AutoSmart Industries — emerging in industrial automation</div>
+            </div>
+          </div>
 
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
@@ -582,17 +667,21 @@ const MouManagement = () => {
               <div style={{ fontSize: 13, color: "#2b5b94" }}>{expiringSoon.length} items</div>
             </div>
             <div style={styles.activityList}>
-              {expiringSoon.map((m) => (
-                <div key={m.id} style={{ ...styles.activityItem, color: "#9a2f2f" }}>
-                  {m.university} × {m.industry} — ends {m.endDate}
-                </div>
-              ))}
+              {expiringSoon.length === 0 ? (
+                <div style={styles.activityItem}>No MOUs expiring soon</div>
+              ) : (
+                expiringSoon.map((m) => (
+                  <div key={m._id} style={{ ...styles.activityItem, color: "#9a2f2f" }}>
+                    {m.university} × {m.industry} — ends {m.endDate}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal (simple minimal form) */}
+      {/* Modal */}
       {showModal && (
         <div style={styles.modalOverlay}>
           <motion.div
@@ -680,19 +769,32 @@ const MouManagement = () => {
                 style={{ height: 70, padding: "8px", borderRadius: 6, border: "1px solid #ccc", marginBottom: 6 }}
               />
 
-              <label><strong>Attachment (optional)</strong></label>
+              <label><strong>Attachment (optional - max 5MB)</strong></label>
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => setFormData({ ...formData, attachment: e.target.files && e.target.files[0] ? e.target.files[0] : null })}
+                onChange={(e) => {
+                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                  if (file && file.size > MAX_FILE_SIZE) {
+                    alert(`File too large! Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+                    e.target.value = "";
+                    return;
+                  }
+                  setFormData({ ...formData, attachment: file });
+                }}
                 style={inputStyle}
               />
+              {formData.attachment && (
+                <div style={{ fontSize: 12, color: "#2b5b94", marginTop: -4, marginBottom: 6 }}>
+                  Selected: {formData.attachment.name} ({(formData.attachment.size / 1024).toFixed(2)} KB)
+                </div>
+              )}
 
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                style={{ marginTop: 12, padding: "10px 20px", borderRadius: 6, border: "none", background: "#193648", color: "#fff", fontWeight: 600 }}
+                style={{ marginTop: 12, padding: "10px 20px", borderRadius: 6, border: "none", background: "#193648", color: "#fff", fontWeight: 600, cursor: "pointer" }}
               >
                 Generate & Preview MOU
               </motion.button>
@@ -704,7 +806,7 @@ const MouManagement = () => {
   );
 };
 
-// ===================== Styles (kept consistent) =====================
+// ===================== Styles =====================
 const styles = {
   page: { padding: 20, fontFamily: "sans-serif", background: "#f5f8fb", minHeight: "100vh" },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap" },
@@ -735,8 +837,9 @@ const styles = {
   progressLabel: { display: "flex", justifyContent: "space-between", marginBottom: 4 },
   progressBar: { height: 6, borderRadius: 3, background: "#e0e0e0", overflow: "hidden" },
   progressFill: { height: "100%", background: "#115077ff" },
-  cardActions: { marginTop: 6, textAlign: "right" },
+  cardActions: { marginTop: 6, textAlign: "right", display: "flex", gap: 8, justifyContent: "flex-end" },
   pdfBtn: { background: "#2b5b94", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 4, cursor: "pointer" },
+  deleteBtn: { background: "#9a2f2f", color: "#fff", border: "none", padding: "6px 12px", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 },
   activity: { background: "#fff", borderRadius: 6, padding: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" },
   activityHeader: { display: "flex", justifyContent: "space-between", marginBottom: 8 },
   activityList: { fontSize: 12, color: "#37576bff" },
