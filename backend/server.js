@@ -2,7 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import industryRoutes from "./routes/industryRoutes.js";  // ✅ import route
+import industryRoutes from "./routes/industryRoutes.js";
+import mouRoutes from "./routes/mouRoutes.js";
 
 dotenv.config();
 
@@ -10,16 +11,37 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// ✅ Connect MongoDB
+// Add request logging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// Connect MongoDB
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Atlas Connected Successfully"))
-  .catch((err) => console.log("❌ MongoDB Connection Error:", err));
+  .catch((err) => {
+    console.log("❌ MongoDB Connection Error:", err);
+    process.exit(1); // Exit if DB connection fails
+  });
 
-// ✅ Routes
-app.use("/api/industries", industryRoutes); // <— this line connects the routes
+// Routes
+app.use("/api/industries", industryRoutes);
+app.use("/api/mous", mouRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error("Global error handler:", err);
+  res.status(500).json({ 
+    message: "Internal server error", 
+    error: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
 
 // Default route
 app.get("/", (req, res) => {
