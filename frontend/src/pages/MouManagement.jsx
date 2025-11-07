@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react"; 
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { PlusCircle, Clock, AlertTriangle, Search, Filter, X, Trash2 } from "lucide-react";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+
 import axios from 'axios';
 
 const API_URL = "http://localhost:5000/api/mous";
@@ -38,11 +39,11 @@ const MouManagement = () => {
       setError(null);
       const response = await axios.get(API_URL);
       setMous(response.data);
-      
+
       // Build activity log from fetched MOUs
       const logs = response.data.slice(0, 5).map(m => {
         const isExp = new Date(m.endDate).getTime() <= Date.now();
-        return isExp 
+        return isExp
           ? `⚠️ MOU expired: ${m.university} × ${m.industry} (${m.endDate})`
           : `✅ MOU created: ${m.title} between ${m.university} & ${m.industry} (${m.startDate})`;
       });
@@ -89,7 +90,7 @@ const MouManagement = () => {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    
+
     try {
       // Validate file size
       if (formData.attachment && formData.attachment.size > MAX_FILE_SIZE) {
@@ -101,7 +102,7 @@ const MouManagement = () => {
       let attachmentData = null;
       let attachmentName = null;
       let attachmentType = null;
-      
+
       if (formData.attachment) {
         const reader = new FileReader();
         attachmentData = await new Promise((resolve, reject) => {
@@ -134,12 +135,13 @@ const MouManagement = () => {
       // Generate PDF and get base64
       console.log("Generating PDF...");
       const pdfBase64 = await generateFormalMouPDF(newMouData, true);
+
       newMouData.pdfData = pdfBase64;
 
       // Check total data size
       const dataSize = JSON.stringify(newMouData).length;
       console.log(`Total MOU data size: ${(dataSize / 1024 / 1024).toFixed(2)} MB`);
-      
+
       if (dataSize > 15 * 1024 * 1024) {
         alert("MOU data too large (>15MB). Try without attachment or use a smaller file.");
         return;
@@ -153,7 +155,7 @@ const MouManagement = () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       console.log("MOU saved successfully:", response.data);
 
       // Update local state
@@ -182,10 +184,10 @@ const MouManagement = () => {
       });
       setShowModal(false);
       alert("MOU created successfully!");
-      
+
     } catch (error) {
       console.error("Error creating MOU:", error);
-      
+
       // Detailed error logging
       if (error.response) {
         console.error("Server response:", error.response.data);
@@ -203,7 +205,7 @@ const MouManagement = () => {
 
   const handleDelete = async (mouId) => {
     if (!window.confirm("Are you sure you want to delete this MOU?")) return;
-    
+
     try {
       await axios.delete(`${API_URL}/${mouId}`);
       setMous((s) => s.filter(m => m._id !== mouId));
@@ -327,7 +329,7 @@ const MouManagement = () => {
       if (mou.attachmentData && mou.attachmentType && !returnBase64) {
         try {
           const attachmentBytes = Uint8Array.from(atob(mou.attachmentData), c => c.charCodeAt(0));
-          
+
           if (mou.attachmentType === "application/pdf") {
             const attachedPdf = await PDFDocument.load(attachmentBytes);
             const copiedPages = await pdfDoc.copyPages(attachedPdf, attachedPdf.getPageIndices());
@@ -356,7 +358,7 @@ const MouManagement = () => {
       }
 
       const pdfBytes = await pdfDoc.save();
-      
+
       if (returnBase64) {
         // Return base64 string for storage
         return btoa(String.fromCharCode(...pdfBytes));
@@ -381,14 +383,14 @@ const MouManagement = () => {
         page = np;
         y = np.getHeight() - 60;
       }
-      page.drawText(line, { x, y, font, size, color: rgb(0,0,0) });
+      page.drawText(line, { x, y, font, size, color: rgb(0, 0, 0) });
       y -= lineHeight;
     }
     return y;
   };
 
   const drawSectionHeading = (page, text, x, y, boldFont, size) => {
-    page.drawText(text, { x, y, font: boldFont, size, color: rgb(0,0,0) });
+    page.drawText(text, { x, y, font: boldFont, size, color: rgb(0, 0, 0) });
     y -= size + 4;
     return y;
   };
@@ -617,7 +619,7 @@ const MouManagement = () => {
                 { name: "NextGen Robotics", activity: 50 },
                 { name: "CloudEdge Systems", activity: 40 },
                 { name: "GreenEnergy Labs", activity: 30 },
-              ].map((ind, i) => ( 
+              ].map((ind, i) => (
                 <div key={i} style={{ marginBottom: 10 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span>{ind.name}</span>

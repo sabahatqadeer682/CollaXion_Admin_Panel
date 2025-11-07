@@ -15,6 +15,13 @@ import IndustryProjects from "./IndustryProjects";
 import RatingsFeedback from "./RatingsFeedback";
 
 
+import InternshipLogin from "../pages/InchargeSystem/InternshipLogin";
+import InternshipDashboard from "./InchargeSystem/InternshipDashboard";
+import CoCurricularDashboard from "./InchargeSystem/CoCurricularDashboard";
+import CoCurricularLogin from "./InchargeSystem/CoCurricularLogin";
+
+
+
 const NavigatorWeb = () => {
   return (
     <Router>
@@ -31,6 +38,10 @@ const NavigatorWeb = () => {
         <Route path="/industry-activeness" element={<IndustryActiveness />} />
         <Route path="/industry-projects" element={<IndustryProjects />} />
         <Route path="/ratings-feedback" element={<RatingsFeedback />} />
+        <Route path="/internship-login" element={<InternshipLogin />} />
+        <Route path="/internship-dashboard" element={<InternshipDashboard />} />
+        <Route path="/co-curricular-login" element={<CoCurricularLogin />} />
+        <Route path="/co-curricular-dashboard" element={<CoCurricularDashboard />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

@@ -1,26 +1,29 @@
 // src/pages/SplashScreenWeb.jsx
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import LoginScreenWeb from "./LoginScreenWeb";
+// import LoginScreenWeb from "./LoginScreenWeb";
 import collaxionLogo from "../images/collaxionlogo.jpeg";
+
+import Home from "./InchargeSystem/Home";
 
 const letters = ["C", "o", "l", "l", "a", "X", "i", "o", "n"];
 
 const SplashScreenWeb = () => {
   const [showText, setShowText] = useState(false);
   const [showTagline, setShowTagline] = useState(false);
-  const [goToLogin, setGoToLogin] = useState(false);
+  const [goToHome, setGoToHome] = useState(false);
 
   useEffect(() => {
     const timers = [
       setTimeout(() => setShowText(true), 1500),  // Show CollaXion text
       setTimeout(() => setShowTagline(true), 3200), // Tagline appear
-      setTimeout(() => setGoToLogin(true), 5500),   // Go to login
+      setTimeout(() => setGoToHome(true), 5500),   // Go to home
     ];
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  if (goToLogin) return <LoginScreenWeb />;
+  // if (goToLogin) return <LoginScreenWeb />;
+  if (goToHome) return <Home />;
 
   return (
     <div style={styles.container}>
