@@ -11,8 +11,12 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+// app.use(express.json({ limit: '50mb' }));
+// app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
 
 // Add request logging
 app.use((req, res, next) => {
@@ -36,8 +40,8 @@ app.use("/api/mous", mouRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err);
-  res.status(500).json({ 
-    message: "Internal server error", 
+  res.status(500).json({
+    message: "Internal server error",
     error: err.message,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
