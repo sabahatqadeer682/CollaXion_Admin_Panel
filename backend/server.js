@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import industryRoutes from "./routes/industryRoutes.js";
 import mouRoutes from "./routes/mouRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ mongoose
 // Routes
 app.use("/api/industries", industryRoutes);
 app.use("/api/mous", mouRoutes);
+app.use("/api/events", eventRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
