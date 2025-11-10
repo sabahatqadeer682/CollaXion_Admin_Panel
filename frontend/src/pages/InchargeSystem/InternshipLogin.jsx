@@ -12,7 +12,7 @@ const InternshipLogin = () => {
     const navigate = useNavigate();
 
     // ✅ Hardcoded Admin Credentials
-    const Internship_USERNAME = "internship@collaxion.com";
+    const Internship_USERNAME = "intern";
     const Internship_PASSWORD = "intern123";
 
     const validate = () => {

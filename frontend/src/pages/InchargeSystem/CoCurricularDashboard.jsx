@@ -1,1053 +1,913 @@
+// CoCurricularDashboard.jsx
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Menu, Calendar, FileText, Plus, Edit, Trash2,
+  CheckCircle, AlertCircle, Clock, User, LogOut, Bell,
+  Download, Mail, TrendingUp, BarChart3, Target, Users,
+  Image, Paperclip, Send, Settings, Key
+} from "lucide-react";
 
+/**
+ * Single-file CoCurricular Dashboard (frontend-only)
+ * Theme colors from image:
+ *  - dark: #040415
+ *  - primary: #aac3fd
+ *  - light: #dfe8fe
+ *  - nearWhite: #fcfdff
+ *
+ * Inline styles only. Framer Motion for animations.
+ */
 
-import React, { useState } from "react";
-import { Menu, X, Calendar, Users, Edit, Trash2, Send, Plus, FileText, CheckCircle, LogOut, User } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+export default function CoCurricularDashboard() {
+  // THEME
+  const theme = {
+    dark: "#193648",
+    primary: "#E2EEF9",
+    light: "#dfe8fe",
+    nearWhite: "#fcfdff",
+    accentText: "#193648"
+  };
 
-const CoCurricularDashboard = () => {
-    const navigate = useNavigate();
-    const [drawerOpen, setDrawerOpen] = useState(true);
-    const [activeSection, setActiveSection] = useState("dashboard");
-    const [events, setEvents] = useState([
-        { id: 1, name: 'Tech Conference 2024', date: '2024-11-15', venue: 'Main Auditorium', participants: 150, status: 'upcoming', category: 'Technical' },
-        { id: 2, name: 'Sports Gala', date: '2024-11-20', venue: 'Sports Complex', participants: 200, status: 'upcoming', category: 'Sports' },
-        { id: 3, name: 'Cultural Festival', date: '2024-12-01', venue: 'University Grounds', participants: 300, status: 'upcoming', category: 'Cultural' },
-    ]);
-    const [responsibilities, setResponsibilities] = useState([
-        { id: 1, task: 'Organize Annual Tech Fest', assignedBy: 'Advisory Board', deadline: '2024-12-01', status: 'In Progress' },
-        { id: 2, task: 'Coordinate Sports Activities', assignedBy: 'Advisory Board', deadline: '2024-11-30', status: 'Pending' },
-        { id: 3, task: 'Manage Cultural Events', assignedBy: 'Advisory Board', deadline: '2024-12-15', status: 'In Progress' },
-    ]);
-    const [showEventForm, setShowEventForm] = useState(false);
-    const [editingEvent, setEditingEvent] = useState(null);
-    const [newEvent, setNewEvent] = useState({
-        name: '',
-        date: '',
-        venue: '',
-        participants: 0,
-        category: 'Technical'
-    });
+  // NAV & UI STATE
+  const [drawerOpen, setDrawerOpen] = useState(true);
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
-    // State for user profile
-    const [userProfile, setUserProfile] = useState({
-        name: 'Prof. Sarah Ahmed',
-        role: 'Co-Curricular Incharge',
-        email: 'sarah.ahmed@university.edu',
-        phone: '123-456-7890'
-    });
-    const [editingProfile, setEditingProfile] = useState(false);
-    const [tempProfile, setTempProfile] = useState({}); // For profile editing form
+  // DATA (mock / local)
+  const [tasks, setTasks] = useState([
+    { id: 1, title: "Finalize Tech Summit Schedule", assignedTo: "Prof. R. Mehta", email: "r.mehta@collxion.edu", deadline: "2024-11-12", status: "In Progress", progress: 75 },
+    { id: 2, title: "Sports Team Registration", assignedTo: "Prof. A. Khan", email: "a.khan@collxion.edu", deadline: "2024-11-20", status: "Pending", progress: 30 },
+    { id: 3, title: "Cultural Event Budget Approval", assignedTo: "Prof. S. Ahmed", email: "s.ahmed@collxion.edu", deadline: "2024-11-10", status: "Overdue", progress: 0 },
+    { id: 4, title: "Venue Booking for Workshop", assignedTo: "Prof. R. Mehta", email: "r.mehta@collxion.edu", deadline: "2024-11-28", status: "Pending", progress: 10 },
+  ]);
+  const [events, setEvents] = useState([
+    { id: 1, name: "AI & Robotics Workshop", date: "2024-11-15", venue: "CS Lab", expected: 80, registered: 72, category: "Technical", coordinator: "Dr. N. Sharma", budget: 15000, poster: null, status: "upcoming" },
+    { id: 2, name: "Annual Sports Day", date: "2024-11-22", venue: "Main Ground", expected: 500, registered: 480, category: "Sports", coordinator: "Prof. P. Singh", budget: 45000, poster: null, status: "upcoming" },
+    { id: 3, name: "Cultural Night 2024", date: "2024-12-01", venue: "Open Air Theatre", expected: 800, registered: 720, category: "Cultural", coordinator: "Ms. R. Gupta", budget: 75000, poster: null, status: "upcoming" },
+  ]);
 
-    const handleCreateEvent = () => {
-        if (newEvent.name && newEvent.date && newEvent.venue) {
-            if (editingEvent) {
-                setEvents(events.map(e => e.id === editingEvent.id ? { ...editingEvent, ...newEvent } : e));
-                setEditingEvent(null);
-                alert('✅ Event updated successfully!');
-            } else {
-                setEvents([...events, {
-                    id: events.length > 0 ? Math.max(...events.map(e => e.id)) + 1 : 1, // Ensure unique ID
-                    ...newEvent,
-                    status: 'upcoming',
-                    participants: parseInt(newEvent.participants) || 0
-                }]);
-                alert('✅ Event created successfully!');
-            }
-            setNewEvent({ name: '', date: '', venue: '', participants: 0, category: 'Technical' });
-            setShowEventForm(false);
-        } else {
-            alert('❌ Please fill all required fields');
-        }
-    };
+  // Notifications & mock history
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "Budget approval pending for Cultural Night", type: "urgent", seen: false },
+    { id: 2, text: "Venue booking confirmed for AI Workshop", type: "info", seen: false },
+  ]);
 
-    const handleEditEvent = (event) => {
-        setEditingEvent(event);
-        setNewEvent({
-            name: event.name,
-            date: event.date,
-            venue: event.venue,
-            participants: event.participants,
-            category: event.category
-        });
-        setShowEventForm(true);
-        setActiveSection('create'); // Navigate to create section for editing
-    };
+  // Event Form state (with poster upload)
+  const [newEvent, setNewEvent] = useState({
+    name: "",
+    date: "",
+    venue: "",
+    expected: "",
+    category: "Technical",
+    coordinator: "",
+    email: "",
+    budget: "",
+    description: "",
+    posterFile: null,
+    posterPreview: null,
+  });
+  const posterRef = useRef(null);
+  const onPosterChange = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => setNewEvent(prev => ({ ...prev, posterFile: f, posterPreview: ev.target.result }));
+    r.readAsDataURL(f);
+  };
 
-    const handleDeleteEvent = (id) => {
-        if (window.confirm('Are you sure you want to delete this event?')) {
-            setEvents(events.filter(e => e.id !== id));
-            alert('🗑️ Event deleted successfully');
-        }
-    };
+  // Invitations recipients (mock)
+  const [recipients, setRecipients] = useState([
+    { id: 1, name: "ABC Industries", email: "contact@abcind.com", selected: false },
+    { id: 2, name: "NextGen Tech", email: "info@nextgen.com", selected: false },
+    { id: 3, name: "Sigma Labs", email: "hello@sigmalabs.com", selected: false },
+  ]);
+  const [inviteMsg, setInviteMsg] = useState("");
 
-    const handleSendInvitation = (event) => {
-        alert(`📧 Invitations Sent Successfully!\n\nEvent: ${event.name}\nVenue: ${event.venue}\nDate: ${event.date}\nExpected Participants: ${event.participants}\n\n✅ Email notifications sent to all students and faculty!`);
-    };
+  // Chart tooltip state
+  const [chartTooltip, setChartTooltip] = useState(null); // {x,y,content}
 
-    const handleUpdateResponsibilityStatus = (id) => {
-        setResponsibilities(responsibilities.map(resp =>
-            resp.id === id
-                ? { ...resp, status: resp.status === 'In Progress' ? 'Completed' : 'In Progress' }
-                : resp
-        ));
-        alert('Responsibility status updated!');
-    };
+  // Derived data
+  const upcomingEvents = events.filter(e => e.status === "upcoming");
+  const avgProgress = Math.round(tasks.reduce((s, t) => s + t.progress, 0) / Math.max(1, tasks.length));
+  const overdueCount = tasks.filter(t => new Date(t.deadline) < new Date()).length;
+  const deadlineAlerts = tasks.filter(t => {
+    if (t.status === "Completed") return false;
+    const diff = (new Date(t.deadline) - new Date()) / (1000*60*60*24);
+    return diff < 0 || diff <= 2;
+  });
 
-    const handleEditProfile = () => {
-        setTempProfile({ ...userProfile }); // Copy current profile to temp for editing
-        setEditingProfile(true);
-        setActiveSection('profile'); // Navigate to profile section
-    };
-
-    const handleSaveProfile = () => {
-        setUserProfile({ ...tempProfile });
-        setEditingProfile(false);
-        alert('✅ Profile updated successfully!');
-    };
-
-    const handleCancelProfileEdit = () => {
-        setEditingProfile(false);
-        setActiveSection('dashboard'); // Go back to dashboard or previous section
-    };
-
-    // const handleLogout = () => {
-    //     if (window.confirm('Are you sure you want to logout?')) {
-    //         navigate("/co-curricular-login");
-    //     }
-
-    const handleLogout = () => {
-        // Create a custom confirmation popup using the browser's confirm dialog alternative
-        const confirmBox = document.createElement("div");
-        confirmBox.style.position = "fixed";
-        confirmBox.style.top = "0";
-        confirmBox.style.left = "0";
-        confirmBox.style.width = "100%";
-        confirmBox.style.height = "100%";
-        confirmBox.style.backgroundColor = "rgba(0,0,0,0.5)";
-        confirmBox.style.display = "flex";
-        confirmBox.style.justifyContent = "center";
-        confirmBox.style.alignItems = "center";
-        confirmBox.style.zIndex = "9999";
-
-        // Create modal content
-        const modal = document.createElement("div");
-        modal.style.background = "#fff";
-        modal.style.padding = "25px 30px";
-        modal.style.borderRadius = "12px";
-        modal.style.textAlign = "center";
-        modal.style.width = "320px";
-        modal.style.boxShadow = "0 5px 20px rgba(0, 0, 0, 0.2)";
-        modal.innerHTML = `
-      <h3 style="margin-bottom: 15px; font-size: 18px;">Confirm Logout</h3>
-      <p style="margin-bottom: 20px; color: #555;">Are you sure you want to log out?</p>
-      <button id="yesBtn" style="background-color:#23a6d5;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;margin-right:10px;">Yes</button>
-      <button id="noBtn" style="background-color:#f2f2f2;color:#333;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;">Cancel</button>
-    `;
-
-        confirmBox.appendChild(modal);
-        document.body.appendChild(confirmBox);
-
-        // Add event listeners
-        modal.querySelector("#yesBtn").addEventListener("click", () => {
-            document.body.removeChild(confirmBox);
-            navigate("/co-curricular-login");
-        });
-
-        modal.querySelector("#noBtn").addEventListener("click", () => {
-            document.body.removeChild(confirmBox);
-        });
-    };
-
-    const stats = {
-        totalEvents: events.length,
-        upcoming: events.filter(e => e.status === 'upcoming').length,
-        totalParticipants: events.reduce((sum, e) => sum + e.participants, 0),
-        responsibilities: responsibilities.length
-    };
-
-    return (
-        <div style={styles.container}>
-            {/* Sidebar Drawer */}
-            <div style={{ ...styles.drawer, width: drawerOpen ? '280px' : '0' }}>
-                <div style={styles.drawerHeader}>
-                    <div style={styles.profileSection}>
-                        <div style={styles.avatar}>{userProfile.name.charAt(0)}</div>
-                        <div>
-                            <h4 style={styles.userName}>{userProfile.name}</h4>
-                            <p style={styles.userRole}>{userProfile.role}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <nav style={styles.nav}>
-                    <div
-                        style={activeSection === 'dashboard' ? styles.navItemActive : styles.navItem}
-                        onClick={() => { setActiveSection('dashboard'); setShowEventForm(false); setEditingProfile(false); }}
-                    >
-                        <Calendar size={20} /> Dashboard Overview
-                    </div>
-                    <div
-                        style={activeSection === 'responsibilities' ? styles.navItemActive : styles.navItem}
-                        onClick={() => { setActiveSection('responsibilities'); setShowEventForm(false); setEditingProfile(false); }}
-                    >
-                        <FileText size={20} /> View Responsibilities
-                    </div>
-                    <div
-                        style={activeSection === 'create' ? styles.navItemActive : styles.navItem}
-                        onClick={() => {
-                            setActiveSection('create');
-                            setShowEventForm(true);
-                            setEditingEvent(null); // Clear editing state for new event
-                            setNewEvent({ name: '', date: '', venue: '', participants: 0, category: 'Technical' });
-                            setEditingProfile(false);
-                        }}
-                    >
-                        <Plus size={20} /> Create New Event
-                    </div>
-                    <div
-                        style={activeSection === 'manage' ? styles.navItemActive : styles.navItem}
-                        onClick={() => { setActiveSection('manage'); setShowEventForm(false); setEditingProfile(false); }}
-                    >
-                        <Edit size={20} /> Manage Events
-                    </div>
-                    <div
-                        style={activeSection === 'participants' ? styles.navItemActive : styles.navItem}
-                        onClick={() => { setActiveSection('participants'); setShowEventForm(false); setEditingProfile(false); }}
-                    >
-                        <Users size={20} /> View Participants
-                    </div>
-                    <div
-                        style={activeSection === 'invitations' ? styles.navItemActive : styles.navItem}
-                        onClick={() => { setActiveSection('invitations'); setShowEventForm(false); setEditingProfile(false); }}
-                    >
-                        <Send size={20} /> Send Invitations
-                    </div>
-                    <div
-                        style={activeSection === 'profile' ? styles.navItemActive : styles.navItem}
-                        onClick={handleEditProfile}
-                    >
-                        <User size={20} /> Edit Profile
-                    </div>
-                    <div
-                        style={styles.navItem} // Logout doesn't need active state
-                        onClick={handleLogout}
-                    >
-                        <LogOut size={20} /> Logout
-                    </div>
-                </nav>
-            </div>
-
-            {/* Main Content */}
-            <div style={{ ...styles.mainContent, marginLeft: drawerOpen ? '280px' : '0' }}>
-                <div style={styles.topbar}>
-                    <button style={styles.menuBtn} onClick={() => setDrawerOpen(!drawerOpen)}>
-                        {drawerOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                    <h2 style={styles.pageTitle}>Co-Curricular Management System</h2>
-                </div>
-
-                <div style={styles.content}>
-                    {/* Dashboard Overview */}
-                    {activeSection === 'dashboard' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>📊 Dashboard Overview</h3>
-                            <div style={styles.statsGrid}>
-                                <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-                                    <div style={styles.statIcon}>📅</div>
-                                    <div>
-                                        <h3 style={styles.statNumber}>{stats.totalEvents}</h3>
-                                        <p style={styles.statLabel}>Total Events</p>
-                                    </div>
-                                </div>
-                                <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}>
-                                    <div style={styles.statIcon}>⏰</div>
-                                    <div>
-                                        <h3 style={styles.statNumber}>{stats.upcoming}</h3>
-                                        <p style={styles.statLabel}>Upcoming Events</p>
-                                    </div>
-                                </div>
-                                <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' }}>
-                                    <div style={styles.statIcon}>👥</div>
-                                    <div>
-                                        <h3 style={styles.statNumber}>{stats.totalParticipants}</h3>
-                                        <p style={styles.statLabel}>Total Participants</p>
-                                    </div>
-                                </div>
-                                <div style={{ ...styles.statCard, background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }}>
-                                    <div style={styles.statIcon}>📋</div>
-                                    <div>
-                                        <h3 style={styles.statNumber}>{stats.responsibilities}</h3>
-                                        <p style={styles.statLabel}>Responsibilities</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <h3 style={styles.sectionTitle}>🎯 Upcoming Events</h3>
-                            <div style={styles.eventsGrid}>
-                                {events.slice(0, 3).map(event => (
-                                    <div key={event.id} style={styles.eventCard}>
-                                        <div style={styles.eventHeader}>
-                                            <span style={styles.categoryBadge}>{event.category}</span>
-                                            <span style={{ ...styles.statusBadge, backgroundColor: event.status === 'upcoming' ? '#3498db' : '#2ecc71' }}>{event.status}</span>
-                                        </div>
-                                        <h4 style={styles.eventName}>{event.name}</h4>
-                                        <div style={styles.eventDetails}>
-                                            <p>📅 {event.date}</p>
-                                            <p>📍 {event.venue}</p>
-                                            <p>👥 {event.participants} participants</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* View Responsibilities */}
-                    {activeSection === 'responsibilities' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>📋 Assigned Responsibilities</h3>
-                            <p style={styles.subtitle}>Tasks assigned by the Advisory Board</p>
-                            <div style={styles.responsibilitiesContainer}>
-                                {responsibilities.map(resp => (
-                                    <div key={resp.id} style={styles.responsibilityCard}>
-                                        <div style={styles.respHeader}>
-                                            <h4 style={styles.respTitle}>{resp.task}</h4>
-                                            <span style={{
-                                                ...styles.respStatus,
-                                                backgroundColor: resp.status === 'In Progress' ? '#4caf50' : (resp.status === 'Pending' ? '#ff9800' : '#888')
-                                            }}>
-                                                {resp.status}
-                                            </span>
-                                        </div>
-                                        <div style={styles.respBody}>
-                                            <p><strong>Assigned By:</strong> {resp.assignedBy}</p>
-                                            <p><strong>Deadline:</strong> {resp.deadline}</p>
-                                        </div>
-                                        <button style={styles.updateBtn} onClick={() => handleUpdateResponsibilityStatus(resp.id)}>
-                                            <CheckCircle size={16} /> Mark as {resp.status === 'In Progress' ? 'Completed' : 'In Progress'}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Create/Edit Event */}
-                    {activeSection === 'create' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>
-                                {editingEvent ? '✏️ Edit Event' : '➕ Create New Event'}
-                            </h3>
-                            <div style={styles.formCard}>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Event Name *</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter event name"
-                                        value={newEvent.name}
-                                        onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.formRow}>
-                                    <div style={styles.formGroup}>
-                                        <label style={styles.label}>Event Date *</label>
-                                        <input
-                                            type="date"
-                                            value={newEvent.date}
-                                            onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                                            style={styles.input}
-                                        />
-                                    </div>
-                                    <div style={styles.formGroup}>
-                                        <label style={styles.label}>Category *</label>
-                                        <select
-                                            value={newEvent.category}
-                                            onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })}
-                                            style={styles.input}
-                                        >
-                                            <option value="Technical">Technical</option>
-                                            <option value="Sports">Sports</option>
-                                            <option value="Cultural">Cultural</option>
-                                            <option value="Academic">Academic</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Venue *</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter venue location"
-                                        value={newEvent.venue}
-                                        onChange={(e) => setNewEvent({ ...newEvent, venue: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Expected Participants</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Number of expected participants"
-                                        value={newEvent.participants}
-                                        onChange={(e) => setNewEvent({ ...newEvent, participants: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.formActions}>
-                                    <button style={styles.submitBtn} onClick={handleCreateEvent}>
-                                        <Plus size={18} /> {editingEvent ? 'Update Event' : 'Create Event'}
-                                    </button>
-                                    {editingEvent && (
-                                        <button
-                                            style={styles.cancelBtn}
-                                            onClick={() => {
-                                                setEditingEvent(null);
-                                                setNewEvent({ name: '', date: '', venue: '', participants: 0, category: 'Technical' });
-                                                setShowEventForm(false);
-                                                setActiveSection('manage');
-                                            }}
-                                        >
-                                            Cancel
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Manage Events (Edit/Delete) */}
-                    {activeSection === 'manage' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>🎯 Manage Events</h3>
-                            <p style={styles.subtitle}>Edit or delete existing events</p>
-                            <div style={styles.tableContainer}>
-                                <table style={styles.table}>
-                                    <thead>
-                                        <tr style={styles.tableHeader}>
-                                            <th style={styles.th}>Event Name</th>
-                                            <th style={styles.th}>Date</th>
-                                            <th style={styles.th}>Venue</th>
-                                            <th style={styles.th}>Category</th>
-                                            <th style={styles.th}>Participants</th>
-                                            <th style={styles.th}>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {events.map(event => (
-                                            <tr key={event.id} style={styles.tableRow}>
-                                                <td style={styles.td}>{event.name}</td>
-                                                <td style={styles.td}>{event.date}</td>
-                                                <td style={styles.td}>{event.venue}</td>
-                                                <td style={styles.td}>
-                                                    <span style={styles.categoryTag}>{event.category}</span>
-                                                </td>
-                                                <td style={styles.td}>{event.participants}</td>
-                                                <td style={styles.td}>
-                                                    <div style={styles.actionButtons}>
-                                                        <button
-                                                            style={styles.editBtn}
-                                                            onClick={() => handleEditEvent(event)}
-                                                        >
-                                                            <Edit size={16} />
-                                                        </button>
-                                                        <button
-                                                            style={styles.deleteBtn}
-                                                            onClick={() => handleDeleteEvent(event.id)}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* View Participants */}
-                    {activeSection === 'participants' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>👥 Event Participants Overview</h3>
-                            <p style={styles.subtitle}>Summary of registered participants for each event.</p>
-                            <div style={styles.participantsGrid}>
-                                {events.map(event => (
-                                    <div key={event.id} style={styles.participantCard}>
-                                        <h4 style={styles.participantEventName}>{event.name}</h4>
-                                        <div style={styles.participantInfo}>
-                                            <div style={styles.infoRow}>
-                                                <span>📅 Date:</span>
-                                                <span>{event.date}</span>
-                                            </div>
-                                            <div style={styles.infoRow}>
-                                                <span>📍 Venue:</span>
-                                                <span>{event.venue}</span>
-                                            </div>
-                                            <div style={styles.infoRow}>
-                                                <span>👥 Registered:</span>
-                                                <span style={styles.participantCount}>{event.participants}</span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            style={styles.viewDetailsBtn}
-                                            onClick={() => alert(`Detailed participant list for ${event.name}\n\nTotal Registered: ${event.participants}\n\n(In a full implementation, this would navigate to a detailed participant list.)`)}
-                                        >
-                                            View Full List
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Send Invitations */}
-                    {activeSection === 'invitations' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>📧 Send Event Invitations</h3>
-                            <p style={styles.subtitle}>Send email invitations to students and faculty for upcoming events.</p>
-                            <div style={styles.invitationsGrid}>
-                                {events.map(event => (
-                                    <div key={event.id} style={styles.invitationCard}>
-                                        <div style={styles.invCardHeader}>
-                                            <h4>{event.name}</h4>
-                                            <span style={styles.categoryBadge}>{event.category}</span>
-                                        </div>
-                                        <div style={styles.invCardBody}>
-                                            <p><strong>Date:</strong> {event.date}</p>
-                                            <p><strong>Venue:</strong> {event.venue}</p>
-                                            <p><strong>Expected Participants:</strong> {event.participants}</p>
-                                        </div>
-                                        <button
-                                            style={styles.sendInvBtn}
-                                            onClick={() => handleSendInvitation(event)}
-                                        >
-                                            <Send size={18} /> Send Invitations
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Edit Profile Section */}
-                    {activeSection === 'profile' && (
-                        <div>
-                            <h3 style={styles.sectionTitle}>👤 Edit Profile</h3>
-                            <p style={styles.subtitle}>Update your personal and contact information.</p>
-                            <div style={styles.formCard}>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Full Name</label>
-                                    <input
-                                        type="text"
-                                        value={tempProfile.name}
-                                        onChange={(e) => setTempProfile({ ...tempProfile, name: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Role</label>
-                                    <input
-                                        type="text"
-                                        value={tempProfile.role}
-                                        onChange={(e) => setTempProfile({ ...tempProfile, role: e.target.value })}
-                                        style={styles.input}
-                                        readOnly // Role might not be editable by user
-                                    />
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Email</label>
-                                    <input
-                                        type="email"
-                                        value={tempProfile.email}
-                                        onChange={(e) => setTempProfile({ ...tempProfile, email: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.label}>Phone Number</label>
-                                    <input
-                                        type="text"
-                                        value={tempProfile.phone}
-                                        onChange={(e) => setTempProfile({ ...tempProfile, phone: e.target.value })}
-                                        style={styles.input}
-                                    />
-                                </div>
-                                <div style={styles.formActions}>
-                                    <button style={styles.submitBtn} onClick={handleSaveProfile}>
-                                        <CheckCircle size={18} /> Save Changes
-                                    </button>
-                                    <button style={styles.cancelBtn} onClick={handleCancelProfileEdit}>
-                                        Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const styles = {
-    container: {
-        display: 'flex',
-        minHeight: '100vh',
-        backgroundColor: '#f5f7fa',
-        fontFamily: 'Arial, sans-serif',
-    },
-    drawer: {
-        backgroundColor: '#2c3e50',
-        height: '100vh',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        overflow: 'hidden',
-        transition: 'all 0.3s ease',
-        zIndex: 1000,
-    },
-    drawerHeader: {
-        padding: '25px 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-    },
-    profileSection: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-    },
-    avatar: {
-        width: '50px',
-        height: '50px',
-        borderRadius: '50%',
-        backgroundColor: '#3498db',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '24px',
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    userName: {
-        color: 'white',
-        margin: 0,
-        fontSize: '16px',
-    },
-    userRole: {
-        color: '#95a5a6',
-        margin: '3px 0 0 0',
-        fontSize: '13px',
-    },
-    nav: {
-        padding: '20px 0',
-    },
-    navItem: {
-        padding: '15px 20px',
-        color: '#ecf0f1',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        transition: 'all 0.3s',
-        fontSize: '14px',
-    },
-    navItemActive: {
-        padding: '15px 20px',
-        color: 'white',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        backgroundColor: '#34495e',
-        borderLeft: '4px solid #3498db',
-        fontWeight: 'bold',
-        fontSize: '14px',
-    },
-    mainContent: {
-        flex: 1,
-        transition: 'margin-left 0.3s ease',
-    },
-    topbar: {
-        backgroundColor: 'white',
-        padding: '20px 30px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-    },
-    menuBtn: {
-        backgroundColor: 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        padding: '8px',
-        borderRadius: '8px',
-        display: 'flex',
-        alignItems: 'center',
-        transition: 'background 0.3s',
-    },
-    pageTitle: {
-        margin: 0,
-        fontSize: '24px',
-        color: '#2c3e50',
-        fontWeight: '600',
-    },
-    content: {
-        padding: '30px',
-    },
-    sectionTitle: {
-        fontSize: '22px',
-        color: '#2c3e50',
-        marginBottom: '10px',
-        fontWeight: '600',
-    },
-    subtitle: {
-        color: '#7f8c8d',
-        marginBottom: '25px',
-        fontSize: '14px',
-    },
-    statsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '20px',
-        marginBottom: '35px',
-    },
-    statCard: {
-        padding: '25px',
-        borderRadius: '12px',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '20px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    },
-    statIcon: {
-        fontSize: '40px',
-    },
-    statNumber: {
-        fontSize: '32px',
-        fontWeight: 'bold',
-        margin: 0,
-    },
-    statLabel: {
-        fontSize: '14px',
-        opacity: 0.9,
-        margin: '5px 0 0 0',
-    },
-    eventsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '20px',
-        marginTop: '20px',
-    },
-    eventCard: {
-        backgroundColor: 'white',
-        padding: '20px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        transition: 'transform 0.3s, box-shadow 0.3s',
-        cursor: 'pointer',
-    },
-    eventHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginBottom: '15px',
-    },
-    categoryBadge: {
-        padding: '5px 12px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        borderRadius: '20px',
-        fontSize: '12px',
-    },
-    statusBadge: {
-        padding: '5px 12px',
-        backgroundColor: '#2ecc71', // Default for upcoming
-        color: 'white',
-        borderRadius: '20px',
-        fontSize: '12px',
-    },
-    eventName: {
-        fontSize: '18px',
-        color: '#2c3e50',
-        marginBottom: '12px',
-    },
-    eventDetails: {
-        fontSize: '14px',
-        color: '#7f8c8d',
-    },
-    responsibilitiesContainer: {
-        display: 'grid',
-        gap: '20px',
-    },
-    responsibilityCard: {
-        backgroundColor: 'white',
-        padding: '25px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    },
-    respHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '15px',
-    },
-    respTitle: {
-        fontSize: '18px',
-        color: '#2c3e50',
-        margin: 0,
-    },
-    respStatus: {
-        padding: '6px 14px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    respBody: {
-        fontSize: '14px',
-        color: '#7f8c8d',
-        marginBottom: '15px',
-    },
-    updateBtn: {
-        padding: '10px 20px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        transition: 'background 0.3s',
-    },
-    formCard: {
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        maxWidth: '700px',
-    },
-    formGroup: {
-        marginBottom: '20px',
-    },
-    formRow: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '20px',
-    },
-    label: {
-        display: 'block',
-        marginBottom: '8px',
-        color: '#2c3e50',
-        fontSize: '14px',
-        fontWeight: '500',
-    },
-    input: {
-        width: '100%',
-        padding: '12px',
-        border: '1px solid #ddd',
-        borderRadius: '8px',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-        transition: 'border 0.3s',
-    },
-    formActions: {
-        display: 'flex',
-        gap: '10px',
-        marginTop: '25px',
-    },
-    submitBtn: {
-        padding: '12px 30px',
-        backgroundColor: '#2ecc71',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '15px',
-        fontWeight: '500',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        transition: 'background 0.3s',
-    },
-    cancelBtn: {
-        padding: '12px 30px',
-        backgroundColor: '#95a5a6',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '15px',
-        fontWeight: '500',
-    },
-    tableContainer: {
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '20px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        overflowX: 'auto',
-    },
-    table: {
-        width: '100%',
-        borderCollapse: 'collapse',
-    },
-    tableHeader: {
-        backgroundColor: '#f8f9fa',
-    },
-    th: {
-        padding: '15px',
-        textAlign: 'left',
-        fontWeight: '600',
-        color: '#2c3e50',
-        fontSize: '14px',
-    },
-    tableRow: {
-        borderBottom: '1px solid #ecf0f1',
-    },
-    td: {
-        padding: '15px',
-        color: '#7f8c8d',
-        fontSize: '14px',
-    },
-    categoryTag: {
-        padding: '5px 12px',
-        backgroundColor: '#e8f4f8',
-        color: '#3498db',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: '500',
-    },
-    actionButtons: {
-        display: 'flex',
-        gap: '8px',
-    },
-    editBtn: {
-        padding: '8px 12px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.3s',
-        '&:hover': {
-            backgroundColor: '#2980b9',
-        }
-    },
-    deleteBtn: {
-        padding: '8px 12px',
-        backgroundColor: '#e74c3c',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background 0.3s',
-        '&:hover': {
-            backgroundColor: '#c0392b',
-        }
-    },
-    participantsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '20px',
-        marginTop: '20px',
-    },
-    participantCard: {
-        backgroundColor: 'white',
-        padding: '25px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        transition: 'transform 0.3s, box-shadow 0.3s',
-    },
-    participantEventName: {
-        fontSize: '18px',
-        color: '#2c3e50',
-        marginBottom: '15px',
-        borderBottom: '1px solid #eee',
-        paddingBottom: '10px',
-    },
-    participantInfo: {
-        marginBottom: '20px',
-    },
-    infoRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '8px 0',
-        borderBottom: '1px dashed #f0f0f0',
-        fontSize: '14px',
-        color: '#555',
-    },
-    participantCount: {
-        fontWeight: 'bold',
-        color: '#3498db',
-    },
-    viewDetailsBtn: {
-        padding: '10px 20px',
-        backgroundColor: '#f39c12',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '14px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-        marginTop: '15px',
-        width: '100%',
-        transition: 'background 0.3s',
-    },
-    invitationsGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '20px',
-        marginTop: '20px',
-    },
-    invitationCard: {
-        backgroundColor: 'white',
-        padding: '25px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-    },
-    invCardHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '15px',
-        borderBottom: '1px solid #eee',
-        paddingBottom: '10px',
-    },
-    invCardBody: {
-        fontSize: '14px',
-        color: '#7f8c8d',
-        marginBottom: '20px',
-        flexGrow: 1,
-    },
-    sendInvBtn: {
-        padding: '12px 25px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontSize: '15px',
-        fontWeight: '500',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        width: '100%',
-        transition: 'background 0.3s',
+  // Small helpers
+  const handleCreateOrUpdateEvent = () => {
+    if (!newEvent.name || !newEvent.date || !newEvent.venue || !newEvent.expected || !newEvent.coordinator) {
+      alert("Please fill required fields");
+      return;
     }
-};
+    const ev = {
+      id: editingEvent ? editingEvent.id : Date.now(),
+      ...newEvent,
+      expected: parseInt(newEvent.expected || "0"),
+      registered: editingEvent ? editingEvent.registered || 0 : Math.floor(Math.random()*50)+10,
+      budget: parseFloat(newEvent.budget) || 0,
+      poster: newEvent.posterPreview || null,
+      status: "upcoming"
+    };
+    if (editingEvent) {
+      setEvents(events.map(e => e.id === editingEvent.id ? ev : e));
+      alert("Event updated");
+    } else {
+      setEvents([ev, ...events]);
+      alert("Event created");
+    }
+    resetEventForm();
+    setActiveSection("manage");
+  };
+  const resetEventForm = () => {
+    setNewEvent({ name: "", date: "", venue: "", expected: "", category: "Technical", coordinator: "", email: "", budget: "", description: "", posterFile: null, posterPreview: null });
+    setEditingEvent(null);
+    setShowEventForm(false);
+  };
+  const handleEditEvent = (e) => {
+    setEditingEvent(e);
+    setNewEvent({ ...e, expected: e.expected || "", budget: e.budget || "", posterFile: null, posterPreview: e.poster || null });
+    setShowEventForm(true);
+    setActiveSection("create");
+  };
+  const handleDeleteEvent = (id) => {
+    if (!window.confirm("Delete event?")) return;
+    setEvents(events.filter(e => e.id !== id));
+  };
 
-export default CoCurricularDashboard;
+  // Tasks
+  const markTaskDone = (id) => {
+    setTasks(tasks.map(t => t.id === id ? { ...t, status: "Completed", progress: 100 } : t));
+  };
+  const sendTaskReminder = (task) => {
+    alert(`Reminder sent to ${task.assignedTo} (${task.email}) — task: ${task.title}`);
+  };
+
+  // Notifications
+  const markNotificationSeen = (id) => {
+    setNotifications(notifications.map(n => n.id === id ? { ...n, seen: true } : n));
+  };
+
+  // Profile actions
+  const [profile, setProfile] = useState({ name: "Prof. Sarah Ahmed", email: "sarah.ahmed@collxion.edu", dp: null });
+  const [changePwdOpen, setChangePwdOpen] = useState(false);
+  const [pwdForm, setPwdForm] = useState({ oldPwd: "", newPwd: "", confirm: "" });
+  const changePassword = () => {
+    if (!pwdForm.oldPwd || !pwdForm.newPwd || pwdForm.newPwd !== pwdForm.confirm) {
+      alert("Check password fields");
+      return;
+    }
+    alert("Password changed (mock)");
+    setPwdForm({ oldPwd: "", newPwd: "", confirm: "" });
+    setChangePwdOpen(false);
+    setProfileOpen(false);
+  };
+
+  // Invitations send
+  const sendInvites = (eventObj) => {
+    const selected = recipients.filter(r => r.selected);
+    if (selected.length === 0) { alert("Select recipients"); return; }
+    if (!eventObj) { alert("Select an event (or go to Manage Events and select invite)"); return; }
+    alert(`Invites sent for ${eventObj.name} to ${selected.map(s => s.name).join(", ")}`);
+    setRecipients(recipients.map(r => ({ ...r, selected: false })));
+    setInviteMsg("");
+    setInviteModalOpen(false);
+  };
+
+  // Sidebar variants
+  const sidebarVariants = { open: { width: 280 }, closed: { width: 72 } };
+
+  // Chart data (simple)
+  const weeklyProgress = [
+    { day: "Mon", completed: 3 },
+    { day: "Tue", completed: 5 },
+    { day: "Wed", completed: 2 },
+    { day: "Thu", completed: 7 },
+    { day: "Fri", completed: 4 },
+    { day: "Sat", completed: 6 },
+    { day: "Sun", completed: 1 },
+  ];
+
+  // ---------- Small subcomponents inside file (keeps single file) ----------
+
+  function ProgressRing({ progress = 50, size = 68, stroke = 8 }) {
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    const dash = (progress / 100) * c;
+    return (
+      <svg width={size} height={size} style={{ display: "block" }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={theme.light} strokeWidth={stroke} />
+        <motion.circle
+          cx={size/2}
+          cy={size/2}
+          r={r}
+          fill="none"
+          stroke={theme.primary}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={c}
+          initial={{ strokeDashoffset: c }}
+          animate={{ strokeDashoffset: c - dash }}
+          transition={{ duration: 0.9 }}
+        />
+        <text x="50%" y="50%" dy="6" textAnchor="middle" style={{ fontSize: 12, fontWeight: 800, fill: theme.dark }}>{progress}%</text>
+      </svg>
+    );
+  }
+
+  function SimpleLineChart({ data = weeklyProgress, width = 300, height = 120 }) {
+    const max = Math.max(...data.map(d => d.completed)) || 1;
+    const padding = 8;
+    const stepX = (width - padding * 2) / (data.length - 1);
+    const points = data.map((d, i) => {
+      const x = padding + i*stepX;
+      const y = height - padding - (d.completed / max) * (height - padding*2);
+      return { x, y, label: d.day, value: d.completed };
+    });
+    const d = points.map((p,i)=> `${i===0?"M":"L"} ${p.x} ${p.y}`).join(" ");
+    const area = `${d} L ${width-padding} ${height-padding} L ${padding} ${height-padding} Z`;
+    return (
+      <div style={{ width: "100%", overflow: "visible" }}>
+        <svg viewBox={`0 0 ${width} ${height}`} width="100%" style={{ display: "block" }}>
+          <defs>
+            <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor={theme.primary} stopOpacity="0.45" />
+              <stop offset="100%" stopColor={theme.primary} stopOpacity="0.04" />
+            </linearGradient>
+          </defs>
+          <path d={area} fill="url(#g1)" />
+          <path d={d} fill="none" stroke={theme.primary} strokeWidth="2" strokeLinecap="round" />
+          {points.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r={4} fill="#fff" stroke={theme.primary} strokeWidth="2"
+                onMouseEnter={(ev)=> setChartTooltip({ x: ev.clientX, y: ev.clientY, content: `${p.label}: ${p.value}`})}
+                onMouseLeave={()=>setChartTooltip(null)}
+              />
+              <text x={p.x} y={height-4} textAnchor="middle" style={{ fontSize: 11, fill: theme.dark }}>{p.label}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    );
+  }
+
+  function SimplePieChart({ items = events, size = 100 }) {
+    const counts = items.reduce((acc, it) => { acc[it.category] = (acc[it.category] || 0) + 1; return acc; }, {});
+    const categories = Object.keys(counts);
+    const total = categories.reduce((s, c) => s + counts[c], 0) || 1;
+    let start = 0;
+    const colors = [theme.primary, "#f59e0b", "#16a34a", "#ef4444", "#8b5cf6"];
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {categories.map((c, i) => {
+          const v = counts[c];
+          const angle = (v / total) * Math.PI * 2;
+          const end = start + angle;
+          const x1 = size/2 + Math.cos(start) * (size/2 - 6);
+          const y1 = size/2 + Math.sin(start) * (size/2 - 6);
+          const x2 = size/2 + Math.cos(end) * (size/2 - 6);
+          const y2 = size/2 + Math.sin(end) * (size/2 - 6);
+          const large = angle > Math.PI ? 1 : 0;
+          const d = `M ${size/2} ${size/2} L ${x1} ${y1} A ${size/2-6} ${size/2-6} 0 ${large} 1 ${x2} ${y2} Z`;
+          start = end;
+          return <path key={c} d={d} fill={colors[i % colors.length]}
+            onMouseEnter={(ev)=> setChartTooltip({ x: ev.clientX, y: ev.clientY, content: `${c}: ${v}` })}
+            onMouseLeave={()=> setChartTooltip(null)}
+          />;
+        })}
+        <circle cx={size/2} cy={size/2} r={size/2 - 26} fill={theme.nearWhite} />
+        <text x="50%" y="50%" textAnchor="middle" dy="6" style={{ fontWeight: 800, fill: theme.dark }}>{total}</text>
+      </svg>
+    );
+  }
+
+  // ---------- UI Layout (single-file but split logically) ----------
+  const navItems = [
+    { label: "Dashboard", icon: <BarChart3 size={18} />, id: "dashboard" },
+    { label: "Responsibilities", icon: <FileText size={18} />, id: "responsibilities" },
+    { label: "Create Event", icon: <Plus size={18} />, id: "create" },
+    { label: "Manage Events", icon: <Edit size={18} />, id: "manage" },
+    { label: "Invitations", icon: <Mail size={18} />, id: "invitations" },
+  ];
+
+  // LOGOUT action (both places)
+  const handleLogout = () => {
+    if (!window.confirm("Logout?")) return;
+    alert("Logged out (mock)");
+    // In real app, redirect or clear tokens; here we'll reset UI
+    setActiveSection("dashboard");
+    setProfileOpen(false);
+  };
+
+  // make sure profile menu closes when clicking outside
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (!e.target.closest) return;
+      if (!e.target.closest(".profileMenu") && !e.target.closest(".profileBtn")) {
+        setProfileOpen(false);
+      }
+      if (!e.target.closest(".notifBtn") && !e.target.closest(".notifMenu")) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
+  }, []);
+
+  // ---------- RENDER ----------
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', sans-serif", background: theme.light }}>
+      {/* SIDEBAR */}
+      <motion.aside
+        initial={false}
+        animate={drawerOpen ? "open" : "closed"}
+        variants={sidebarVariants}
+        style={{
+          background: theme.dark,
+          color: theme.nearWhite,
+          height: "100vh",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          zIndex: 1200,
+          overflow: "hidden",
+          boxShadow: "2px 0 18px rgba(4,4,8,0.25)"
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", padding: 16 }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius: 10,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: `linear-gradient(90deg, ${theme.primary}, ${theme.light})`, color: theme.accentText, fontWeight: 900
+                }}>CX</div>
+                {drawerOpen && (
+                  <div style={{ lineHeight: 1 }}>
+                    <div style={{ fontSize: 18, fontWeight: 900, background: `linear-gradient(90deg, ${theme.primary}, ${theme.light})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Collaxion</div>
+                    <div style={{ fontSize: 12, color: theme.nearWhite, opacity: 0.9 }}>Co-Curricular</div>
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setDrawerOpen(v => !v)} style={{
+                background: "transparent", border: "1px solid rgba(255,255,255,0.06)", color: theme.nearWhite, padding: 8, borderRadius: 8, cursor: "pointer"
+              }} aria-label="toggle menu"><Menu size={18} /></button>
+            </div>
+
+            <nav style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+              {navItems.map(n => {
+                const active = activeSection === n.id;
+                return (
+                  <div key={n.id}
+                    onClick={() => { setActiveSection(n.id); setShowEventForm(n.id === "create"); if (n.id !== "create") setShowEventForm(false); }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, cursor: "pointer",
+                      background: active ? "rgba(170,195,253,0.12)" : "transparent", color: active ? theme.accentText : theme.nearWhite, fontWeight: 700
+                    }}
+                  >
+                    <div style={{ width: 28, display: "flex", justifyContent: "center" }}>{n.icon}</div>
+                    {drawerOpen && <div>{n.label}</div>}
+                  </div>
+                );
+              })}
+              {/* Logout under Invitations as requested */}
+              <div
+                onClick={() => { setActiveSection("invitations"); setInviteModalOpen(false); /* keep view */ }}
+                style={{ marginTop: 12, padding: "10px 12px", borderRadius: 8, color: theme.nearWhite, cursor: "pointer" }}
+              >
+                {drawerOpen ? "Invite & Logout" : <Mail size={18} />}
+                {drawerOpen && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Open invitations (logout inside)</div>}
+              </div>
+            </nav>
+          </div>
+
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: theme.primary, color: theme.accentText, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>S</div>
+                {drawerOpen && (
+                  <div>
+                    <div style={{ fontWeight: 800 }}>{profile.name}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{profile.email}</div>
+                  </div>
+                )}
+              </div>
+              <div>
+                <button className="profileBtn" onClick={() => setProfileOpen(s => !s)} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.06)", color: theme.nearWhite, padding: 8, borderRadius: 8 }}>
+                  <User size={16} />
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {profileOpen && (
+                <motion.div className="profileMenu" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ marginTop: 12, background: theme.nearWhite, color: theme.accentText, padding: 12, borderRadius: 8 }}>
+                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                    <div style={{ width: 56, height: 56, borderRadius: 10, background: theme.primary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>{profile.name.split(" ")[0][0]}</div>
+                    <div>
+                      <div style={{ fontWeight: 800 }}>{profile.name}</div>
+                      <div style={{ fontSize: 13, color: "#64748b" }}>{profile.email}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button onClick={() => { setChangePwdOpen(false); setProfileOpen(false); alert("Profile edit (mock)"); }} style={{ padding: 10, borderRadius: 8, border: "1px solid #eef2ff", background: "#fff", cursor: "pointer", textAlign: "left" }}>
+                      <Settings size={14} style={{ marginRight: 8 }} /> Profile & Settings
+                    </button>
+                    <button onClick={() => { setChangePwdOpen(p => !p); }} style={{ padding: 10, borderRadius: 8, border: "1px solid #eef2ff", background: "#fff", cursor: "pointer", textAlign: "left" }}>
+                      <Key size={14} style={{ marginRight: 8 }} /> Change Password
+                    </button>
+                    <button onClick={handleLogout} style={{ padding: 10, borderRadius: 8, border: "1px solid #fee2e2", background: "#fff", color: "#ef4444", cursor: "pointer", textAlign: "left" }}>
+                      <LogOut size={14} style={{ marginRight: 8 }} /> Logout
+                    </button>
+                  </div>
+
+                  {changePwdOpen && (
+                    <div style={{ marginTop: 12, background: theme.light, padding: 10, borderRadius: 8 }}>
+                      <div style={{ fontWeight: 800, marginBottom: 8 }}>Change Password</div>
+                      <input type="password" placeholder="Old password" value={pwdForm.oldPwd} onChange={e=>setPwdForm(prev=>({...prev, oldPwd:e.target.value}))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
+                      <input type="password" placeholder="New password" value={pwdForm.newPwd} onChange={e=>setPwdForm(prev=>({...prev, newPwd:e.target.value}))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
+                      <input type="password" placeholder="Confirm password" value={pwdForm.confirm} onChange={e=>setPwdForm(prev=>({...prev, confirm:e.target.value}))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button onClick={changePassword} style={{ background: theme.primary, color: theme.accentText, padding: 8, borderRadius: 6 }}>Save</button>
+                        <button onClick={()=>setChangePwdOpen(false)} style={{ padding: 8, borderRadius: 6, border: "1px solid #e6eefc" }}>Cancel</button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </motion.aside>
+
+      {/* MAIN */}
+      <div style={{ marginLeft: drawerOpen ? 280 : 72, flex: 1, transition: "margin-left 0.25s", minHeight: "100vh" }}>
+        {/* HEADER */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 28px", background: theme.nearWhite, boxShadow: "0 1px 6px rgba(0,0,0,0.06)", position: "sticky", top: 0, zIndex: 100 }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <button onClick={() => setDrawerOpen(d => !d)} style={{ background: theme.primary, color: theme.accentText, border: "none", padding: 10, borderRadius: 8, cursor: "pointer" }}><Menu size={18} /></button>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 18 }}>Welcome, Prof. Sarah</div>
+              <div style={{ fontSize: 13, color: "#64748b" }}>Manage events, tasks & invites</div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <div style={{ position: "relative" }}>
+              <button className="notifBtn" onClick={() => setNotifOpen(s => !s)} style={{ background: theme.light, padding: 10, borderRadius: 8, border: "none", cursor: "pointer" }}>
+                <Bell size={16} />
+                {notifications.filter(n=>!n.seen).length > 0 && <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "#fff", width: 18, height: 18, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>{notifications.filter(n=>!n.seen).length}</span>}
+              </button>
+              <AnimatePresence>
+                {notifOpen && (
+                  <motion.div className="notifMenu" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: "absolute", right: 0, top: 44, background: theme.nearWhite, color: theme.accentText, width: 320, boxShadow: "0 12px 40px rgba(2,6,23,0.12)", borderRadius: 8, padding: 12 }}>
+                    <div style={{ fontWeight: 800, marginBottom: 8 }}>Notifications</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {notifications.map(n => (
+                        <div key={n.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: 8, borderRadius: 8, background: n.seen ? "#fff" : theme.light }}>
+                          <div>
+                            <div style={{ fontWeight: 700 }}>{n.text}</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>{n.type}</div>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <button onClick={() => { markNotificationSeen(n.id); }} style={{ background: "transparent", border: "1px solid #eef2ff", padding: 6, borderRadius: 6 }}>Mark</button>
+                            <button onClick={() => setNotifications(notifications.filter(x => x.id !== n.id))} style={{ background: "transparent", border: "1px solid #fee2e2", color: "#ef4444", padding: 6, borderRadius: 6 }}>Dismiss</button>
+                          </div>
+                        </div>
+                      ))}
+                      {notifications.length === 0 && <div style={{ color: "#64748b" }}>No notifications</div>}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* PAGE CONTENT */}
+        <div style={{ padding: 24 }}>
+          {/* Dashboard */}
+          {activeSection === "dashboard" && (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: theme.dark }}>Dashboard Overview</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #e6eefc", background: "#fff", cursor: "pointer" }}><Download size={14} /></button>
+                  <button style={{ padding: "10px 12px", borderRadius: 8, border: "none", background: theme.primary, color: theme.accentText, cursor: "pointer" }}>Export</button>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 16 }}>
+                <div style={{ gridColumn: "span 4" }}>
+                  <div style={{ background: "#fff", padding: 16, borderRadius: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: "#64748b" }}>Upcoming Events</div>
+                        <div style={{ fontWeight: 900, fontSize: 22 }}>{upcomingEvents.length}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 12, color: "#64748b" }}>Budget</div>
+                        <div style={{ fontWeight: 800 }}>₹{events.reduce((s,e)=>(s+(e.budget||0)),0).toLocaleString()}</div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: 12, display: "flex", gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                          <ProgressRing progress={avgProgress} />
+                          <div>
+                            <div style={{ fontWeight: 800 }}>{tasks.filter(t => t.status === "Completed").length}/{tasks.length}</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Tasks Completed</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ width: 100 }}>
+                        <SimplePieChart items={events} size={100} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 12, background: "#fff", padding: 12, borderRadius: 12 }}>
+                    <div style={{ fontWeight: 800 }}>This Week</div>
+                    <div style={{ marginTop: 8 }}>
+                      <SimpleLineChart data={weeklyProgress} width={320} height={100} />
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 8 }}>Hover chart points to see values</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ gridColumn: "span 5" }}>
+                  <div style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: "#64748b" }}>Upcoming Events</div>
+                        <div style={{ fontWeight: 900 }}>{upcomingEvents.length}</div>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#64748b" }}>Next: {upcomingEvents[0] ? new Date(upcomingEvents[0].date).toLocaleDateString() : "-"}</div>
+                    </div>
+
+                    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
+                      {upcomingEvents.slice(0,4).map(ev => (
+                        <div key={ev.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }}>
+                          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                            <div style={{ width: 56, height: 56, borderRadius: 8, background: theme.light, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <Calendar size={20} />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 800 }}>{ev.name}</div>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>{new Date(ev.date).toLocaleDateString()} • {ev.venue}</div>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontWeight: 800 }}>₹{(ev.budget||0).toLocaleString()}</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>{ev.registered}/{ev.expected}</div>
+                            <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+                              <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 8, border: "1px solid #e6eefc" }}>Edit</button>
+                              <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 6, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Invite</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 12, background: "#fff", padding: 12, borderRadius: 12 }}>
+                    <div style={{ fontWeight: 800 }}>Alerts</div>
+                    <div style={{ marginTop: 8 }}>
+                      {deadlineAlerts.length === 0 && <div style={{ color: "#64748b" }}>No urgent alerts</div>}
+                      {deadlineAlerts.slice(0,3).map(a => (
+                        <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px dashed #eef2ff", marginTop: 8 }}>
+                          <div>
+                            <div style={{ fontWeight: 800 }}>{a.title}</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>{a.status === "Overdue" ? "Overdue" : "Due soon"} • {a.deadline}</div>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            <button onClick={() => sendTaskReminder(a)} style={{ padding: 6, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Remind</button>
+                            <button onClick={() => markTaskDone(a.id)} style={{ padding: 6, borderRadius: 8, border: "1px solid #e6eefc" }}>Mark Done</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ gridColumn: "span 3" }}>
+                  <div style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
+                    <div style={{ fontWeight: 800 }}>Quick Actions</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                      <button onClick={() => { setActiveSection("create"); setShowEventForm(true); }} style={{ padding: 10, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Create Event</button>
+                      <button onClick={() => setActiveSection("manage")} style={{ padding: 10, borderRadius: 8, border: "1px solid #eef2ff" }}>Manage Events</button>
+                      <button onClick={() => { setActiveSection("invitations"); setInviteModalOpen(true); }} style={{ padding: 10, borderRadius: 8, border: "1px solid #eef2ff" }}>Invitations</button>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 12, background: "#fff", padding: 12, borderRadius: 12 }}>
+                    <div style={{ fontWeight: 800 }}>Team Snapshot</div>
+                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 12 }}>
+                      <div><ProgressRing progress={avgProgress} /></div>
+                      <div>
+                        <div style={{ fontWeight: 900 }}>{tasks.length}</div>
+                        <div style={{ fontSize: 12, color: "#64748b" }}>Total tasks</div>
+                        <div style={{ marginTop: 8, fontSize: 12, color: overdueCount ? "#ef4444" : "#16a34a" }}>{overdueCount} overdue</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* RESPONSIBILITIES */}
+          {activeSection === "responsibilities" && (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Responsibilities</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => { const id = Date.now(); setTasks([{ id, title: "New Task", assignedTo: "TBD", email: "", deadline: new Date().toISOString().slice(0,10), status: "Pending", progress: 0}, ...tasks]); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Add Task</button>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
+                {tasks.map(task => {
+                  const isOverdue = new Date(task.deadline) < new Date();
+                  const daysLeft = Math.ceil((new Date(task.deadline) - new Date()) / (1000*60*60*24));
+                  return (
+                    <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <div style={{ fontWeight: 900 }}>{task.title}</div>
+                          <div style={{ fontSize: 12, color: "#64748b" }}>{task.assignedTo}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontWeight: 900 }}>{task.progress}%</div>
+                          <div style={{ fontSize: 12, color: isOverdue ? "#ef4444" : "#64748b" }}>{isOverdue ? "Overdue" : `${daysLeft} d`}</div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center" }}>
+                        <div style={{ width: 84 }}><ProgressRing progress={task.progress} size={84} stroke={8} /></div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ height: 10, background: theme.light, borderRadius: 6, overflow: "hidden" }}>
+                            <div style={{ width: `${task.progress}%`, height: "100%", background: task.status === "Completed" ? "#16a34a" : (isOverdue ? "#ef4444" : "#f59e0b"), transition: "width 0.4s" }} />
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>Deadline</div>
+                            <div style={{ fontSize: 12 }}>{task.deadline}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+                        <button onClick={() => markTaskDone(task.id)} style={{ padding: 8, borderRadius: 8, background: "#16a34a", color: "#fff" }}><CheckCircle size={14} /> Mark Done</button>
+                        <button onClick={() => sendTaskReminder(task)} style={{ padding: 8, borderRadius: 8, background: "#f59e0b", color: "#fff" }}><Mail size={14} /> Remind</button>
+                        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                          <button onClick={() => setTasks(tasks.filter(t => t.id !== task.id))} style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* CREATE EVENT */}
+          {(activeSection === "create" || showEventForm) && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>{editingEvent ? "Edit Event" : "Create Event"}</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={resetEventForm} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }}>Reset</button>
+                  <button onClick={handleCreateOrUpdateEvent} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>{editingEvent ? "Update" : "Create"}</button>
+                </div>
+              </div>
+
+              <div style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 12 }}>
+                  <div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      <div>
+                        <div style={{ fontWeight: 800 }}>Event Name</div>
+                        <input value={newEvent.name} onChange={e=>setNewEvent(prev=>({...prev, name:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800 }}>Date</div>
+                        <input type="date" value={newEvent.date} onChange={e=>setNewEvent(prev=>({...prev, date:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800 }}>Venue</div>
+                        <input value={newEvent.venue} onChange={e=>setNewEvent(prev=>({...prev, venue:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800 }}>Expected</div>
+                        <input type="number" value={newEvent.expected} onChange={e=>setNewEvent(prev=>({...prev, expected:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800 }}>Coordinator</div>
+                        <input value={newEvent.coordinator} onChange={e=>setNewEvent(prev=>({...prev, coordinator:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 800 }}>Coordinator Email</div>
+                        <input value={newEvent.email} onChange={e=>setNewEvent(prev=>({...prev, email:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <div style={{ fontWeight: 800 }}>Description</div>
+                        <textarea value={newEvent.description} onChange={e=>setNewEvent(prev=>({...prev, description:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%", minHeight: 80 }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontWeight: 800, marginBottom: 8 }}>Poster Upload</div>
+                    <div style={{ border: `2px dashed ${theme.light}`, borderRadius: 8, padding: 12, minHeight: 200, display: "flex", flexDirection: "column", gap: 8, alignItems: "center", justifyContent: "center" }}>
+                      {newEvent.posterPreview ? <img src={newEvent.posterPreview} alt="poster" style={{ width: "100%", maxHeight: 160, objectFit: "cover", borderRadius: 8 }} /> : (
+                        <div style={{ textAlign: "center", color: "#64748b" }}>
+                          <Image size={22} />
+                          <div style={{ marginTop: 8 }}>Drop or upload poster</div>
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <input ref={posterRef} id="poster" type="file" accept="image/*" style={{ display: "none" }} onChange={onPosterChange} />
+                        <label htmlFor="poster" onClick={()=>posterRef.current && posterRef.current.click()} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText, cursor: "pointer" }}><Paperclip size={14} /> Choose</label>
+                        {newEvent.posterPreview && <button onClick={()=>setNewEvent(prev=>({...prev, posterFile:null, posterPreview:null}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>}
+                      </div>
+
+                      <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                        <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff" }}>Invite</button>
+                        <button onClick={handleCreateOrUpdateEvent} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText }}>{editingEvent ? "Update" : "Create"}</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MANAGE EVENTS */}
+          {activeSection === "manage" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Manage Events</h2>
+                <div><button onClick={() => { setActiveSection("create"); setShowEventForm(true); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>New Event</button></div>
+              </div>
+
+              <div style={{ background: "#fff", borderRadius: 12, padding: 12 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead style={{ background: theme.light }}>
+                    <tr>
+                      <th style={{ padding: 10, textAlign: "left" }}>Event</th>
+                      <th style={{ padding: 10, textAlign: "left" }}>Date</th>
+                      <th style={{ padding: 10, textAlign: "left" }}>Venue</th>
+                      <th style={{ padding: 10, textAlign: "left" }}>Coordinator</th>
+                      <th style={{ padding: 10, textAlign: "left" }}>Budget</th>
+                      <th style={{ padding: 10, textAlign: "left" }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {events.map(ev => (
+                      <tr key={ev.id} style={{ borderBottom: "1px solid #eef2ff" }}>
+                        <td style={{ padding: 8 }}>
+                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                            <div style={{ width: 48, height: 48, borderRadius: 8, background: theme.light, display: "flex", alignItems: "center", justifyContent: "center" }}><Calendar size={18} /></div>
+                            <div>
+                              <div style={{ fontWeight: 800 }}>{ev.name}</div>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>{ev.category}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: 8 }}>{ev.date}</td>
+                        <td style={{ padding: 8 }}>{ev.venue}</td>
+                        <td style={{ padding: 8 }}>{ev.coordinator}</td>
+                        <td style={{ padding: 8 }}>₹{(ev.budget||0).toLocaleString()}</td>
+                        <td style={{ padding: 8 }}>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff" }}><Edit size={14} /></button>
+                            <button onClick={() => handleDeleteEvent(ev.id)} style={{ padding: 6, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>
+                            <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 6, borderRadius: 6, background: theme.primary, color: theme.accentText }}><Send size={14} /></button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* INVITATIONS */}
+          {activeSection === "invitations" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Invitations</h2>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => setInviteModalOpen(true)} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Open Invite Modal</button>
+                  <button onClick={handleLogout} style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444" }}>Logout</button>
+                </div>
+              </div>
+
+              <div style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 800 }}>Recipients</div>
+                    <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
+                      {recipients.map(r => (
+                        <label key={r.id} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div style={{ fontWeight: 800 }}>{r.name}</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>{r.email}</div>
+                          </div>
+                          <input type="checkbox" checked={r.selected} onChange={() => setRecipients(prev => prev.map(p => p.id === r.id ? { ...p, selected: !p.selected } : p))} />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ width: 420 }}>
+                    <div style={{ fontWeight: 800 }}>Message</div>
+                    <textarea value={inviteMsg} onChange={e=>setInviteMsg(e.target.value)} style={{ width: "100%", minHeight: 160, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} placeholder="Write invite message or select event template..." />
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <select style={{ flex: 1, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} onChange={(e) => {
+                        const v = e.target.value;
+                        if (!v) return;
+                        setInviteMsg(`You are invited to attend "${v}" — please confirm participation.`);
+                      }}>
+                        <option value="">Event templates...</option>
+                        {events.map(ev => <option key={ev.id} value={ev.name}>{ev.name}</option>)}
+                      </select>
+                      <button onClick={() => sendInvites(events[0])} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}><Send size={14} /> Send</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Chart tooltip */}
+          <AnimatePresence>
+            {chartTooltip && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{
+                position: "fixed", left: chartTooltip.x + 12, top: chartTooltip.y - 12, background: theme.nearWhite, color: theme.accentText, padding: 8, borderRadius: 8, boxShadow: "0 12px 40px rgba(2,6,23,0.12)", pointerEvents: "none"
+              }}>
+                {chartTooltip.content}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Invite modal */}
+          <AnimatePresence>
+            {inviteModalOpen && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: "fixed", inset: 0, background: "rgba(2,6,23,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1400 }}>
+                <div style={{ width: 820, maxWidth: "96%", background: "#fff", borderRadius: 12, padding: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ fontWeight: 900 }}>Send Invitations</div>
+                    <div><button onClick={() => setInviteModalOpen(false)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff" }}>Close</button></div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800 }}>Select Recipients</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+                        {recipients.map(r => (
+                          <label key={r.id} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div>
+                              <div style={{ fontWeight: 800 }}>{r.name}</div>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>{r.email}</div>
+                            </div>
+                            <input type="checkbox" checked={r.selected} onChange={() => setRecipients(prev => prev.map(p => p.id === r.id ? { ...p, selected: !p.selected } : p))} />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ width: 340 }}>
+                      <div style={{ fontWeight: 800 }}>Message</div>
+                      <textarea value={inviteMsg} onChange={e=>setInviteMsg(e.target.value)} style={{ width: "100%", minHeight: 160, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} />
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <select style={{ flex: 1, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} onChange={(e)=> {
+                          const v = e.target.value; if(!v) return; setInviteMsg(`You are invited to "${v}". Please confirm.`);
+                        }}>
+                          <option value="">Event templates</option>
+                          {events.map(ev => <option key={ev.id} value={ev.name}>{ev.name}</option>)}
+                        </select>
+                        <button onClick={() => sendInvites(events[0])} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}><Send size={14} /> Send</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}

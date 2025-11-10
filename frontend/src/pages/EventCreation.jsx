@@ -1,6 +1,7 @@
-// src/pages/EventDashboard.jsx
-import React, { useMemo, useState } from "react";
+// src/pages/EventCreation.jsx
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
 import summitImg from "../images/event5.jpg";
 import aiWorkshopImg from "../images/event1.png";
 import visitImg from "../images/event2.jpg";
@@ -14,83 +15,18 @@ import {
   MapPin,
   Users,
   Image,
-  Tag,
 } from "lucide-react";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api/events";
+const now = new Date("2025-10-30");
 
-const now = new Date("2025-10-30"); // consistent with developer timezone/date note
-
-// Helper: small SVG placeholder as data URL
+// SVG placeholder (same as before)
 const svgPlaceholder = (title = "Event", bg = "#E8F1F8", fg = "#0D3B66") =>
   `data:image/svg+xml;utf8,${encodeURIComponent(
     `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><rect width='100%' height='100%' fill='${bg}' rx='12'/><text x='50%' y='50%' font-size='28' font-family='Poppins, sans-serif' fill='${fg}' text-anchor='middle' dominant-baseline='middle'>${title}</text></svg>`
   )}`;
 
-// Some mock events (mix of upcoming and past)
-const initialMock = [
-      {
-    id: 1,
-    title: "Inter-College Hackathon",
-    date: "2025-12-18",
-    time: "09:00",
-    location: "Innovation Hub",
-    attendees: "Students, Mentors",
-    type: "Competition",
-    description: "48-hour hack: solve industry-suggested problems.",
-    poster: hackathonImg,
-  },
-  
-  {
-    id: 2,
-    title: "AI in Manufacturing Workshop",
-    date: "2025-12-05",
-    time: "14:00",
-    location: "Lab 3",
-    attendees: "Students, Industry Engineers",
-    type: "Workshop",
-    description:
-      "Hands-on workshop on applying AI models to manufacturing datasets.",
-    poster: aiWorkshopImg,
-  },
-  {
-    id: 3,
-    title: "Past: Industrial Visit - TechCorp",
-    date: "2025-09-15",
-    time: "09:30",
-    location: "TechCorp HQ",
-    attendees: "Selected Students",
-    type: "Industry Visit",
-    description: "Plant tour & Q&A with engineering leads (past event).",
-    poster: visitImg,
-  },
-  {
-    id: 4,
-    title: "Webinar: Data Privacy Regulations",
-    date: "2025-11-20",
-    time: "17:00",
-    location: "Online",
-    attendees: "Open to public",
-    type: "Webinar",
-    description:
-      "Expert panel on data privacy and compliance for student projects.",
-    poster: webinarImg,
-  },
-  {
-  id: 5,
-    title: "Industry-Academia Innovation Summit",
-    date: "2025-11-10",
-    time: "10:00",
-    location: "Main Auditorium",
-    attendees: "Faculty, Industry Leads",
-    type: "Conference",
-    description:
-      "A full-day summit to showcase joint research and internship pipelines.",
-    poster: summitImg,
-  },
-
-];
-
-// Allowed category tabs (we'll treat some types as categories)
+// Tabs
 const TABS = [
   { key: "all", label: "All Events" },
   { key: "upcoming", label: "Upcoming" },
@@ -101,12 +37,14 @@ const TABS = [
   { key: "Competition", label: "Competitions" },
 ];
 
-const EventDashboard = () => {
-  const [events, setEvents] = useState(initialMock);
+const EventCreation = () => {
+  // Fixed: useState([]) instead of useState<any[]>([])
+  const [events, setEvents] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [posterPreview, setPosterPreview] = useState(null);
+  const [posterBase64, setPosterBase64] = useState(null);
   const [form, setForm] = useState({
     title: "",
     date: "",
@@ -117,14 +55,27 @@ const EventDashboard = () => {
     description: "",
   });
 
-  // Derived stats
+  // Fetch events from backend
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const { data } = await axios.get(API);
+        setEvents(data);
+      } catch (err) {
+        console.error("Failed to load events", err);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  // Stats
   const totalCount = events.length;
   const upcomingCount = events.filter((e) => new Date(e.date) >= now).length;
   const nextEvent = events
     .filter((e) => new Date(e.date) >= now)
     .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 
-  // Filtering logic
+  // Filtering
   const visibleEvents = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = events;
@@ -132,8 +83,6 @@ const EventDashboard = () => {
     if (activeTab === "upcoming") {
       list = list.filter((e) => new Date(e.date) >= now);
     } else if (activeTab !== "all") {
-      // map tab keys to our types; convert tab key if necessary
-      // Tab keys like "Workshop" etc.
       const tabTypeMap = {
         Workshop: "Workshop",
         Seminar: "Seminar",
@@ -142,7 +91,7 @@ const EventDashboard = () => {
         Competition: "Competition",
       };
       const t = tabTypeMap[activeTab];
-      if (t) list = list.filter((e) => e.type?.toLowerCase() === t.toLowerCase());
+      if (t) list = list.filter((e) => e.type === t);
     }
 
     if (q) {
@@ -154,63 +103,82 @@ const EventDashboard = () => {
       );
     }
 
-    // upcoming first, then nearest date
-    list = list.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    return list;
+    return list.sort((a, b) => new Date(a.date) - new Date(b.date));
   }, [events, activeTab, search]);
 
   // Handlers
-  const onChange = (e) => setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
+  const onChange = (e) =>
+    setForm((s) => ({ ...s, [e.target.name]: e.target.value }));
 
-  const onPoster = (ev) => {
-    const file = ev.target.files?.[0];
+  const onPoster = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-    setPosterPreview(URL.createObjectURL(file));
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result;
+      setPosterBase64(base64);
+      setPosterPreview(base64);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const createEvent = (e) => {
+  const clearPoster = () => {
+    setPosterPreview(null);
+    setPosterBase64(null);
+  };
+
+  const createEvent = async (e) => {
     e.preventDefault();
     if (!form.title || !form.date) return alert("Please provide title and date.");
-    const newEvent = {
-      id: Date.now(),
+
+    const payload = {
       ...form,
-      poster: posterPreview || null,
+      poster: posterBase64,
     };
-    setEvents((prev) => [newEvent, ...prev]);
-    // reset
-    setForm({
-      title: "",
-      date: "",
-      time: "",
-      location: "",
-      attendees: "",
-      type: "Workshop",
-      description: "",
-    });
-    setPosterPreview(null);
-    setShowModal(false);
+
+    try {
+      const { data } = await axios.post(API, payload);
+      setEvents((prev) => [data, ...prev]);
+
+      // Reset
+      setForm({
+        title: "",
+        date: "",
+        time: "",
+        location: "",
+        attendees: "",
+        type: "Workshop",
+        description: "",
+      });
+      setPosterPreview(null);
+      setPosterBase64(null);
+      setShowModal(false);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to create event");
+    }
   };
 
-  const clearPoster = () => setPosterPreview(null);
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this event?")) return;
+    try {
+      await axios.delete(`${API}/${id}`);
+      setEvents((prev) => prev.filter((e) => e._id !== id));
+    } catch {
+      alert("Failed to delete event");
+    }
+  };
 
   const badgeColor = (type) => {
-    switch ((type || "").toLowerCase()) {
-      case "workshop":
-        return "#115E59"; // teal
-      case "seminar":
-        return "#2C5AA0"; // indigo
-      case "webinar":
-        return "#0D3B66"; // deep blue
-      case "industry visit":
-        return "#7A4B00"; // amber
-      case "competition":
-        return "#7A1F5A"; // magenta
-      case "conference":
-        return "#0B5F73"; // different blue
-      default:
-        return "#193648";
-    }
+    const map = {
+      workshop: "#115E59",
+      seminar: "#2C5AA0",
+      webinar: "#0D3B66",
+      "industry visit": "#7A4B00",
+      competition: "#7A1F5A",
+      conference: "#0B5F73",
+    };
+    return map[(type || "").toLowerCase()] || "#193648";
   };
 
   return (
@@ -222,27 +190,23 @@ const EventDashboard = () => {
           <p style={styles.heroSub}>
             Manage university–industry events: create, preview, and filter by type — all in one elegant view.
           </p>
-
           <div style={styles.statsRow}>
             <div style={styles.statCard}>
               <div style={styles.statNumber}>{totalCount}</div>
               <div style={styles.statLabel}>Total events</div>
             </div>
-
             <div style={styles.statCard}>
               <div style={styles.statNumber}>{upcomingCount}</div>
               <div style={styles.statLabel}>Upcoming</div>
             </div>
-
             <div style={styles.statCard}>
               <div style={styles.statNumber}>
-                {nextEvent ? `${nextEvent.date}` : "—"}
+                {nextEvent ? nextEvent.date : "—"}
               </div>
               <div style={styles.statLabel}>Next event</div>
             </div>
           </div>
         </div>
-
         <div style={styles.heroRight}>
           <div style={styles.heroPanel}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -275,7 +239,6 @@ const EventDashboard = () => {
             </button>
           ))}
         </div>
-
         <div style={styles.search}>
           <Search size={16} color="#4B5563" style={{ marginRight: 8 }} />
           <input
@@ -306,7 +269,7 @@ const EventDashboard = () => {
               const isUpcoming = new Date(ev.date) >= now;
               return (
                 <motion.article
-                  key={ev.id}
+                  key={ev._id}
                   style={styles.card}
                   whileHover={{ translateY: -6, boxShadow: "0 18px 40px rgba(15, 23, 42, 0.12)" }}
                 >
@@ -323,35 +286,29 @@ const EventDashboard = () => {
                     </span>
                     {!isUpcoming && <span style={styles.pastBadge}>PAST</span>}
                   </div>
-
                   <div style={styles.cardBody}>
                     <h3 style={styles.cardTitle}>{ev.title}</h3>
                     <p style={styles.cardMeta}>
                       <CalendarDays size={14} /> <span>{ev.date}</span>
-                      {"  •  "}
+                      {" • "}
                       <Clock size={14} /> <span>{ev.time || "TBA"}</span>
                     </p>
                     <p style={styles.cardMeta}>
                       <MapPin size={14} /> <span>{ev.location}</span>
-                      {"  •  "}
+                      {" • "}
                       <Users size={14} /> <span>{ev.attendees}</span>
                     </p>
                     <p style={styles.cardDesc}>{ev.description}</p>
                     <div style={styles.cardActions}>
                       <button
                         style={styles.actionBtn}
-                        onClick={() => {
-                          // quick preview: open the poster in new tab if present
-                          if (ev.poster) window.open(ev.poster, "_blank");
-                        }}
+                        onClick={() => ev.poster && window.open(ev.poster, "_blank")}
                       >
                         View Poster
                       </button>
                       <button
                         style={{ ...styles.actionBtn, ...styles.ghostBtn }}
-                        onClick={() =>
-                          setEvents((prev) => prev.filter((x) => x.id !== ev.id))
-                        }
+                        onClick={() => handleDelete(ev._id)}
                         title="Delete"
                       >
                         Delete
@@ -365,7 +322,7 @@ const EventDashboard = () => {
         )}
       </main>
 
-      {/* Create Modal */}
+      {/* MODAL */}
       {showModal && (
         <div style={styles.modalOverlay}>
           <motion.div style={styles.modal} initial={{ scale: 0.95 }} animate={{ scale: 1 }}>
@@ -380,7 +337,6 @@ const EventDashboard = () => {
                 </svg>
               </button>
             </div>
-
             <form style={styles.form} onSubmit={createEvent}>
               <div style={styles.formRow}>
                 <input
@@ -400,17 +356,14 @@ const EventDashboard = () => {
                   <option>Conference</option>
                 </select>
               </div>
-
               <div style={styles.formRow}>
                 <input name="date" value={form.date} onChange={onChange} type="date" style={styles.input} required />
                 <input name="time" value={form.time} onChange={onChange} type="time" style={styles.input} />
               </div>
-
               <div style={styles.formRow}>
                 <input name="location" value={form.location} onChange={onChange} placeholder="Location" style={styles.input} />
                 <input name="attendees" value={form.attendees} onChange={onChange} placeholder="Attendees" style={styles.input} />
               </div>
-
               <textarea
                 name="description"
                 value={form.description}
@@ -418,13 +371,11 @@ const EventDashboard = () => {
                 placeholder="Short description..."
                 style={styles.textarea}
               />
-
               <div style={styles.formRow}>
                 <label style={styles.uploadLabel}>
                   <Image size={16} /> <span style={{ marginLeft: 8 }}>Upload poster</span>
                   <input type="file" accept="image/*" onChange={onPoster} style={{ display: "none" }} />
                 </label>
-
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   {posterPreview ? (
                     <>
@@ -436,7 +387,6 @@ const EventDashboard = () => {
                   )}
                 </div>
               </div>
-
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
                 <button type="button" onClick={() => setShowModal(false)} style={styles.ghostBtn}>
                   Cancel
@@ -453,9 +403,9 @@ const EventDashboard = () => {
   );
 };
 
-export default EventDashboard;
+export default EventCreation;
 
-/* ===== inline styles (CollaXion theme) ===== */
+/* ===== STYLES (unchanged) ===== */
 const styles = {
   page: {
     fontFamily: "'Poppins', sans-serif",
@@ -464,38 +414,12 @@ const styles = {
     padding: "36px 56px",
     color: "#0B2B3A",
   },
-  hero: {
-    display: "flex",
-    gap: 28,
-    alignItems: "stretch",
-    marginBottom: 28,
-  },
-  heroLeft: {
-    flex: 1,
-    padding: 22,
-  },
-  heroRight: {
-    width: 320,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: 700,
-    color: "#0D3B66",
-    marginBottom: 8,
-  },
-  heroSub: {
-    color: "#3A6B89",
-    marginBottom: 18,
-    maxWidth: 680,
-  },
-  statsRow: {
-    display: "flex",
-    gap: 14,
-    marginTop: 12,
-  },
+  hero: { display: "flex", gap: 28, alignItems: "stretch", marginBottom: 28 },
+  heroLeft: { flex: 1, padding: 22 },
+  heroRight: { width: 320, display: "flex", alignItems: "center", justifyContent: "flex-end" },
+  heroTitle: { fontSize: 28, fontWeight: 700, color: "#0D3B66", marginBottom: 8 },
+  heroSub: { color: "#3A6B89", marginBottom: 18, maxWidth: 680 },
+  statsRow: { display: "flex", gap: 14, marginTop: 12 },
   statCard: {
     background: "linear-gradient(180deg,#FFFFFF,#F3FAFF)",
     padding: "14px 16px",
@@ -506,7 +430,6 @@ const styles = {
   },
   statNumber: { fontSize: 18, fontWeight: 700, color: "#113A56" },
   statLabel: { fontSize: 12, color: "#6B7C8A", marginTop: 6 },
-
   heroPanel: {
     background: "linear-gradient(180deg,#0D3B66, #174C6E)",
     color: "#fff",
@@ -521,7 +444,6 @@ const styles = {
   },
   panelTitle: { fontSize: 14, fontWeight: 700 },
   panelSub: { fontSize: 12, opacity: 0.95 },
-
   createBtn: {
     background: "#00A3A3",
     border: "none",
@@ -532,14 +454,7 @@ const styles = {
     fontWeight: 700,
     boxShadow: "0 8px 20px rgba(0,163,163,0.18)",
   },
-
-  controls: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    gap: 12,
-  },
+  controls: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, gap: 12 },
   tabs: { display: "flex", gap: 10, flexWrap: "wrap" },
   tabButton: {
     background: "transparent",
@@ -565,16 +480,8 @@ const styles = {
     boxShadow: "0 8px 20px rgba(11,59,102,0.03)",
     border: "1px solid #E6F0F8",
   },
-  searchInput: {
-    border: "none",
-    outline: "none",
-    fontSize: 14,
-    minWidth: 220,
-  },
-
-  gridWrap: {
-    marginTop: 8,
-  },
+  searchInput: { border: "none", outline: "none", fontSize: 14, minWidth: 220 },
+  gridWrap: { marginTop: 8 },
   emptyArea: {
     minHeight: 240,
     borderRadius: 14,
@@ -587,12 +494,7 @@ const styles = {
     boxShadow: "0 10px 30px rgba(10,40,60,0.04)",
     padding: 36,
   },
-
-  cardGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: 20,
-  },
+  cardGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 },
   card: {
     background: "#fff",
     borderRadius: 14,
@@ -602,17 +504,8 @@ const styles = {
     transition: "all 0.25s ease",
     boxShadow: "0 8px 28px rgba(11,59,102,0.06)",
   },
-  cardMediaWrap: {
-    position: "relative",
-    minHeight: 150,
-    overflow: "hidden",
-  },
-  cardPoster: {
-    width: "100%",
-    height: 150,
-    objectFit: "cover",
-    display: "block",
-  },
+  cardMediaWrap: { position: "relative", minHeight: 150, overflow: "hidden" },
+  cardPoster: { width: "100%", height: 150, objectFit: "cover", display: "block" },
   posterPlaceholder: {
     width: "100%",
     height: 150,
@@ -643,18 +536,11 @@ const styles = {
     fontSize: 12,
     fontWeight: 700,
   },
-
-  cardBody: {
-    padding: 16,
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
+  cardBody: { padding: 16, display: "flex", flexDirection: "column", gap: 8 },
   cardTitle: { fontSize: 16, fontWeight: 700, color: "#10324A" },
   cardMeta: { fontSize: 13, color: "#4B6B79", display: "flex", gap: 8, alignItems: "center" },
   cardDesc: { fontSize: 13, color: "#445862", marginTop: 6 },
   cardActions: { marginTop: 10, display: "flex", gap: 8 },
-
   actionBtn: {
     background: "#193648",
     color: "#fff",
@@ -672,8 +558,6 @@ const styles = {
     border: "1px solid #E6F0F8",
     cursor: "pointer",
   },
-
-  /* modal */
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -694,12 +578,7 @@ const styles = {
   modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   modalTitle: { fontSize: 18, fontWeight: 800, color: "#0D3B66" },
   modalSub: { fontSize: 13, color: "#4B6B79" },
-  modalClose: {
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-  },
-
+  modalClose: { border: "none", background: "transparent", cursor: "pointer" },
   form: { display: "flex", flexDirection: "column", gap: 12 },
   formRow: { display: "flex", gap: 12 },
   input: {
@@ -733,7 +612,6 @@ const styles = {
   },
   previewImg: { width: 140, height: 80, objectFit: "cover", borderRadius: 8, border: "1px solid #E6F0F8" },
   noPreview: { color: "#6B7C8A", fontSize: 13 },
-
   primaryBtn: {
     padding: "10px 16px",
     background: "#0D3B66",
@@ -750,7 +628,6 @@ const styles = {
     background: "transparent",
     cursor: "pointer",
   },
-
   createBtnAlt: {
     marginTop: 12,
     background: "#00A3A3",

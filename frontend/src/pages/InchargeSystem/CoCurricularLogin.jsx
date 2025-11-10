@@ -12,7 +12,7 @@ const CoCurricularLogin = () => {
     const navigate = useNavigate();
 
     // ✅ Hardcoded Admin Credentials
-    const CoCurricular_USERNAME = "co.cu@collaxion.com";
+    const CoCurricular_USERNAME = "cocu";
     const CoCurricular_PASSWORD = "cocu123";
 
     const validate = () => {

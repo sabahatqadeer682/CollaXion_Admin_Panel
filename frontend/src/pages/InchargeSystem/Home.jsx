@@ -1,190 +1,165 @@
-
-
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 
-// Keyframe animations
+// Animations
 const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 `;
 
-const slideInButton = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(-50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+const slideIn = keyframes`
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 `;
 
-const pulse = keyframes`
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.01); /* Slightly less intense pulse */
-  }
-  100% {
-    transform: scale(1);
-  }
+const float = keyframes`
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 `;
 
-// Styled Components
+// Page Styles
 const PageContainer = styled.div`
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #193648; /* Dark theme color remains for depth */
-  color: #E2EEF9; /* Light theme color for text */
-  font-family: 'Poppins', sans-serif; /* Modern font */
-  position: relative;
+  background: radial-gradient(circle at top left, #E2EEF9, #cfdde8);
+  font-family: 'Poppins', sans-serif;
   overflow: hidden;
+  color: #193648;
+  position: relative;
+`;
 
-  /* Brighter, more active gradient overlay */
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(226,238,249,0.8) 0%, rgba(25,54,72,0.6) 70%, rgba(2,0,36,0.4) 100%);
-    opacity: 0.9; /* Increased opacity for brighter feel */
-    z-index: 1;
-  }
-
-  /* Video background effect using a subtle pattern/gradient */
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Using your provided image for a dynamic background, adjusting size and opacity */
-    background-image: url("https://media.istockphoto.com/id/2218739375/photo/abstract-digital-network-with-glowing-nodes-and-connections.webp?a=1&b=1&s=612x612&w=0&k=20&c=-XWbsf_jNczAQD8esH1bfqEcPBz488WG5bzWw2_wdVQ=");
-    background-size: cover; /* Cover the entire area */
-    background-position: center;
-    opacity: 0.2; /* Slightly increased opacity for more presence */
-    z-index: 0;
-    animation: ${pulse} 20s infinite alternate ease-in-out; /* Slower, smoother pulse */
-  }
+const BackgroundOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(25, 54, 72, 0.1) 100%
+  );
+  backdrop-filter: blur(18px);
+  z-index: 0;
 `;
 
 const ContentWrapper = styled.div`
-  position: relative;
-  z-index: 2;
-  background: rgba(255, 255, 255, 0.2); /* Lighter, more transparent background */
-  padding: 50px 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Slightly softer shadow */
+  z-index: 1;
   text-align: center;
-  max-width: 550px; /* Slightly wider */
-  width: 90%;
-  animation: ${fadeIn} 1s ease-out forwards;
-  backdrop-filter: blur(8px); /* More pronounced frosted glass effect */
-  border: 1px solid rgba(255, 255, 255, 0.3); /* Subtle light border */
+  max-width: 1300px;
+  padding: 40px;
+  animation: ${fadeIn} 1s ease-out;
 `;
 
 const Heading = styled.h1`
-  font-size: 3.2em; /* Even larger heading */
-  margin-bottom: 30px; /* Slightly less margin */
-  color: #193648; /* Darker heading for contrast against brighter background */
-  letter-spacing: 2px;
-  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Lighter text shadow */
-  font-weight: 800; /* Bolder font weight */
-
-  @media (max-width: 768px) {
-    font-size: 3em;
-  }
-  @media (max-width: 480px) {
-    font-size: 2.2em;
-  }
+  font-size: 3em;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #193648;
+  letter-spacing: 1px;
 `;
 
 const SubHeading = styled.p`
-  font-size: 1.3em;
-  color: #193648;
-  margin-bottom: 50px;
-  font-weight: 500;
-  animation: ${fadeIn} 1.2s ease-out forwards;
-  animation-delay: 0.5s;
-  opacity: 0;
+  font-size: 1.2em;
+  color: #405e74;
+  margin-bottom: 60px;
 `;
 
-const ButtonContainer = styled.div`
+const CardsContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: nowrap;
+`;
+
+const RoleCard = styled.div`
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(25, 54, 72, 0.25);
+  border-radius: 20px;
+  padding: 25px 25px 35px 25px;
+  width: 320px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(25, 54, 72, 0.15);
+  animation: ${slideIn} 0.9s ease forwards;
+  backdrop-filter: blur(15px);
   display: flex;
   flex-direction: column;
-  gap: 25px;
   align-items: center;
-`;
-
-const StyledButton = styled.button`
-  background-color: #193648; /* Dark theme color for buttons */
-  color: #E2EEF9; /* Light theme color for button text */
-  border: none;
-  padding: 18px 40px; /* Larger padding */
-  border-radius: 10px; /* More rounded corners */
-  cursor: pointer;
-  font-size: 1em; /* Larger font size */
-  font-weight: 700; /* Bolder font weight */
-  letter-spacing: 1.5px;
-  transition: all 0.3s ease;
-  width: 100%;
-  max-width: 350px; /* Wider buttons */
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  animation: ${slideInButton} 0.8s ease-out forwards;
-  opacity: 0; /* Start hidden for animation */
-
-  &:nth-child(1) { animation-delay: 0.8s; } /* Adjusted delays */
-  &:nth-child(2) { animation-delay: 1s; }
-  &:nth-child(3) { animation-delay: 1.2s; }
 
   &:hover {
-    background-color: #0d2838; /* Even darker on hover */
-    transform: translateY(-7px) scale(1.03); /* More pronounced lift */
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid #193648;
+    box-shadow: 0 10px 35px rgba(25, 54, 72, 0.25);
   }
+`;
 
-  &:active {
-    transform: translateY(-3px) scale(0.98);
-  }
+const Illustration = styled.img`
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 20px;
+  animation: ${float} 3s ease-in-out infinite;
+`;
+
+const CardTitle = styled.h2`
+  font-size: 1.3em;
+  color: #193648;
+  margin-bottom: 10px;
+  font-weight: 600;
+`;
+
+const CardDescription = styled.p`
+  font-size: 0.95em;
+  color: #405e74;
+  line-height: 1.4;
+  max-width: 260px;
 `;
 
 const Home = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <PageContainer>
-            <ContentWrapper>
-                <Heading>Welcome!</Heading>
-                <SubHeading>Select your position to access the dashboard.</SubHeading>
-                <ButtonContainer>
-                    <StyledButton onClick={() => navigate("/login")}>
-                        Industry Liaison Incharge
-                    </StyledButton>
-                    <StyledButton onClick={() => navigate("/internship-login")}>
-                        Internship Incharge
-                    </StyledButton>
-                    <StyledButton onClick={() => navigate("/co-curricular-login")}>
-                        Co-Curricular Incharge
-                    </StyledButton>
+  const roles = [
+    {
+      title: "Industry Liaison Incharge",
+      description: "Manage partnerships, MoUs, and collaborations with industries.",
+      path: "/login",
+      img: "/gifs/handshake.gif", // from public/gifs
+    },
+    {
+      title: "Internship Incharge",
+      description: "Oversee internships, placements, and career programs efficiently.",
+      path: "/internship-login",
+      img: "/gifs/evaluate.gif", // from public/gifs
+    },
+    {
+      title: "Co-Curricular Incharge",
+      description: "Coordinate events, activities, and engagement opportunities for students.",
+      path: "/co-curricular-login",
+      img: "/gifs/calendar.gif", // from public/gifs
+    },
+  ];
 
-                </ButtonContainer>
-            </ContentWrapper>
-        </PageContainer>
-    );
+  return (
+    <PageContainer>
+      <BackgroundOverlay />
+      <ContentWrapper>
+        <Heading>Welcome to CollaXion</Heading>
+        <SubHeading>Select your role to continue</SubHeading>
+        <CardsContainer>
+          {roles.map((role, index) => (
+            <RoleCard key={index} onClick={() => navigate(role.path)}>
+              <Illustration src={role.img} alt={role.title} />
+              <CardTitle>{role.title}</CardTitle>
+              <CardDescription>{role.description}</CardDescription>
+            </RoleCard>
+          ))}
+        </CardsContainer>
+      </ContentWrapper>
+    </PageContainer>
+  );
 };
 
 export default Home;

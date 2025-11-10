@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { PlusCircle, Clock, AlertTriangle, Search, Filter, X, Trash2 } from "lucide-react";
+import { PlusCircle, Clock, AlertTriangle, Search, Filter, X, Trash2, Plus, Minus } from "lucide-react";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-
 import axios from 'axios';
 
 const API_URL = "http://localhost:5000/api/mous";
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB limit
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
 
 const MouManagement = () => {
   const [mous, setMous] = useState([]);
@@ -16,7 +15,7 @@ const MouManagement = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [customFields, setCustomFields] = useState([{ label: "", value: "" }]);
   const [formData, setFormData] = useState({
     title: "",
     university: "",
@@ -24,11 +23,11 @@ const MouManagement = () => {
     collaborationType: "",
     startDate: "",
     endDate: "",
-    attachment: null,
     description: "",
+    universityLogo: null,
+    industryLogo: null,
   });
 
-  // Fetch MOUs from backend
   useEffect(() => {
     fetchMous();
   }, []);
@@ -39,8 +38,6 @@ const MouManagement = () => {
       setError(null);
       const response = await axios.get(API_URL);
       setMous(response.data);
-
-      // Build activity log from fetched MOUs
       const logs = response.data.slice(0, 5).map(m => {
         const isExp = new Date(m.endDate).getTime() <= Date.now();
         return isExp
@@ -88,31 +85,45 @@ const MouManagement = () => {
     return days > 0 && days <= 30;
   });
 
+  const addCustomField = () => {
+    setCustomFields([...customFields, { label: "", value: "" }]);
+  };
+
+  const removeCustomField = (index) => {
+    setCustomFields(customFields.filter((_, i) => i !== index));
+  };
+
+  const updateCustomField = (index, field, value) => {
+    const updated = [...customFields];
+    updated[index][field] = value;
+    setCustomFields(updated);
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
-
     try {
-      // Validate file size
-      if (formData.attachment && formData.attachment.size > MAX_FILE_SIZE) {
-        alert(`File size too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
-        return;
-      }
+      let universityLogoData = null;
+      let industryLogoData = null;
 
-      // Convert attachment to base64 if exists
-      let attachmentData = null;
-      let attachmentName = null;
-      let attachmentType = null;
-
-      if (formData.attachment) {
+      if (formData.universityLogo) {
         const reader = new FileReader();
-        attachmentData = await new Promise((resolve, reject) => {
+        universityLogoData = await new Promise((resolve, reject) => {
           reader.onload = () => resolve(reader.result.split(',')[1]);
           reader.onerror = reject;
-          reader.readAsDataURL(formData.attachment);
+          reader.readAsDataURL(formData.universityLogo);
         });
-        attachmentName = formData.attachment.name;
-        attachmentType = formData.attachment.type;
       }
+
+      if (formData.industryLogo) {
+        const reader = new FileReader();
+        industryLogoData = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(formData.industryLogo);
+        });
+      }
+
+      const filteredCustomFields = customFields.filter(f => f.label.trim() && f.value.trim());
 
       const newMouData = {
         title: formData.title,
@@ -122,56 +133,47 @@ const MouManagement = () => {
         startDate: formData.startDate,
         endDate: formData.endDate,
         description: formData.description,
+        customFields: filteredCustomFields,
+        universityLogoData,
+        industryLogoData,
         extraDetails: [],
         signatories: { university: "", industry: "" },
         universityContact: { name: "", designation: "", email: "" },
         industryContact: { name: "", designation: "", email: "" },
         status: "Draft",
-        attachmentData,
-        attachmentName,
-        attachmentType
       };
 
-      // Generate PDF and get base64
       console.log("Generating PDF...");
       const pdfBase64 = await generateFormalMouPDF(newMouData, true);
-
       newMouData.pdfData = pdfBase64;
 
-      // Check total data size
       const dataSize = JSON.stringify(newMouData).length;
       console.log(`Total MOU data size: ${(dataSize / 1024 / 1024).toFixed(2)} MB`);
-
       if (dataSize > 15 * 1024 * 1024) {
-        alert("MOU data too large (>15MB). Try without attachment or use a smaller file.");
+        alert("MOU data too large (>15MB). Try using smaller logo files.");
         return;
       }
 
-      // Save to backend with timeout
       console.log("Saving to backend...");
       const response = await axios.post(API_URL, newMouData, {
-        timeout: 30000, // 30 second timeout
+        timeout: 30000,
         headers: {
           'Content-Type': 'application/json'
         }
       });
-
       console.log("MOU saved successfully:", response.data);
 
-      // Update local state
       setMous((s) => [response.data, ...s]);
       setActivityLog((a) => [
         `✅ MOU created: ${response.data.title} between ${response.data.university} & ${response.data.industry} (Starts ${response.data.startDate})`,
-        ...a.slice(0, 4), // Keep only last 5 logs
+        ...a.slice(0, 4),
       ]);
 
-      // Preview PDF in new tab
       const pdfBytes = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
 
-      // Reset form
       setFormData({
         title: "",
         university: "",
@@ -179,16 +181,15 @@ const MouManagement = () => {
         collaborationType: "",
         startDate: "",
         endDate: "",
-        attachment: null,
         description: "",
+        universityLogo: null,
+        industryLogo: null,
       });
+      setCustomFields([{ label: "", value: "" }]);
       setShowModal(false);
       alert("MOU created successfully!");
-
     } catch (error) {
       console.error("Error creating MOU:", error);
-
-      // Detailed error logging
       if (error.response) {
         console.error("Server response:", error.response.data);
         console.error("Status code:", error.response.status);
@@ -205,7 +206,6 @@ const MouManagement = () => {
 
   const handleDelete = async (mouId) => {
     if (!window.confirm("Are you sure you want to delete this MOU?")) return;
-
     try {
       await axios.delete(`${API_URL}/${mouId}`);
       setMous((s) => s.filter(m => m._id !== mouId));
@@ -217,59 +217,295 @@ const MouManagement = () => {
     }
   };
 
-  // Generate PDF - now returns base64 when returnBase64 is true
+  // FIXED: Utility function to wrap text without recursion
+  const wrapText = (text = "", maxChars = 90) => {
+    if (!text) return [""];
+    const words = text.split(" ");
+    const lines = [];
+    let cur = "";
+    words.forEach(w => {
+      if ((cur + " " + w).trim().length > maxChars) {
+        if (cur) lines.push(cur.trim());
+        cur = w;
+      } else {
+        cur = (cur + " " + w).trim();
+      }
+    });
+    if (cur) lines.push(cur.trim());
+    return lines;
+  };
+
+  // FIXED: Non-recursive text drawing with proper page management
+  const drawWrappedText = (pdfDoc, currentPage, text, x, startY, rightLimit, font, size, lineHeight) => {
+    const maxChars = Math.floor((rightLimit - x) / (size * 0.6));
+    const lines = wrapText(text, maxChars);
+    let y = startY;
+    let page = currentPage;
+    
+    for (const line of lines) {
+      // Check if we need a new page
+      if (y < 70) {
+        page = pdfDoc.addPage([612, 792]);
+        y = page.getHeight() - 60;
+      }
+      
+      page.drawText(line, { x, y, font, size, color: rgb(0, 0, 0) });
+      y -= lineHeight;
+    }
+    
+    return { page, y };
+  };
+
+  const drawSectionHeading = (page, text, x, y, boldFont, size) => {
+    page.drawText(text, { x, y, font: boldFont, size, color: rgb(0, 0, 0) });
+    y -= size + 4;
+    return y;
+  };
+
   const generateFormalMouPDF = async (mou, returnBase64 = false) => {
     try {
       const pdfDoc = await PDFDocument.create();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
       const pageWidth = 612;
       const pageHeight = 792;
       const left = 60;
       const right = pageWidth - 60;
+
+      // PAGE 1: Cover page with logos
+      const coverPage = pdfDoc.addPage([pageWidth, pageHeight]);
+      let cy = coverPage.getHeight() - 100;
+
+      // Title at top
+      const title = "MEMORANDUM OF UNDERSTANDING";
+      const titleSize = 16;
+      const titleWidth = boldFont.widthOfTextAtSize(title, titleSize);
+      coverPage.drawText(title, { 
+        x: (pageWidth - titleWidth) / 2, 
+        y: cy, 
+        font: boldFont, 
+        size: titleSize, 
+        color: rgb(0, 0, 0) 
+      });
+      cy -= 80;
+
+      // Logos section
+      const logoSize = 80;
+      const handshakeSize = 50;
+      const totalWidth = logoSize + handshakeSize + logoSize + 60;
+      const startX = (pageWidth - totalWidth) / 2;
+
+      // University Logo
+      if (mou.universityLogoData) {
+        try {
+          const logoBytes = Uint8Array.from(atob(mou.universityLogoData), c => c.charCodeAt(0));
+          const uniLogo = await pdfDoc.embedPng(logoBytes);
+          const logoDims = uniLogo.scale(logoSize / Math.max(uniLogo.width, uniLogo.height));
+          coverPage.drawImage(uniLogo, {
+            x: startX,
+            y: cy - logoSize / 2,
+            width: logoDims.width,
+            height: logoDims.height,
+          });
+        } catch (err) {
+          console.error("Failed to embed university logo:", err);
+        }
+      } else {
+        coverPage.drawRectangle({
+          x: startX,
+          y: cy - logoSize / 2,
+          width: logoSize,
+          height: logoSize,
+          borderColor: rgb(0.7, 0.7, 0.7),
+          borderWidth: 1,
+        });
+        coverPage.drawText("University", {
+          x: startX + 10,
+          y: cy,
+          font: font,
+          size: 10,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+      }
+
+      // Handshake icon
+      const handshakeX = startX + logoSize + 30;
+      const handshakeY = cy;
+      
+      coverPage.drawCircle({
+        x: handshakeX,
+        y: handshakeY,
+        size: handshakeSize / 2,
+        borderColor: rgb(0.2, 0.4, 0.6),
+        borderWidth: 2,
+      });
+      
+      coverPage.drawRectangle({
+        x: handshakeX - 18,
+        y: handshakeY - 5,
+        width: 15,
+        height: 10,
+        color: rgb(0.2, 0.4, 0.6),
+      });
+      
+      coverPage.drawRectangle({
+        x: handshakeX + 3,
+        y: handshakeY - 5,
+        width: 15,
+        height: 10,
+        color: rgb(0.2, 0.4, 0.6),
+      });
+      
+      coverPage.drawCircle({
+        x: handshakeX,
+        y: handshakeY,
+        size: 6,
+        color: rgb(0.2, 0.4, 0.6),
+      });
+
+      // Industry Logo
+      const industryX = handshakeX + handshakeSize + 30;
+      if (mou.industryLogoData) {
+        try {
+          const logoBytes = Uint8Array.from(atob(mou.industryLogoData), c => c.charCodeAt(0));
+          const indLogo = await pdfDoc.embedPng(logoBytes);
+          const logoDims = indLogo.scale(logoSize / Math.max(indLogo.width, indLogo.height));
+          coverPage.drawImage(indLogo, {
+            x: industryX,
+            y: cy - logoSize / 2,
+            width: logoDims.width,
+            height: logoDims.height,
+          });
+        } catch (err) {
+          console.error("Failed to embed industry logo:", err);
+        }
+      } else {
+        coverPage.drawRectangle({
+          x: industryX,
+          y: cy - logoSize / 2,
+          width: logoSize,
+          height: logoSize,
+          borderColor: rgb(0.7, 0.7, 0.7),
+          borderWidth: 1,
+        });
+        coverPage.drawText("Industry", {
+          x: industryX + 15,
+          y: cy,
+          font: font,
+          size: 10,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+      }
+
+      cy -= 120;
+
+      // Names below logos
+      const uniName = mou.university || "University";
+      const indName = mou.industry || "Industry";
+      const uniWidth = boldFont.widthOfTextAtSize(uniName, 12);
+      const indWidth = boldFont.widthOfTextAtSize(indName, 12);
+      
+      coverPage.drawText(uniName, {
+        x: startX + (logoSize - uniWidth) / 2,
+        y: cy,
+        font: boldFont,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+
+      coverPage.drawText(indName, {
+        x: industryX + (logoSize - indWidth) / 2,
+        y: cy,
+        font: boldFont,
+        size: 12,
+        color: rgb(0, 0, 0),
+      });
+
+      cy -= 60;
+
+      // Custom fields on cover page
+      if (mou.customFields && mou.customFields.length > 0) {
+        coverPage.drawText("Additional Information:", {
+          x: left,
+          y: cy,
+          font: boldFont,
+          size: 11,
+          color: rgb(0, 0, 0),
+        });
+        cy -= 20;
+
+        for (const field of mou.customFields) {
+          const fieldText = `${field.label}: ${field.value}`;
+          const result = drawWrappedText(pdfDoc, coverPage, fieldText, left, cy, right, font, 10, 14);
+          cy = result.y - 5;
+        }
+      }
+
+      // PAGE 2: MOU Content
       let page = pdfDoc.addPage([pageWidth, pageHeight]);
       let y = page.getHeight() - 70;
       const lineHeight = 16;
       const textColor = rgb(0, 0, 0);
 
       // Centered Title
-      const title = "MEMORANDUM OF UNDERSTANDING (MOU)";
-      const titleSize = 14;
-      const titleWidth = boldFont.widthOfTextAtSize(title, titleSize);
-      page.drawText(title, { x: (pageWidth - titleWidth) / 2, y, font: boldFont, size: titleSize, color: textColor });
-
+      const pageTitle = "MEMORANDUM OF UNDERSTANDING (MOU)";
+      const pageTitleSize = 14;
+      const pageTitleWidth = boldFont.widthOfTextAtSize(pageTitle, pageTitleSize);
+      page.drawText(pageTitle, { 
+        x: (pageWidth - pageTitleWidth) / 2, 
+        y, 
+        font: boldFont, 
+        size: pageTitleSize, 
+        color: textColor 
+      });
       y -= 28;
 
       // Intro paragraph
       const intro = `This Memorandum of Understanding (MOU) is made and entered into by and between ${mou.university || "the University"} (hereinafter referred to as "the University") and ${mou.industry || "the Industry"} (hereinafter referred to as "the Industry").`;
-      y = drawWrappedText(pdfDoc, page, intro, left, y, right, font, 11, lineHeight);
+      let result = drawWrappedText(pdfDoc, page, intro, left, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y - 8;
 
-      y -= 8;
-      const refLine = `Title: ${mou.title || "—"}    |    Type: ${mou.collaborationType || "—"}    |    Effective: ${mou.startDate || "—"} to ${mou.endDate || "—"}`;
-      y = drawWrappedText(pdfDoc, page, refLine, left, y, right, font, 10, lineHeight);
-
-      y -= 12;
+      const refLine = `Title: ${mou.title || "—"} | Type: ${mou.collaborationType || "—"} | Effective: ${mou.startDate || "—"} to ${mou.endDate || "—"}`;
+      result = drawWrappedText(pdfDoc, page, refLine, left, y, right, font, 10, lineHeight);
+      page = result.page;
+      y = result.y - 12;
 
       // 1. Parties
+      if (y < 100) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
+      }
       y = drawSectionHeading(page, "1. PARTIES", left, y, boldFont, 12);
+      
       const p1a = `1.1 University: ${mou.university || "—"}.`;
-      y = drawWrappedText(pdfDoc, page, p1a, left + 10, y, right, font, 11, lineHeight);
+      result = drawWrappedText(pdfDoc, page, p1a, left + 10, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y;
+      
       const p1b = `1.2 Industry: ${mou.industry || "—"}.`;
-      y = drawWrappedText(pdfDoc, page, p1b, left + 10, y, right, font, 11, lineHeight);
-
-      y -= 6;
+      result = drawWrappedText(pdfDoc, page, p1b, left + 10, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y - 6;
 
       // 2. Purpose
+      if (y < 100) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
+      }
       y = drawSectionHeading(page, "2. PURPOSE", left, y, boldFont, 12);
       const purpose = mou.description && mou.description.trim().length > 0
         ? `The purpose of this MOU is to establish collaborative activities between the parties in relation to ${mou.description}.`
         : `The purpose of this MOU is to establish collaborative activities between the parties, including but not limited to research, internships, training, and consultancy services as mutually agreed.`;
-      y = drawWrappedText(pdfDoc, page, purpose, left + 10, y, right, font, 11, lineHeight);
-
-      y -= 6;
+      result = drawWrappedText(pdfDoc, page, purpose, left + 10, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y - 6;
 
       // 3. Scope
+      if (y < 150) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
+      }
       y = drawSectionHeading(page, "3. SCOPE & RESPONSIBILITIES", left, y, boldFont, 12);
       const scopeLines = [
         `${mou.university || "The University"} agrees to provide academic supervision, access to subject matter expertise and student involvement as appropriate.`,
@@ -277,35 +513,49 @@ const MouManagement = () => {
         `Specific responsibilities of each party shall be agreed upon in writing and appended to this MOU where necessary.`
       ];
       for (const s of scopeLines) {
-        y = drawWrappedText(pdfDoc, page, `• ${s}`, left + 12, y, right, font, 11, lineHeight);
+        result = drawWrappedText(pdfDoc, page, `• ${s}`, left + 12, y, right, font, 11, lineHeight);
+        page = result.page;
+        y = result.y;
       }
-
       y -= 6;
 
       // 4. Duration
+      if (y < 100) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
+      }
       y = drawSectionHeading(page, "4. DURATION", left, y, boldFont, 12);
       const duration = `This MOU shall commence on ${mou.startDate || "—"} and remain in effect until ${mou.endDate || "—"}, unless earlier terminated in accordance with Section 6.`;
-      y = drawWrappedText(pdfDoc, page, duration, left + 10, y, right, font, 11, lineHeight);
-
-      y -= 6;
+      result = drawWrappedText(pdfDoc, page, duration, left + 10, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y - 6;
 
       // 5. Confidentiality
+      if (y < 100) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
+      }
       y = drawSectionHeading(page, "5. CONFIDENTIALITY", left, y, boldFont, 12);
       const conf = `Each party agrees to maintain confidentiality of shared proprietary information and to use such information only for the purposes set forth in this MOU, except as required by law or by prior written consent of the disclosing party.`;
-      y = drawWrappedText(pdfDoc, page, conf, left + 10, y, right, font, 11, lineHeight);
-
-      y -= 6;
+      result = drawWrappedText(pdfDoc, page, conf, left + 10, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y - 6;
 
       // 6. Termination
+      if (y < 100) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
+      }
       y = drawSectionHeading(page, "6. TERMINATION", left, y, boldFont, 12);
       const term = `Either party may terminate this MOU by providing thirty (30) days' prior written notice to the other party. Termination shall not affect accrued rights or obligations of either party at the date of termination.`;
-      y = drawWrappedText(pdfDoc, page, term, left + 10, y, right, font, 11, lineHeight);
-
-      y -= 10;
+      result = drawWrappedText(pdfDoc, page, term, left + 10, y, right, font, 11, lineHeight);
+      page = result.page;
+      y = result.y - 10;
 
       // 7. Signatures
       if (y < 170) {
-        ({ page, y } = addNewPageWithY(pdfDoc));
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = page.getHeight() - 60;
       }
       page.drawText("7. SIGNATURES", { x: left, y, font: boldFont, size: 12, color: textColor });
       y -= (lineHeight + 6);
@@ -325,45 +575,10 @@ const MouManagement = () => {
       page.drawText(`Signature: _______________________________`, { x: rightX, y: sigBlockTop - lineHeight * 2, font: font, size: 11 });
       page.drawText(`Date: _________________________________`, { x: rightX, y: sigBlockTop - lineHeight * 3, font: font, size: 11 });
 
-      // Handle attachment (only for small files)
-      if (mou.attachmentData && mou.attachmentType && !returnBase64) {
-        try {
-          const attachmentBytes = Uint8Array.from(atob(mou.attachmentData), c => c.charCodeAt(0));
-
-          if (mou.attachmentType === "application/pdf") {
-            const attachedPdf = await PDFDocument.load(attachmentBytes);
-            const copiedPages = await pdfDoc.copyPages(attachedPdf, attachedPdf.getPageIndices());
-            copiedPages.forEach((p) => pdfDoc.addPage(p));
-          } else if (mou.attachmentType.startsWith("image/")) {
-            let embeddedImage;
-            if (mou.attachmentType === "image/jpeg" || mou.attachmentType === "image/jpg") {
-              embeddedImage = await pdfDoc.embedJpg(attachmentBytes);
-            } else {
-              embeddedImage = await pdfDoc.embedPng(attachmentBytes);
-            }
-            const imgPage = pdfDoc.addPage([pageWidth, pageHeight]);
-            const pw = imgPage.getWidth() - 100;
-            const ph = imgPage.getHeight() - 100;
-            const dims = embeddedImage.scale(1);
-            const scale = Math.min(pw / dims.width, ph / dims.height, 1);
-            const drawW = dims.width * scale;
-            const drawH = dims.height * scale;
-            const x = (imgPage.getWidth() - drawW) / 2;
-            const yImg = (imgPage.getHeight() - drawH) / 2;
-            imgPage.drawImage(embeddedImage, { x, y: yImg, width: drawW, height: drawH });
-          }
-        } catch (err) {
-          console.error("Failed to attach file to MOU PDF:", err);
-        }
-      }
-
       const pdfBytes = await pdfDoc.save();
-
       if (returnBase64) {
-        // Return base64 string for storage
         return btoa(String.fromCharCode(...pdfBytes));
       } else {
-        // Open in new tab for preview/download
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         window.open(url, "_blank");
@@ -374,54 +589,8 @@ const MouManagement = () => {
     }
   };
 
-  const drawWrappedText = (pdfDoc, page, text, x, y, rightLimit, font, size, lineHeight) => {
-    const maxChars = Math.floor((rightLimit - x) / (size * 0.6));
-    const lines = wrapText(text, maxChars);
-    for (const line of lines) {
-      if (y < 70) {
-        const np = pdfDoc.addPage([612, 792]);
-        page = np;
-        y = np.getHeight() - 60;
-      }
-      page.drawText(line, { x, y, font, size, color: rgb(0, 0, 0) });
-      y -= lineHeight;
-    }
-    return y;
-  };
-
-  const drawSectionHeading = (page, text, x, y, boldFont, size) => {
-    page.drawText(text, { x, y, font: boldFont, size, color: rgb(0, 0, 0) });
-    y -= size + 4;
-    return y;
-  };
-
-  const addNewPageWithY = (pdfDoc) => {
-    const page = pdfDoc.addPage([612, 792]);
-    const y = page.getHeight() - 60;
-    return { page, y };
-  };
-
-  const wrapText = (text = "", maxChars = 90) => {
-    if (!text) return [""];
-    const words = text.split(" ");
-    const lines = [];
-    let cur = "";
-    words.forEach(w => {
-      if ((cur + " " + w).trim().length > maxChars) {
-        if (cur) lines.push(cur.trim());
-        cur = w;
-      } else {
-        cur = (cur + " " + w).trim();
-      }
-    });
-    if (cur) lines.push(cur.trim());
-    return lines;
-  };
-
-  // Render
   return (
     <div style={styles.page}>
-      {/* Header */}
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}>MOU Management</h1>
@@ -437,7 +606,6 @@ const MouManagement = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
           <div style={styles.filterWrapper}>
             <Filter size={16} color="#193648" />
             <select
@@ -450,7 +618,6 @@ const MouManagement = () => {
               <option>Expired</option>
             </select>
           </div>
-
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.97 }}
@@ -463,7 +630,6 @@ const MouManagement = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div style={styles.summaryRow}>
         <div style={styles.statCard}>
           <div style={styles.statTitle}>Total MOUs</div>
@@ -483,7 +649,6 @@ const MouManagement = () => {
         </div>
       </div>
 
-      {/* Expiry Alert */}
       {expiringSoon.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -504,7 +669,6 @@ const MouManagement = () => {
         </motion.div>
       )}
 
-      {/* Error Display */}
       {error && (
         <div style={{ ...styles.alert, background: "#ffebee" }}>
           <AlertTriangle size={18} color="#c62828" />
@@ -512,7 +676,6 @@ const MouManagement = () => {
         </div>
       )}
 
-      {/* Main Content */}
       <div style={styles.grid}>
         <div style={styles.leftCol}>
           {loading ? (
@@ -549,9 +712,7 @@ const MouManagement = () => {
                           </div>
                         </div>
                       </div>
-
                       <div style={styles.desc}>{m.description || "—"}</div>
-
                       <div style={styles.progressWrap}>
                         <div style={styles.progressLabel}>
                           <div style={{ fontSize: 12, color: "#193648" }}>
@@ -561,12 +722,10 @@ const MouManagement = () => {
                             {isExpired(m) ? "Expired" : "Ongoing"}
                           </div>
                         </div>
-
                         <div style={styles.progressBar}>
                           <div style={{ ...styles.progressFill, width: `${progress}%` }} />
                         </div>
                       </div>
-
                       <div style={styles.cardActions}>
                         <button
                           style={styles.pdfBtn}
@@ -591,7 +750,6 @@ const MouManagement = () => {
           )}
         </div>
 
-        {/* Right Panel */}
         <div style={styles.rightCol}>
           <motion.div
             initial={{ opacity: 0 }}
@@ -604,10 +762,10 @@ const MouManagement = () => {
             <div style={{ fontSize: 12, color: "#193648" }}>
               • Use search & filter to quickly find MOUs.<br />
               • Preview the formal MOU in a new tab before saving.<br />
-              • Keep attachments under 5MB for best performance.<br />
+              • Upload PNG logos for best quality.<br />
+              • Add custom fields for additional information.<br />
             </div>
           </motion.div>
-
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
               <h3 style={{ margin: 0 }}>Industry Engagement Tracking</h3>
@@ -638,7 +796,6 @@ const MouManagement = () => {
               ))}
             </div>
           </div>
-
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
               <h3 style={{ margin: 0 }}>System Suggested Industries</h3>
@@ -650,7 +807,6 @@ const MouManagement = () => {
               <div>• AutoSmart Industries — emerging in industrial automation</div>
             </div>
           </div>
-
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
               <h3 style={{ margin: 0 }}>Recent Activity</h3>
@@ -662,7 +818,6 @@ const MouManagement = () => {
               ))}
             </div>
           </div>
-
           <div style={styles.activity}>
             <div style={styles.activityHeader}>
               <h3 style={{ margin: 0 }}>Expiring MOUs</h3>
@@ -683,7 +838,6 @@ const MouManagement = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div style={styles.modalOverlay}>
           <motion.div
@@ -697,7 +851,6 @@ const MouManagement = () => {
               <h3>Create MOU</h3>
               <X size={20} style={{ cursor: "pointer" }} onClick={() => setShowModal(false)} />
             </div>
-
             <motion.form
               onSubmit={handleCreate}
               style={styles.form}
@@ -709,7 +862,6 @@ const MouManagement = () => {
               }}
             >
               <label><strong>Basic Details</strong></label>
-
               <input
                 placeholder="MOU Title"
                 value={formData.title}
@@ -717,7 +869,6 @@ const MouManagement = () => {
                 required
                 style={inputStyle}
               />
-
               <input
                 placeholder="University Name"
                 value={formData.university}
@@ -725,7 +876,6 @@ const MouManagement = () => {
                 required
                 style={inputStyle}
               />
-
               <input
                 placeholder="Industry Name"
                 value={formData.industry}
@@ -733,7 +883,6 @@ const MouManagement = () => {
                 required
                 style={inputStyle}
               />
-
               <select
                 value={formData.collaborationType}
                 onChange={(e) => setFormData({ ...formData, collaborationType: e.target.value })}
@@ -746,7 +895,6 @@ const MouManagement = () => {
                 <option>Training</option>
                 <option>Consultancy</option>
               </select>
-
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   type="date"
@@ -763,40 +911,127 @@ const MouManagement = () => {
                   style={{ ...inputStyle, width: "50%" }}
                 />
               </div>
-
               <textarea
                 placeholder="Short purpose (optional)"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 style={{ height: 70, padding: "8px", borderRadius: 6, border: "1px solid #ccc", marginBottom: 6 }}
               />
+              
+              <label><strong>Logos (PNG format recommended)</strong></label>
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: 12, color: "#2b5b94" }}>University Logo:</label>
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  onChange={(e) => {
+                    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                    if (file && file.size > MAX_FILE_SIZE) {
+                      alert(`File too large! Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+                      e.target.value = "";
+                      return;
+                    }
+                    setFormData({ ...formData, universityLogo: file });
+                  }}
+                  style={inputStyle}
+                />
+                {formData.universityLogo && (
+                  <div style={{ fontSize: 11, color: "#2b5b94", marginTop: 2 }}>
+                    ✓ {formData.universityLogo.name}
+                  </div>
+                )}
+              </div>
+              
+              <div style={{ marginBottom: 6 }}>
+                <label style={{ fontSize: 12, color: "#2b5b94" }}>Industry Logo:</label>
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  onChange={(e) => {
+                    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                    if (file && file.size > MAX_FILE_SIZE) {
+                      alert(`File too large! Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+                      e.target.value = "";
+                      return;
+                    }
+                    setFormData({ ...formData, industryLogo: file });
+                  }}
+                  style={inputStyle}
+                />
+                {formData.industryLogo && (
+                  <div style={{ fontSize: 11, color: "#2b5b94", marginTop: 2 }}>
+                    ✓ {formData.industryLogo.name}
+                  </div>
+                )}
+              </div>
 
-              <label><strong>Attachment (optional - max 5MB)</strong></label>
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                onChange={(e) => {
-                  const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-                  if (file && file.size > MAX_FILE_SIZE) {
-                    alert(`File too large! Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`);
-                    e.target.value = "";
-                    return;
-                  }
-                  setFormData({ ...formData, attachment: file });
-                }}
-                style={inputStyle}
-              />
-              {formData.attachment && (
-                <div style={{ fontSize: 12, color: "#2b5b94", marginTop: -4, marginBottom: 6 }}>
-                  Selected: {formData.attachment.name} ({(formData.attachment.size / 1024).toFixed(2)} KB)
+              <label><strong>Custom Fields</strong></label>
+              {customFields.map((field, index) => (
+                <div key={index} style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "center" }}>
+                  <input
+                    placeholder="Field Label (e.g., Department)"
+                    value={field.label}
+                    onChange={(e) => updateCustomField(index, 'label', e.target.value)}
+                    style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+                  />
+                  <input
+                    placeholder="Field Value"
+                    value={field.value}
+                    onChange={(e) => updateCustomField(index, 'value', e.target.value)}
+                    style={{ ...inputStyle, flex: 1, marginBottom: 0 }}
+                  />
+                  {customFields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeCustomField(index)}
+                      style={{ 
+                        background: "#9a2f2f", 
+                        color: "#fff", 
+                        border: "none", 
+                        borderRadius: 4, 
+                        padding: "6px 8px", 
+                        cursor: "pointer" 
+                      }}
+                    >
+                      <Minus size={14} />
+                    </button>
+                  )}
                 </div>
-              )}
+              ))}
+              <button
+                type="button"
+                onClick={addCustomField}
+                style={{ 
+                  marginBottom: 12, 
+                  padding: "6px 12px", 
+                  borderRadius: 6, 
+                  border: "1px solid #193648", 
+                  background: "#fff", 
+                  color: "#193648", 
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  fontSize: 13
+                }}
+              >
+                <Plus size={14} /> Add Custom Field
+              </button>
 
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                style={{ marginTop: 12, padding: "10px 20px", borderRadius: 6, border: "none", background: "#193648", color: "#fff", fontWeight: 600, cursor: "pointer" }}
+                style={{ 
+                  marginTop: 12, 
+                  padding: "10px 20px", 
+                  borderRadius: 6, 
+                  border: "none", 
+                  background: "#193648", 
+                  color: "#fff", 
+                  fontWeight: 600, 
+                  cursor: "pointer" 
+                }}
               >
                 Generate & Preview MOU
               </motion.button>
@@ -808,7 +1043,6 @@ const MouManagement = () => {
   );
 };
 
-// ===================== Styles =====================
 const styles = {
   page: { padding: 20, fontFamily: "sans-serif", background: "#f5f8fb", minHeight: "100vh" },
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap" },
@@ -848,7 +1082,7 @@ const styles = {
   activityItem: { marginBottom: 4 },
   empty: { padding: 40, textAlign: "center" },
   modalOverlay: { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.35)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 99 },
-  modal: { background: "#fff", padding: 20, borderRadius: 8, width: "90%", maxWidth: 480, maxHeight: "90%", overflowY: "auto" },
+  modal: { background: "#fff", padding: 20, borderRadius: 8, width: "90%", maxWidth: 500, maxHeight: "90%", overflowY: "auto" },
   modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
   form: { display: "flex", flexDirection: "column" },
 };

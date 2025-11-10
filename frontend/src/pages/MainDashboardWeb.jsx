@@ -186,7 +186,7 @@ const MainDashboardWeb = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 style={styles.title}>CollaXion Admin Dashboard</h1>
+          <h1 style={styles.title}> CollaXion Admin Dashboard</h1>
           <div style={styles.userBox}>
             <motion.span
               style={styles.wavingHand}
@@ -195,9 +195,12 @@ const MainDashboardWeb = () => {
             >
               👋
             </motion.span>
-            <span style={styles.username}>Welcome, Admin</span>
+            <span style={styles.username}>Welcome, Ms.Amna</span>
+            
           </div>
+          
         </motion.div>
+        
 
         <p style={styles.subtitle}>
           Monitor and manage all collaboration activities between Universities & Industries
@@ -345,6 +348,7 @@ const styles = {
     gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
     gap: "25px",
   },
+  
   card: {
     background: "#fff",
     borderRadius: "18px",
