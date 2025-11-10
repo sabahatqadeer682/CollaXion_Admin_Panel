@@ -86,7 +86,7 @@ const AdvisoryMeeting = () => {
             <p>Efficiently organize, schedule, and track advisory board meetings.</p>
           </div>
         </div>
-       
+
       </motion.div>
 
       {/* ===== Tabs ===== */}
@@ -122,7 +122,7 @@ const AdvisoryMeeting = () => {
               <label className="meeting-label">Agenda</label>
               <input
                 type="text"
-                placeholder="e.g., University-Industry Collaboration"
+                placeholder="University-Industry Collaboration"
                 value={newMeeting.agenda}
                 onChange={(e) => setNewMeeting({ ...newMeeting, agenda: e.target.value })}
               />
@@ -147,10 +147,10 @@ const AdvisoryMeeting = () => {
             </div>
 
             <div>
-              <label className="meeting-label">Venue / Meeting Link</label>
+              <label className="meeting-label">Venue</label>
               <input
                 type="text"
-                placeholder="e.g., Conference Room A / Zoom Link"
+                placeholder="Conference Room"
                 value={newMeeting.venue}
                 onChange={(e) => setNewMeeting({ ...newMeeting, venue: e.target.value })}
               />

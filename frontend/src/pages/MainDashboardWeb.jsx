@@ -13,7 +13,7 @@ import {
   Network,
   Menu,
   CalendarCog,
-  
+
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import collaxionLogo from "../images/collaxionlogo.jpeg";
@@ -61,7 +61,7 @@ const MainDashboardWeb = () => {
       desc: "Monitor active partnerships and industry participation.",
       route: "/industry-activeness",
     },
-   
+
     {
       id: 7,
       icon: <Briefcase size={40} />,
@@ -77,13 +77,13 @@ const MainDashboardWeb = () => {
       desc: "Create and manage university–industry collaborative events.",
       route: "/event-creation",
     },
-        {
-  id: 6,
-  icon: <BarChart3 size={40} />,
-  title: "Ratings & Feedback",
-  desc: "View ratings and feedback from both students and industries.",
-  route: "/ratings-feedback",
-},
+    {
+      id: 6,
+      icon: <BarChart3 size={40} />,
+      title: "Ratings & Feedback",
+      desc: "View ratings and feedback from both students and industries.",
+      route: "/ratings-feedback",
+    },
     {
       id: 9,
       icon: <Settings size={40} />,
@@ -141,7 +141,7 @@ const MainDashboardWeb = () => {
             ["Industry Engagement", Network, "/industry-activeness"],
             ["Ratings & Feedback", BarChart3, "/ratings-feedback"],
             ["System Settings", Settings, "/system-settings"]
-            
+
           ].map(([label, Icon, path], i) => (
             <motion.div
               key={i}
@@ -187,7 +187,7 @@ const MainDashboardWeb = () => {
           transition={{ duration: 0.6 }}
         >
           <h1 style={styles.title}> CollaXion Admin Dashboard</h1>
-          <div style={styles.userBox}>
+          {/* <div style={styles.userBox}>
             <motion.span
               style={styles.wavingHand}
               animate={{ rotate: [0, 15, -10, 15, 0] }}
@@ -197,10 +197,24 @@ const MainDashboardWeb = () => {
             </motion.span>
             <span style={styles.username}>Welcome, Ms.Amna</span>
             
+          </div> */}
+
+          <div style={styles.userBox}>
+            <img
+              src={collaxionLogo}
+              alt="Hand"
+              style={{
+                width: 32,      // logo/emoji ke size ke mutabiq
+                height: 32,
+                borderRadius: 8, // optional, logo style ke liye
+                objectFit: "cover",
+              }}
+            />
+            <span style={styles.username}>Welcome, Ms.Amna</span>
           </div>
-          
+
         </motion.div>
-        
+
 
         <p style={styles.subtitle}>
           Monitor and manage all collaboration activities between Universities & Industries
@@ -240,8 +254,8 @@ const MainDashboardWeb = () => {
                   background: isActive
                     ? "#193648"
                     : isHovered
-                    ? "#E2EEF9"
-                    : "#fff",
+                      ? "#E2EEF9"
+                      : "#fff",
                   color: isActive ? "#fff" : "#193648",
                   boxShadow: isHovered
                     ? "0 12px 30px rgba(0,0,0,0.15)"
@@ -348,7 +362,7 @@ const styles = {
     gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
     gap: "25px",
   },
-  
+
   card: {
     background: "#fff",
     borderRadius: "18px",

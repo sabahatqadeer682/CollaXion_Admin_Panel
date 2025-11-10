@@ -142,8 +142,8 @@ const IndustryProjects = () => {
                     post.status === "Completed"
                       ? "100%"
                       : post.status === "Ongoing"
-                      ? "60%"
-                      : "20%",
+                        ? "60%"
+                        : "20%",
                   background:
                     new Date(post.deadline) - new Date() < 7 * 24 * 60 * 60 * 1000
                       ? "#FF6B6B"
@@ -155,7 +155,7 @@ const IndustryProjects = () => {
             <div style={styles.footerStats}>
               <span>Applicants: {post.applicants.length}</span>
               <span>Selected: {getSelectedCount(post)}</span>
-              <span>Duration: {Math.ceil((new Date(post.deadline) - new Date(post.createdAt))/(1000*60*60*24))} days</span>
+              <span>Duration: {Math.ceil((new Date(post.deadline) - new Date(post.createdAt)) / (1000 * 60 * 60 * 24))} days</span>
             </div>
 
             <div style={styles.actionRow}>
@@ -402,7 +402,7 @@ const styles = {
     fontWeight: "500",
     transition: "0.2s",
   },
-   domain: { fontSize: "0.8rem", color: "#556B7C", fontStyle: "italic" },
+  domain: { fontSize: "0.8rem", color: "#556B7C", fontStyle: "italic" },
   footerStats: { display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "0.8rem", color: "#555" },
 };
 

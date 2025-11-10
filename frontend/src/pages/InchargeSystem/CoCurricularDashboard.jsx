@@ -24,8 +24,8 @@ export default function CoCurricularDashboard() {
   const theme = {
     dark: "#193648",
     primary: "#E2EEF9",
-    light: "#dfe8fe",
-    nearWhite: "#fcfdff",
+    light: "#ffffffee",
+    nearWhite: "#fff",
     accentText: "#193648"
   };
 
@@ -97,7 +97,7 @@ export default function CoCurricularDashboard() {
   const overdueCount = tasks.filter(t => new Date(t.deadline) < new Date()).length;
   const deadlineAlerts = tasks.filter(t => {
     if (t.status === "Completed") return false;
-    const diff = (new Date(t.deadline) - new Date()) / (1000*60*60*24);
+    const diff = (new Date(t.deadline) - new Date()) / (1000 * 60 * 60 * 24);
     return diff < 0 || diff <= 2;
   });
 
@@ -111,7 +111,7 @@ export default function CoCurricularDashboard() {
       id: editingEvent ? editingEvent.id : Date.now(),
       ...newEvent,
       expected: parseInt(newEvent.expected || "0"),
-      registered: editingEvent ? editingEvent.registered || 0 : Math.floor(Math.random()*50)+10,
+      registered: editingEvent ? editingEvent.registered || 0 : Math.floor(Math.random() * 50) + 10,
       budget: parseFloat(newEvent.budget) || 0,
       poster: newEvent.posterPreview || null,
       status: "upcoming"
@@ -203,10 +203,10 @@ export default function CoCurricularDashboard() {
     const dash = (progress / 100) * c;
     return (
       <svg width={size} height={size} style={{ display: "block" }}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={theme.light} strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={theme.light} strokeWidth={stroke} />
         <motion.circle
-          cx={size/2}
-          cy={size/2}
+          cx={size / 2}
+          cy={size / 2}
           r={r}
           fill="none"
           stroke={theme.primary}
@@ -227,12 +227,12 @@ export default function CoCurricularDashboard() {
     const padding = 8;
     const stepX = (width - padding * 2) / (data.length - 1);
     const points = data.map((d, i) => {
-      const x = padding + i*stepX;
-      const y = height - padding - (d.completed / max) * (height - padding*2);
+      const x = padding + i * stepX;
+      const y = height - padding - (d.completed / max) * (height - padding * 2);
       return { x, y, label: d.day, value: d.completed };
     });
-    const d = points.map((p,i)=> `${i===0?"M":"L"} ${p.x} ${p.y}`).join(" ");
-    const area = `${d} L ${width-padding} ${height-padding} L ${padding} ${height-padding} Z`;
+    const d = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    const area = `${d} L ${width - padding} ${height - padding} L ${padding} ${height - padding} Z`;
     return (
       <div style={{ width: "100%", overflow: "visible" }}>
         <svg viewBox={`0 0 ${width} ${height}`} width="100%" style={{ display: "block" }}>
@@ -247,10 +247,10 @@ export default function CoCurricularDashboard() {
           {points.map((p, i) => (
             <g key={i}>
               <circle cx={p.x} cy={p.y} r={4} fill="#fff" stroke={theme.primary} strokeWidth="2"
-                onMouseEnter={(ev)=> setChartTooltip({ x: ev.clientX, y: ev.clientY, content: `${p.label}: ${p.value}`})}
-                onMouseLeave={()=>setChartTooltip(null)}
+                onMouseEnter={(ev) => setChartTooltip({ x: ev.clientX, y: ev.clientY, content: `${p.label}: ${p.value}` })}
+                onMouseLeave={() => setChartTooltip(null)}
               />
-              <text x={p.x} y={height-4} textAnchor="middle" style={{ fontSize: 11, fill: theme.dark }}>{p.label}</text>
+              <text x={p.x} y={height - 4} textAnchor="middle" style={{ fontSize: 11, fill: theme.dark }}>{p.label}</text>
             </g>
           ))}
         </svg>
@@ -270,19 +270,19 @@ export default function CoCurricularDashboard() {
           const v = counts[c];
           const angle = (v / total) * Math.PI * 2;
           const end = start + angle;
-          const x1 = size/2 + Math.cos(start) * (size/2 - 6);
-          const y1 = size/2 + Math.sin(start) * (size/2 - 6);
-          const x2 = size/2 + Math.cos(end) * (size/2 - 6);
-          const y2 = size/2 + Math.sin(end) * (size/2 - 6);
+          const x1 = size / 2 + Math.cos(start) * (size / 2 - 6);
+          const y1 = size / 2 + Math.sin(start) * (size / 2 - 6);
+          const x2 = size / 2 + Math.cos(end) * (size / 2 - 6);
+          const y2 = size / 2 + Math.sin(end) * (size / 2 - 6);
           const large = angle > Math.PI ? 1 : 0;
-          const d = `M ${size/2} ${size/2} L ${x1} ${y1} A ${size/2-6} ${size/2-6} 0 ${large} 1 ${x2} ${y2} Z`;
+          const d = `M ${size / 2} ${size / 2} L ${x1} ${y1} A ${size / 2 - 6} ${size / 2 - 6} 0 ${large} 1 ${x2} ${y2} Z`;
           start = end;
           return <path key={c} d={d} fill={colors[i % colors.length]}
-            onMouseEnter={(ev)=> setChartTooltip({ x: ev.clientX, y: ev.clientY, content: `${c}: ${v}` })}
-            onMouseLeave={()=> setChartTooltip(null)}
+            onMouseEnter={(ev) => setChartTooltip({ x: ev.clientX, y: ev.clientY, content: `${c}: ${v}` })}
+            onMouseLeave={() => setChartTooltip(null)}
           />;
         })}
-        <circle cx={size/2} cy={size/2} r={size/2 - 26} fill={theme.nearWhite} />
+        <circle cx={size / 2} cy={size / 2} r={size / 2 - 26} fill={theme.nearWhite} />
         <text x="50%" y="50%" textAnchor="middle" dy="6" style={{ fontWeight: 800, fill: theme.dark }}>{total}</text>
       </svg>
     );
@@ -353,7 +353,7 @@ export default function CoCurricularDashboard() {
                 }}>CX</div>
                 {drawerOpen && (
                   <div style={{ lineHeight: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 900, background: `linear-gradient(90deg, ${theme.primary}, ${theme.light})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Collaxion</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, background: `linear-gradient(90deg, ${theme.primary}, ${theme.light})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CollaXion</div>
                     <div style={{ fontSize: 12, color: theme.nearWhite, opacity: 0.9 }}>Co-Curricular</div>
                   </div>
                 )}
@@ -371,7 +371,7 @@ export default function CoCurricularDashboard() {
                     onClick={() => { setActiveSection(n.id); setShowEventForm(n.id === "create"); if (n.id !== "create") setShowEventForm(false); }}
                     style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, cursor: "pointer",
-                      background: active ? "rgba(170,195,253,0.12)" : "transparent", color: active ? theme.accentText : theme.nearWhite, fontWeight: 700
+                      background: active ? "rgba(246, 248, 252, 0.8)" : "transparent", color: active ? theme.accentText : theme.nearWhite, fontWeight: 700
                     }}
                   >
                     <div style={{ width: 28, display: "flex", justifyContent: "center" }}>{n.icon}</div>
@@ -434,12 +434,12 @@ export default function CoCurricularDashboard() {
                   {changePwdOpen && (
                     <div style={{ marginTop: 12, background: theme.light, padding: 10, borderRadius: 8 }}>
                       <div style={{ fontWeight: 800, marginBottom: 8 }}>Change Password</div>
-                      <input type="password" placeholder="Old password" value={pwdForm.oldPwd} onChange={e=>setPwdForm(prev=>({...prev, oldPwd:e.target.value}))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
-                      <input type="password" placeholder="New password" value={pwdForm.newPwd} onChange={e=>setPwdForm(prev=>({...prev, newPwd:e.target.value}))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
-                      <input type="password" placeholder="Confirm password" value={pwdForm.confirm} onChange={e=>setPwdForm(prev=>({...prev, confirm:e.target.value}))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
+                      <input type="password" placeholder="Old password" value={pwdForm.oldPwd} onChange={e => setPwdForm(prev => ({ ...prev, oldPwd: e.target.value }))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
+                      <input type="password" placeholder="New password" value={pwdForm.newPwd} onChange={e => setPwdForm(prev => ({ ...prev, newPwd: e.target.value }))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
+                      <input type="password" placeholder="Confirm password" value={pwdForm.confirm} onChange={e => setPwdForm(prev => ({ ...prev, confirm: e.target.value }))} style={{ padding: 8, width: "100%", borderRadius: 6, border: "1px solid #e6eefc", marginBottom: 8 }} />
                       <div style={{ display: "flex", gap: 8 }}>
                         <button onClick={changePassword} style={{ background: theme.primary, color: theme.accentText, padding: 8, borderRadius: 6 }}>Save</button>
-                        <button onClick={()=>setChangePwdOpen(false)} style={{ padding: 8, borderRadius: 6, border: "1px solid #e6eefc" }}>Cancel</button>
+                        <button onClick={() => setChangePwdOpen(false)} style={{ padding: 8, borderRadius: 6, border: "1px solid #e6eefc" }}>Cancel</button>
                       </div>
                     </div>
                   )}
@@ -466,7 +466,7 @@ export default function CoCurricularDashboard() {
             <div style={{ position: "relative" }}>
               <button className="notifBtn" onClick={() => setNotifOpen(s => !s)} style={{ background: theme.light, padding: 10, borderRadius: 8, border: "none", cursor: "pointer" }}>
                 <Bell size={16} />
-                {notifications.filter(n=>!n.seen).length > 0 && <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "#fff", width: 18, height: 18, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>{notifications.filter(n=>!n.seen).length}</span>}
+                {notifications.filter(n => !n.seen).length > 0 && <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "#fff", width: 18, height: 18, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11 }}>{notifications.filter(n => !n.seen).length}</span>}
               </button>
               <AnimatePresence>
                 {notifOpen && (
@@ -517,7 +517,7 @@ export default function CoCurricularDashboard() {
                       </div>
                       <div>
                         <div style={{ fontSize: 12, color: "#64748b" }}>Budget</div>
-                        <div style={{ fontWeight: 800 }}>₹{events.reduce((s,e)=>(s+(e.budget||0)),0).toLocaleString()}</div>
+                        <div style={{ fontWeight: 800 }}>₹{events.reduce((s, e) => (s + (e.budget || 0)), 0).toLocaleString()}</div>
                       </div>
                     </div>
                     <div style={{ marginTop: 12, display: "flex", gap: 12 }}>
@@ -556,7 +556,7 @@ export default function CoCurricularDashboard() {
                     </div>
 
                     <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
-                      {upcomingEvents.slice(0,4).map(ev => (
+                      {upcomingEvents.slice(0, 4).map(ev => (
                         <div key={ev.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }}>
                           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                             <div style={{ width: 56, height: 56, borderRadius: 8, background: theme.light, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -568,7 +568,7 @@ export default function CoCurricularDashboard() {
                             </div>
                           </div>
                           <div style={{ textAlign: "right" }}>
-                            <div style={{ fontWeight: 800 }}>₹{(ev.budget||0).toLocaleString()}</div>
+                            <div style={{ fontWeight: 800 }}>₹{(ev.budget || 0).toLocaleString()}</div>
                             <div style={{ fontSize: 12, color: "#64748b" }}>{ev.registered}/{ev.expected}</div>
                             <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
                               <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 8, border: "1px solid #e6eefc" }}>Edit</button>
@@ -584,7 +584,7 @@ export default function CoCurricularDashboard() {
                     <div style={{ fontWeight: 800 }}>Alerts</div>
                     <div style={{ marginTop: 8 }}>
                       {deadlineAlerts.length === 0 && <div style={{ color: "#64748b" }}>No urgent alerts</div>}
-                      {deadlineAlerts.slice(0,3).map(a => (
+                      {deadlineAlerts.slice(0, 3).map(a => (
                         <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px dashed #eef2ff", marginTop: 8 }}>
                           <div>
                             <div style={{ fontWeight: 800 }}>{a.title}</div>
@@ -632,14 +632,14 @@ export default function CoCurricularDashboard() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Responsibilities</h2>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { const id = Date.now(); setTasks([{ id, title: "New Task", assignedTo: "TBD", email: "", deadline: new Date().toISOString().slice(0,10), status: "Pending", progress: 0}, ...tasks]); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Add Task</button>
+                  <button onClick={() => { const id = Date.now(); setTasks([{ id, title: "New Task", assignedTo: "TBD", email: "", deadline: new Date().toISOString().slice(0, 10), status: "Pending", progress: 0 }, ...tasks]); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Add Task</button>
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
                 {tasks.map(task => {
                   const isOverdue = new Date(task.deadline) < new Date();
-                  const daysLeft = Math.ceil((new Date(task.deadline) - new Date()) / (1000*60*60*24));
+                  const daysLeft = Math.ceil((new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24));
                   return (
                     <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -667,7 +667,7 @@ export default function CoCurricularDashboard() {
                       </div>
 
                       <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                        <button onClick={() => markTaskDone(task.id)} style={{ padding: 8, borderRadius: 8, background: "#16a34a", color: "#fff" }}><CheckCircle size={14} /> Mark Done</button>
+                        <button onClick={() => markTaskDone(task.id)} style={{ padding: 8, borderRadius: 8, background: "#193648", color: "#fff" }}><CheckCircle size={14} /> Mark Done</button>
                         <button onClick={() => sendTaskReminder(task)} style={{ padding: 8, borderRadius: 8, background: "#f59e0b", color: "#fff" }}><Mail size={14} /> Remind</button>
                         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
                           <button onClick={() => setTasks(tasks.filter(t => t.id !== task.id))} style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>
@@ -697,31 +697,31 @@ export default function CoCurricularDashboard() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                       <div>
                         <div style={{ fontWeight: 800 }}>Event Name</div>
-                        <input value={newEvent.name} onChange={e=>setNewEvent(prev=>({...prev, name:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                        <input value={newEvent.name} onChange={e => setNewEvent(prev => ({ ...prev, name: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
                       </div>
                       <div>
                         <div style={{ fontWeight: 800 }}>Date</div>
-                        <input type="date" value={newEvent.date} onChange={e=>setNewEvent(prev=>({...prev, date:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                        <input type="date" value={newEvent.date} onChange={e => setNewEvent(prev => ({ ...prev, date: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
                       </div>
                       <div>
                         <div style={{ fontWeight: 800 }}>Venue</div>
-                        <input value={newEvent.venue} onChange={e=>setNewEvent(prev=>({...prev, venue:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                        <input value={newEvent.venue} onChange={e => setNewEvent(prev => ({ ...prev, venue: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
                       </div>
                       <div>
                         <div style={{ fontWeight: 800 }}>Expected</div>
-                        <input type="number" value={newEvent.expected} onChange={e=>setNewEvent(prev=>({...prev, expected:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                        <input type="number" value={newEvent.expected} onChange={e => setNewEvent(prev => ({ ...prev, expected: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
                       </div>
                       <div>
                         <div style={{ fontWeight: 800 }}>Coordinator</div>
-                        <input value={newEvent.coordinator} onChange={e=>setNewEvent(prev=>({...prev, coordinator:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                        <input value={newEvent.coordinator} onChange={e => setNewEvent(prev => ({ ...prev, coordinator: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
                       </div>
                       <div>
                         <div style={{ fontWeight: 800 }}>Coordinator Email</div>
-                        <input value={newEvent.email} onChange={e=>setNewEvent(prev=>({...prev, email:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
+                        <input value={newEvent.email} onChange={e => setNewEvent(prev => ({ ...prev, email: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%" }} />
                       </div>
                       <div style={{ gridColumn: "1 / -1" }}>
                         <div style={{ fontWeight: 800 }}>Description</div>
-                        <textarea value={newEvent.description} onChange={e=>setNewEvent(prev=>({...prev, description:e.target.value}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%", minHeight: 80 }} />
+                        <textarea value={newEvent.description} onChange={e => setNewEvent(prev => ({ ...prev, description: e.target.value }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", width: "100%", minHeight: 80 }} />
                       </div>
                     </div>
                   </div>
@@ -737,8 +737,8 @@ export default function CoCurricularDashboard() {
                       )}
                       <div style={{ display: "flex", gap: 8 }}>
                         <input ref={posterRef} id="poster" type="file" accept="image/*" style={{ display: "none" }} onChange={onPosterChange} />
-                        <label htmlFor="poster" onClick={()=>posterRef.current && posterRef.current.click()} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText, cursor: "pointer" }}><Paperclip size={14} /> Choose</label>
-                        {newEvent.posterPreview && <button onClick={()=>setNewEvent(prev=>({...prev, posterFile:null, posterPreview:null}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>}
+                        <label htmlFor="poster" onClick={() => posterRef.current && posterRef.current.click()} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText, cursor: "pointer" }}><Paperclip size={14} /> Choose</label>
+                        {newEvent.posterPreview && <button onClick={() => setNewEvent(prev => ({ ...prev, posterFile: null, posterPreview: null }))} style={{ padding: 8, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>}
                       </div>
 
                       <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
@@ -787,7 +787,7 @@ export default function CoCurricularDashboard() {
                         <td style={{ padding: 8 }}>{ev.date}</td>
                         <td style={{ padding: 8 }}>{ev.venue}</td>
                         <td style={{ padding: 8 }}>{ev.coordinator}</td>
-                        <td style={{ padding: 8 }}>₹{(ev.budget||0).toLocaleString()}</td>
+                        <td style={{ padding: 8 }}>₹{(ev.budget || 0).toLocaleString()}</td>
                         <td style={{ padding: 8 }}>
                           <div style={{ display: "flex", gap: 8 }}>
                             <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff" }}><Edit size={14} /></button>
@@ -833,7 +833,7 @@ export default function CoCurricularDashboard() {
 
                   <div style={{ width: 420 }}>
                     <div style={{ fontWeight: 800 }}>Message</div>
-                    <textarea value={inviteMsg} onChange={e=>setInviteMsg(e.target.value)} style={{ width: "100%", minHeight: 160, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} placeholder="Write invite message or select event template..." />
+                    <textarea value={inviteMsg} onChange={e => setInviteMsg(e.target.value)} style={{ width: "100%", minHeight: 160, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} placeholder="Write invite message or select event template..." />
                     <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                       <select style={{ flex: 1, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} onChange={(e) => {
                         const v = e.target.value;
@@ -890,10 +890,10 @@ export default function CoCurricularDashboard() {
 
                     <div style={{ width: 340 }}>
                       <div style={{ fontWeight: 800 }}>Message</div>
-                      <textarea value={inviteMsg} onChange={e=>setInviteMsg(e.target.value)} style={{ width: "100%", minHeight: 160, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} />
+                      <textarea value={inviteMsg} onChange={e => setInviteMsg(e.target.value)} style={{ width: "100%", minHeight: 160, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} />
                       <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                        <select style={{ flex: 1, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} onChange={(e)=> {
-                          const v = e.target.value; if(!v) return; setInviteMsg(`You are invited to "${v}". Please confirm.`);
+                        <select style={{ flex: 1, padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }} onChange={(e) => {
+                          const v = e.target.value; if (!v) return; setInviteMsg(`You are invited to "${v}". Please confirm.`);
                         }}>
                           <option value="">Event templates</option>
                           {events.map(ev => <option key={ev.id} value={ev.name}>{ev.name}</option>)}

@@ -99,7 +99,7 @@ const RatingsFeedback = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        ⭐ Ratings & Feedback
+        Ratings & Feedback
       </motion.h1>
       <p style={styles.subtitle}>
         Transparent performance reflections between <b>Students</b> and{" "}
@@ -236,8 +236,8 @@ const RatingsFeedback = () => {
                     {feedback.rating >= 4.5
                       ? "Excellent"
                       : feedback.rating >= 4
-                      ? "Good"
-                      : "Average"}
+                        ? "Good"
+                        : "Average"}
                   </span>
                   <motion.div whileTap={{ scale: 0.9 }} style={styles.likeButton}>
                     <ThumbsUp size={16} color="#3A70B0" />

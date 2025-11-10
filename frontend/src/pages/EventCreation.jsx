@@ -333,7 +333,7 @@ const EventCreation = () => {
               </div>
               <button style={styles.modalClose} onClick={() => setShowModal(false)}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="#334155" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18 6L6 18M6 6l12 12" stroke="#334155" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
             </div>
@@ -431,7 +431,7 @@ const styles = {
   statNumber: { fontSize: 18, fontWeight: 700, color: "#113A56" },
   statLabel: { fontSize: 12, color: "#6B7C8A", marginTop: 6 },
   heroPanel: {
-    background: "linear-gradient(180deg,#0D3B66, #174C6E)",
+    background: "linear-gradient(180deg,#193648, #E2EEF9)",
     color: "#fff",
     padding: 18,
     borderRadius: 14,
@@ -445,7 +445,7 @@ const styles = {
   panelTitle: { fontSize: 14, fontWeight: 700 },
   panelSub: { fontSize: 12, opacity: 0.95 },
   createBtn: {
-    background: "#00A3A3",
+    background: "#193648",
     border: "none",
     color: "#fff",
     padding: "10px 14px",
@@ -607,14 +607,14 @@ const styles = {
     cursor: "pointer",
     background: "#F5FBFB",
     border: "1px dashed #D4E9E9",
-    color: "#0B5F6A",
+    color: "#193648",
     fontWeight: 700,
   },
   previewImg: { width: 140, height: 80, objectFit: "cover", borderRadius: 8, border: "1px solid #E6F0F8" },
   noPreview: { color: "#6B7C8A", fontSize: 13 },
   primaryBtn: {
     padding: "10px 16px",
-    background: "#0D3B66",
+    background: "#193648",
     color: "#fff",
     borderRadius: 10,
     border: "none",
@@ -630,7 +630,7 @@ const styles = {
   },
   createBtnAlt: {
     marginTop: 12,
-    background: "#00A3A3",
+    background: "#193648",
     color: "#fff",
     padding: "10px 14px",
     borderRadius: 10,

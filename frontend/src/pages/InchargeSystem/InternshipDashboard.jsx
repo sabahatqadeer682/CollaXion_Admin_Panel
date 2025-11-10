@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+
+import logo from "../../images/collaxionlogo.jpeg";
+
 import {
   Briefcase, Users, Send, CheckCircle, XCircle, TrendingUp, Clock,
   BarChart3, Menu, X, ChevronDown, Bell, Search, MoreVertical,
@@ -33,9 +37,9 @@ export default function InternshipDashboard() {
 
   // MOCK DATA
   const internships = [
-    { id: 1, title: "AI Research Internship", company: "TechNova", type: "Internship", applicants: 12, totalSlots: 3, tags: ["AI","Research"] },
-    { id: 2, title: "Smart Agriculture Project", company: "AgriX", type: "Project", applicants: 8, totalSlots: 5, tags: ["IoT","Agri"] },
-    { id: 3, title: "IoT Manufacturing", company: "IndusTech", type: "Project", applicants: 15, totalSlots: 4, tags: ["IoT","Industry"] },
+    { id: 1, title: "AI Research Internship", company: "TechNova", type: "Internship", applicants: 12, totalSlots: 3, tags: ["AI", "Research"] },
+    { id: 2, title: "Smart Agriculture Project", company: "AgriX", type: "Project", applicants: 8, totalSlots: 5, tags: ["IoT", "Agri"] },
+    { id: 3, title: "IoT Manufacturing", company: "IndusTech", type: "Project", applicants: 15, totalSlots: 4, tags: ["IoT", "Industry"] },
     { id: 4, title: "Blockchain Dev", company: "CryptoX", type: "Internship", applicants: 10, totalSlots: 2, tags: ["Blockchain"] },
   ];
 
@@ -148,6 +152,7 @@ export default function InternshipDashboard() {
     { name: "Sent", value: sentToIndustry.length },
   ];
 
+  const navigate = useNavigate();
   // ACTIONS
   const handleApprove = (id) => {
     setApplications(prev => prev.map(a => a.id === id ? { ...a, status: "Approved" } : a));
@@ -204,7 +209,10 @@ export default function InternshipDashboard() {
       setActiveTab('applications');
     }
   };
+  const handleLogout = () => {
 
+    navigate("/internship-login");
+  };
   const handleExportReport = async () => {
     try {
       setExporting(true);
@@ -226,7 +234,7 @@ export default function InternshipDashboard() {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`InternHub_Overview_${new Date().toISOString().slice(0,10)}.pdf`);
+      pdf.save(`InternHub_Overview_${new Date().toISOString().slice(0, 10)}.pdf`);
       setExporting(false);
     } catch (err) {
       console.warn('PDF export failed:', err);
@@ -244,23 +252,34 @@ export default function InternshipDashboard() {
   return (
     <div style={{ minHeight: "100vh", background: "#f1f5f9", fontFamily: "'Inter', sans-serif" }}>
       <div style={{ display: "flex", minHeight: "100vh" }}>
-        {/* LEFT SIDEBAR - FULL HEIGHT FROM TOP */}
+
+
+        {/* LEFT SIDEBAR */}
         <aside style={{
           width: "280px", background: "#193648", color: "#e2e8f0", padding: "0",
           position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 40,
           display: "flex", flexDirection: "column", justifyContent: "space-between"
         }}>
           {/* LOGO */}
+
           <div style={{ padding: "28px 24px", borderBottom: "1px solid #334155" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{
-                width: 44, height: 44, background: "linear-gradient(135deg, #8b5cf6, #3b82f6)",
-                borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
-                fontWeight: 900, fontSize: 20, color: "#fff"
-              }}>C</div>
-              <div style={{ fontWeight: 800, fontSize: 22, color: "#fff" }}>Collaxion</div>
+              {/* Yeh image C ke jagah use ki gayi hai */}
+              <img
+                src={logo} // 👈 apni image ka actual path yahaan likho
+
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  objectFit: "cover", // image neatly fit ho
+                }}
+              />
+
+              <div style={{ fontWeight: 800, fontSize: 22, color: "#fff" }}>CollaXion</div>
             </div>
           </div>
+
 
           {/* NAV ITEMS */}
           <nav style={{ flex: 1, padding: "16px 0" }}>
@@ -279,9 +298,9 @@ export default function InternshipDashboard() {
                   style={{
                     display: "flex", alignItems: "center", gap: "14px", width: "100%", padding: "14px 24px",
                     background: activeTab === item.key ? "rgba(59, 130, 246, 0.15)" : "transparent",
-                    color: activeTab === item.key ? "#60a5fa" : "#94a3b8",
+                    color: activeTab === item.key ? "#E2EEF9" : "#94a3b8",
                     border: "none", fontSize: "14.5px", fontWeight: activeTab === item.key ? "600" : "500",
-                    cursor: "pointer", transition: "0.2s", borderLeft: activeTab === item.key ? "4px solid #3b82f6" : "4px solid transparent"
+                    cursor: "pointer", transition: "0.2s", borderLeft: activeTab === item.key ? "4px solid #E2EEF9" : "4px solid transparent"
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = activeTab === item.key ? "rgba(59, 130, 246, 0.2)" : "rgba(255,255,255,0.05)"}
                   onMouseLeave={e => e.currentTarget.style.background = activeTab === item.key ? "rgba(59, 130, 246, 0.15)" : "transparent"}
@@ -296,7 +315,7 @@ export default function InternshipDashboard() {
           <div style={{ padding: "20px 24px", borderTop: "1px solid #334155" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
               <div style={{
-                width: "48px", height: "48px", background: "linear-gradient(135deg, #8b5cf6, #3b82f6)",
+                width: "48px", height: "48px", background: "linear-gradient(135deg, #193648, #E2EEF9)",
                 borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center",
                 color: "#fff", fontWeight: 700, fontSize: 17
               }}>JM</div>
@@ -306,16 +325,35 @@ export default function InternshipDashboard() {
               </div>
             </div>
 
-            <button style={{
-              display: "flex", alignItems: "center", gap: "12px", width: "100%", padding: "12px 16px",
-              background: "rgba(239, 68, 68, 0.1)", color: "#fca5a5", border: "none", borderRadius: 12,
-              fontWeight: 600, fontSize: 14, cursor: "pointer", transition: "0.2s"
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)"}
-            onMouseLeave={e => e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)"}
+            <button
+              onClick={handleLogout} // ✅ Yehi sahi jagah hai
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                width: "100%",
+                padding: "12px 16px",
+                background: "#19364898",
+                color: "#E2EEF9",
+                border: "none",
+
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(59, 131, 246, 0.04)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "#193648aa")
+              }
             >
-              <LogOut size={18} /> Logout
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <LogOut size={18} /> Logout
+              </div>
             </button>
+
           </div>
         </aside>
 
@@ -369,7 +407,7 @@ export default function InternshipDashboard() {
                       <div style={{ padding: 16, borderBottom: '1px solid #eef2ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <strong style={{ fontSize: 16 }}>Notifications</strong>
                         <button onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))} style={{
-                          border: 'none', background: 'transparent', color: '#3b82f6', fontSize: 13, cursor: 'pointer', fontWeight: 600
+                          border: 'none', background: 'transparent', color: '#193648', fontSize: 13, cursor: 'pointer', fontWeight: 600
                         }}>
                           Mark all read
                         </button>
@@ -382,8 +420,8 @@ export default function InternshipDashboard() {
                             cursor: 'pointer', background: n.read ? 'transparent' : '#f0f9ff', borderBottom: "1px solid #f1f5f9",
                             transition: '0.2s'
                           }}
-                          onMouseEnter={e => e.currentTarget.style.background = n.read ? '#f8fafc' : '#e0f2fe'}
-                          onMouseLeave={e => e.currentTarget.style.background = n.read ? 'transparent' : '#f0f9ff'}
+                            onMouseEnter={e => e.currentTarget.style.background = n.read ? '#f8fafc' : '#e0f2fe'}
+                            onMouseLeave={e => e.currentTarget.style.background = n.read ? 'transparent' : '#f0f9ff'}
                           >
                             <div>
                               <div style={{ fontWeight: 600, fontSize: 14, color: '#0f172a' }}>{n.title}</div>
@@ -410,8 +448,8 @@ export default function InternshipDashboard() {
                     borderRadius: "12px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", cursor: 'pointer',
                     boxShadow: "0 4px 12px rgba(59,130,246,0.25)", transition: '0.2s'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                   >
                     <Download size={17} /> {exporting ? 'Exporting…' : 'Export PDF'}
                   </button>
@@ -522,11 +560,11 @@ export default function InternshipDashboard() {
                         </div>
                         <MoreVertical size={18} color="#94a3b8" style={{ cursor: 'pointer' }} />
                       </div>
-                      
+
                       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
                         <span style={{
                           background: i.type === "Internship" ? "#dbeafe" : "#fef3c7",
-                          color: i.type === "Internship" ? "#1e40af" : "#92400e",
+                          color: i.type === "Internship" ? "#193648" : "#92400e",
                           padding: '6px 12px', borderRadius: 999, fontWeight: 700, fontSize: 12
                         }}>{i.type}</span>
                         {i.tags.map((t, idx) => (
@@ -536,22 +574,22 @@ export default function InternshipDashboard() {
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                         <button onClick={() => openApplicants(i)} style={{
-                          border: '1px solid #e2e8f0', background: '#fff', color: '#3b82f6',
+                          border: '1px solid #e2e8f0', background: '#193648', color: '#E2EEF9',
                           fontWeight: 700, cursor: 'pointer', padding: '10px 14px', borderRadius: 10,
                           display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, transition: '0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                          onMouseEnter={e => e.currentTarget.style.background = '#193648e2'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#193648'}
                         >
                           <Users size={16} /> {i.applicants} Applicants
                         </button>
                         <button style={{
-                          background: '#3b82f6', borderRadius: 10, padding: '10px 16px',
+                          background: '#193648', borderRadius: 10, padding: '10px 16px',
                           border: 'none', fontWeight: 700, color: '#fff', cursor: 'pointer',
                           fontSize: 14, transition: '0.2s', boxShadow: '0 4px 12px rgba(59,130,246,0.2)'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#2563eb'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#3b82f6'}
+                          onMouseEnter={e => e.currentTarget.style.background = '#193648da'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#193648ff'}
                         >Edit</button>
                       </div>
                     </div>
@@ -577,7 +615,7 @@ export default function InternshipDashboard() {
                       }}>
                         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                           <div style={{
-                            width: 60, height: 60, background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                            width: 60, height: 60, background: 'linear-gradient(135deg, #193648, #E2EEF9)',
                             borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 800, fontSize: 18, color: '#fff', boxShadow: '0 4px 12px rgba(139,92,246,0.25)'
                           }}>{app.name.split(' ').map(n => n[0]).slice(0, 2).join('')}</div>
@@ -594,22 +632,22 @@ export default function InternshipDashboard() {
                           {app.status === 'Pending' && (
                             <>
                               <button onClick={() => openCV(app)} style={{
-                                background: '#3b82f6', color: '#fff', borderRadius: 10, padding: '11px 16px',
+                                background: '#193648', color: '#fff', borderRadius: 10, padding: '11px 16px',
                                 border: 'none', display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer',
                                 fontWeight: 600, fontSize: 14, boxShadow: '0 4px 12px rgba(59,130,246,0.2)', transition: '0.2s'
                               }}
-                              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                               >
                                 <Eye size={16} /> View Request
                               </button>
                               <button onClick={() => handleApprove(app.id)} style={{
-                                background: '#10b981', color: '#fff', borderRadius: 10, padding: '11px 16px',
+                                background: '#193648', color: '#fff', borderRadius: 10, padding: '11px 16px',
                                 border: 'none', display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer',
                                 fontWeight: 600, fontSize: 14, boxShadow: '0 4px 12px rgba(16,185,129,0.2)', transition: '0.2s'
                               }}
-                              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                               >
                                 <CheckCircle size={16} /> Approve
                               </button>
@@ -618,8 +656,8 @@ export default function InternshipDashboard() {
                                 border: 'none', display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer',
                                 fontWeight: 600, fontSize: 14, boxShadow: '0 4px 12px rgba(239,68,68,0.2)', transition: '0.2s'
                               }}
-                              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                               >
                                 <XCircle size={16} /> Reject
                               </button>
@@ -628,14 +666,14 @@ export default function InternshipDashboard() {
 
                           {app.status === 'Approved' && (
                             <>
-                              <Badge color='#10b981'>Approved</Badge>
+                              <Badge color='#193648'>Approved</Badge>
                               <button onClick={() => requestSendToLiaison(app)} disabled={sendingToLiaison[app.id]} style={{
-                                background: '#8b5cf6', color: '#fff', borderRadius: 10, padding: '11px 16px',
+                                background: '#193648', color: '#fff', borderRadius: 10, padding: '11px 16px',
                                 border: 'none', display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer',
                                 fontWeight: 600, fontSize: 14, boxShadow: '0 4px 12px rgba(139,92,246,0.2)', transition: '0.2s'
                               }}
-                              onMouseEnter={e => !sendingToLiaison[app.id] && (e.currentTarget.style.transform = 'translateY(-2px)')}
-                              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                                onMouseEnter={e => !sendingToLiaison[app.id] && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                               >
                                 {sendingToLiaison[app.id] ? 'Sending…' : <><Mail size={16} /> Send to Liaison</>}
                               </button>
@@ -661,7 +699,7 @@ export default function InternshipDashboard() {
                         <div style={{ flex: 1 }}>
                           <h3 style={{ margin: 0, fontWeight: 800, fontSize: 17, color: '#0f172a' }}>{s.name}</h3>
                           <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>{s.studentId} • {s.dept}</div>
-                          <div style={{ fontSize: 14, color: '#3b82f6', fontWeight: 600, marginTop: 8 }}>{s.internship}</div>
+                          <div style={{ fontSize: 14, color: '#193648', fontWeight: 600, marginTop: 8 }}>{s.internship}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontSize: 12, color: '#94a3b8' }}>Sent</div>
@@ -679,7 +717,7 @@ export default function InternshipDashboard() {
                           navigator.clipboard && navigator.clipboard.writeText(s.report);
                           alert('Report copied to clipboard');
                         }} style={{
-                          flex: 1, border: 'none', background: '#eef2ff', color: '#3b82f6',
+                          flex: 1, border: 'none', background: '#eef2ff', color: '#193648',
                           padding: '10px 14px', borderRadius: 10, fontWeight: 600, cursor: 'pointer', fontSize: 14
                         }}>
                           Copy Report
@@ -710,7 +748,7 @@ export default function InternshipDashboard() {
                         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flex: 1 }}>
                           <div style={{
                             width: 64, height: 64, borderRadius: 14,
-                            background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                            background: 'linear-gradient(135deg, #193648, #AAC3FC)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 800, fontSize: 20, color: '#fff',
                             boxShadow: '0 4px 14px rgba(139, 92, 246, 0.3)'
@@ -736,7 +774,7 @@ export default function InternshipDashboard() {
                         <div style={{ textAlign: 'right' }}>
                           <div style={{
                             background: s.status === 'Excellent' ? '#dcfce7' : s.status === 'On Track' ? '#dbeafe' : '#fef3c7',
-                            color: s.status === 'Excellent' ? '#166534' : s.status === 'On Track' ? '#1e40af' : '#92400e',
+                            color: s.status === 'Excellent' ? '#166534' : s.status === 'On Track' ? '#193648' : '#92400e',
                             padding: '8px 16px', borderRadius: 999, fontWeight: 700, fontSize: 13, marginBottom: 8
                           }}>{s.status}</div>
                           <div style={{ fontSize: 13, color: '#94a3b8' }}>Progress: <strong style={{ color: '#0f172a' }}>{s.progress}%</strong></div>
@@ -788,7 +826,7 @@ export default function InternshipDashboard() {
                         <button
                           onClick={() => setViewLogModal({ open: true, student: s })}
                           style={{
-                            flex: 1, border: 'none', background: '#3b82f6', color: '#fff',
+                            flex: 1, border: 'none', background: '#193648', color: '#fff',
                             padding: '12px 16px', borderRadius: 10, fontWeight: 600, fontSize: 14,
                             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                             boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)', transition: '0.2s'
@@ -804,8 +842,8 @@ export default function InternshipDashboard() {
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                           transition: '0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                          onMouseEnter={e => e.currentTarget.style.background = '#f8fafccb'}
+                          onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                         >
                           <Mail size={16} /> Send Message
                         </button>
@@ -886,7 +924,7 @@ export default function InternshipDashboard() {
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flex: 1 }}>
                           <div style={{
                             width: 56, height: 56, borderRadius: 12,
-                            background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                            background: 'linear-gradient(135deg, #193648, #AAC3FC)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontWeight: 800, fontSize: 18, color: '#fff',
                             boxShadow: '0 4px 12px rgba(139,92,246,0.2)'
@@ -899,38 +937,38 @@ export default function InternshipDashboard() {
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button onClick={() => { setShowApplicantsModal(false); openCV(a); }} style={{
-                            border: 'none', background: '#3b82f6', color: '#fff',
+                            border: 'none', background: '#193648', color: '#fff',
                             padding: '10px 16px', borderRadius: 10, fontWeight: 600,
                             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
                             fontSize: 14, boxShadow: '0 4px 12px rgba(59,130,246,0.2)', transition: '0.2s'
                           }}
-                          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                           >
                             <Eye size={16} /> View CV
                           </button>
                           {a.status === 'Pending' && (
                             <button onClick={() => handleApprove(a.id)} style={{
-                              border: 'none', background: '#10b981', color: '#fff',
+                              border: 'none', background: '#193648', color: '#fff',
                               padding: '10px 16px', borderRadius: 10, fontWeight: 600,
                               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
                               fontSize: 14, boxShadow: '0 4px 12px rgba(16,185,129,0.2)', transition: '0.2s'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                             >
                               <CheckCircle size={16} /> Approve
                             </button>
                           )}
                           {a.status === 'Approved' && (
                             <button onClick={() => requestSendToLiaison(a)} style={{
-                              border: 'none', background: '#8b5cf6', color: '#fff',
+                              border: 'none', background: '#193648', color: '#fff',
                               padding: '10px 16px', borderRadius: 10, fontWeight: 600,
                               cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8,
                               fontSize: 14, boxShadow: '0 4px 12px rgba(139,92,246,0.2)', transition: '0.2s'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                              onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                             >
                               <Send size={16} /> Send
                             </button>
@@ -1002,7 +1040,7 @@ export default function InternshipDashboard() {
               <div style={{ padding: 24, flex: 1, overflow: 'auto' }}>
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ margin: 0, display: 'flex', gap: 8, alignItems: 'center', color: '#0f172a', fontSize: 16 }}>
-                    <Award size={18} color="#3b82f6" /> Education
+                    <Award size={18} color="#193648" /> Education
                   </h4>
                   <div style={{
                     background: '#f8fafc', padding: 16, borderRadius: 12, marginTop: 10,
@@ -1014,13 +1052,13 @@ export default function InternshipDashboard() {
 
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ margin: 0, display: 'flex', gap: 8, alignItems: 'center', color: '#0f172a', fontSize: 16 }}>
-                    <FileText size={18} color="#3b82f6" /> Skills
+                    <FileText size={18} color="#193648" /> Skills
                   </h4>
                   <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                     {selectedApplicant.cv.skills.map((skill, i) => (
                       <div key={i} style={{
                         background: '#eef2ff', padding: '8px 14px', borderRadius: 999,
-                        fontWeight: 600, fontSize: 13, color: '#3b82f6'
+                        fontWeight: 600, fontSize: 13, color: '#193648'
                       }}>
                         {skill}
                       </div>
@@ -1030,7 +1068,7 @@ export default function InternshipDashboard() {
 
                 <div style={{ marginBottom: 20 }}>
                   <h4 style={{ margin: 0, display: 'flex', gap: 8, alignItems: 'center', color: '#0f172a', fontSize: 16 }}>
-                    <Briefcase size={18} color="#3b82f6" /> Projects
+                    <Briefcase size={18} color="#193648" /> Projects
                   </h4>
                   <div style={{
                     background: '#f8fafc', padding: 16, borderRadius: 12, marginTop: 10,
@@ -1044,13 +1082,13 @@ export default function InternshipDashboard() {
                   {selectedApplicant.status === 'Pending' && (
                     <>
                       <button onClick={() => { handleApprove(selectedApplicant.id); setShowCVModal(false); }} style={{
-                        flex: 1, background: '#10b981', color: '#fff', padding: '12px 16px',
+                        flex: 1, background: '#193648', color: '#fff', padding: '12px 16px',
                         borderRadius: 10, border: 'none', fontWeight: 600, display: 'flex',
                         alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
                         fontSize: 14, boxShadow: '0 4px 12px rgba(16,185,129,0.2)', transition: '0.2s'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                       >
                         <CheckCircle size={18} /> Approve Application
                       </button>
@@ -1060,8 +1098,8 @@ export default function InternshipDashboard() {
                         alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
                         fontSize: 14, boxShadow: '0 4px 12px rgba(239,68,68,0.2)', transition: '0.2s'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                       >
                         <XCircle size={18} /> Reject Application
                       </button>
@@ -1075,8 +1113,8 @@ export default function InternshipDashboard() {
                       alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer',
                       fontSize: 14, boxShadow: '0 4px 12px rgba(139,92,246,0.2)', transition: '0.2s'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                      onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                      onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                     >
                       <Mail size={18} /> Send to Industry Liaison
                     </button>
@@ -1123,8 +1161,8 @@ export default function InternshipDashboard() {
                 Send to Industry Liaison
               </h3>
               <p style={{ color: '#64748b', lineHeight: 1.6, fontSize: 14 }}>
-                You're about to forward <strong style={{ color: '#0f172a' }}>{confirmSendModal.app.name}</strong>'s 
-                approved application to the Industry Liaison. This action will remove it from the Incharge queue and 
+                You're about to forward <strong style={{ color: '#0f172a' }}>{confirmSendModal.app.name}</strong>'s
+                approved application to the Industry Liaison. This action will remove it from the Incharge queue and
                 create a record in the Sent list. Do you want to continue?
               </p>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>

@@ -107,7 +107,7 @@ const SystemSettings = () => {
       return;
     }
     setAdminPassword(passwordForm.newPass);
-    HARDCODED_ADMIN.password = passwordForm.newPass; 
+    HARDCODED_ADMIN.password = passwordForm.newPass;
     setPasswordForm({ current: "", newPass: "", confirm: "" });
     flash("Password changed");
   };
@@ -244,7 +244,7 @@ const SystemSettings = () => {
         <main style={styles.main}>
           <header style={styles.header}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#0D3B66" }}>Settings</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#193648" }}>Settings</div>
               <div style={{ color: "#647D8A", marginTop: 6 }}>Customize application behavior and security</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -592,33 +592,220 @@ const SystemSettings = () => {
 export default SystemSettings;
 
 /* ===== Inline styles ===== */
+// const styles = {
+//   page: {
+//     fontFamily: "'Poppins', sans-serif",
+//     background: "#F7FBFD",
+//     minHeight: "100vh",
+//     padding: 28,
+//     color: "#0B2B3A",
+//   },
+//   container: {
+//     display: "flex",
+//     gap: 24,
+//     width: "100%",
+//     height: "100%",
+//     margin: 0,
+//   },
+
+//   sidebar: {
+//     width: 320,
+//     background: "#FFFFFF",
+//     borderRadius: 12,
+//     padding: 18,
+//     boxShadow: "0 8px 30px rgba(11,59,102,0.06)",
+//     display: "flex",
+//     flexDirection: "column",
+//     gap: 14,
+//   },
+//   logo: { fontWeight: 900, fontSize: 20, color: "#0D3B66" },
+//   sideBtn: {
+//     display: "flex",
+//     justifyContent: "space-between",
+//     alignItems: "center",
+//     padding: "12px 12px",
+//     borderRadius: 10,
+//     cursor: "pointer",
+//     background: "transparent",
+//     border: "none",
+//     boxShadow: "none",
+//     transition: "all .18s",
+//     color: "#113A56",
+//   },
+//   sideBtnActive: {
+//     background: "linear-gradient(180deg,#193648,#0E2B3A)",
+//     color: "#fff",
+//     boxShadow: "0 8px 18px rgba(25,54,72,0.12)",
+//   },
+//   main: { flex: 1 },
+//   header: {
+//     display: "flex",
+//     justifyContent: "space-between",
+//     alignItems: "center",
+//     marginBottom: 12,
+//   },
+//   headerBtn: {
+//     background: "#0D3B66",
+//     color: "#fff",
+//     borderRadius: 10,
+//     padding: "8px 12px",
+//     border: "none",
+//     cursor: "pointer",
+//     display: "flex",
+//     alignItems: "center",
+//     gap: 8,
+//     fontWeight: 800,
+//   },
+//   toast: {
+//     background: "#0D3B66",
+//     color: "#fff",
+//     padding: "8px 12px",
+//     borderRadius: 8,
+//     display: "inline-block",
+//     marginBottom: 12,
+//     fontWeight: 700,
+//   },
+
+//   card: {
+//     background: "#fff",
+//     borderRadius: 12,
+//     padding: 18,
+//     boxShadow: "0 10px 30px rgba(11,59,102,0.06)",
+//     marginBottom: 18,
+//   },
+//   cardHeader: {
+//     display: "flex",
+//     justifyContent: "space-between",
+//     alignItems: "flex-start",
+//     marginBottom: 12,
+//   },
+//   label: { fontSize: 13, color: "#3E5F6E", fontWeight: 700, marginTop: 8, marginBottom: 6 },
+//   labelSmall: { fontSize: 12, color: "#617988", marginBottom: 6 },
+//   input: {
+//     width: "100%",
+//     padding: "10px 12px",
+//     borderRadius: 8,
+//     border: "1px solid #E6F0F8",
+//     outline: "none",
+//   },
+//   avatarWrap: {
+//     width: 86,
+//     height: 86,
+//     borderRadius: 12,
+//     overflow: "hidden",
+//     border: "1px solid #E6F0F8",
+//     display: "flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     background: "#FAFDFF",
+//   },
+//   avatarPlaceholder: { width: 86, height: 86, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: "#EDF7FA", color: "#0D3B66" },
+//   avatar: { width: "100%", height: "100%", objectFit: "cover" },
+
+//   primaryBtn: {
+//     background: "#00A3A3",
+//     color: "#fff",
+//     borderRadius: 10,
+//     padding: "10px 14px",
+//     border: "none",
+//     cursor: "pointer",
+//     fontWeight: 800,
+//   },
+//   primaryBtnSmall: {
+//     background: "#0D3B66",
+//     color: "#fff",
+//     borderRadius: 8,
+//     padding: "8px 10px",
+//     border: "none",
+//     cursor: "pointer",
+//     fontWeight: 700,
+//   },
+//   ghostBtn: {
+//     background: "transparent",
+//     color: "#0D3B66",
+//     borderRadius: 8,
+//     padding: "8px 10px",
+//     border: "1px solid #E6F0F8",
+//     cursor: "pointer",
+//   },
+
+//   ghostBtnSmall: {
+//     background: "transparent",
+//     color: "#334155",
+//     borderRadius: 8,
+//     padding: "8px 10px",
+//     border: "1px solid #E6F0F8",
+//     cursor: "pointer",
+//   },
+
+//   prefRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, background: "#FAFDFF", borderRadius: 8 },
+
+//   switch: { position: "relative", display: "inline-block", width: 46, height: 26 },
+//   slider: {
+//     position: "absolute",
+//     cursor: "pointer",
+//     top: 0,
+//     left: 0,
+//     right: 0,
+//     bottom: 0,
+//     background: "#E6EEF2",
+//     borderRadius: 26,
+//     transition: ".2s",
+//   },
+
+//   uploadLabel: {
+//     display: "inline-flex",
+//     alignItems: "center",
+//     gap: 8,
+//     padding: "8px 12px",
+//     borderRadius: 8,
+//     cursor: "pointer",
+//     background: "#F5FBFB",
+//     border: "1px dashed #D4E9E9",
+//     color: "#0B5F6A",
+//     fontWeight: 700,
+//   },
+//   previewImg: { width: 140, height: 80, objectFit: "cover", borderRadius: 8, border: "1px solid #E6F0F8" },
+//   noPreview: { color: "#6B7C8A", fontSize: 13 },
+
+//   modal: {
+//     width: 760,
+//     maxWidth: "94%",
+//     background: "#fff",
+//     borderRadius: 14,
+//     padding: 20,
+//     boxShadow: "0 18px 50px rgba(11,59,102,0.26)",
+//   },
+//   form: { display: "flex", flexDirection: "column", gap: 12 },
+//   formRow: { display: "flex", gap: 12 },
+// };
 const styles = {
   page: {
     fontFamily: "'Poppins', sans-serif",
-    background: "#F7FBFD",
+    background: "#F4F8FF", // soft light background
     minHeight: "100vh",
     padding: 28,
-    color: "#0B2B3A",
+    color: "#193648",
   },
   container: {
-  display: "flex",
-  gap: 24,
-  width: "100%",
-  height: "100%",
-  margin: 0,
-},
+    display: "flex",
+    gap: 24,
+    width: "100%",
+    height: "100%",
+    margin: 0,
+  },
 
   sidebar: {
     width: 320,
-    background: "#FFFFFF",
+    background: "#fff",
     borderRadius: 12,
     padding: 18,
-    boxShadow: "0 8px 30px rgba(11,59,102,0.06)",
+    boxShadow: "0 8px 30px rgba(25,54,72,0.08)",
     display: "flex",
     flexDirection: "column",
     gap: 14,
   },
-  logo: { fontWeight: 900, fontSize: 20, color: "#0D3B66" },
+  logo: { fontWeight: 900, fontSize: 20, color: "#193648" },
   sideBtn: {
     display: "flex",
     justifyContent: "space-between",
@@ -630,11 +817,11 @@ const styles = {
     border: "none",
     boxShadow: "none",
     transition: "all .18s",
-    color: "#113A56",
+    color: "#193648",
   },
   sideBtnActive: {
     background: "linear-gradient(180deg,#193648,#0E2B3A)",
-    color: "#fff",
+    color: "#FFFFFF",
     boxShadow: "0 8px 18px rgba(25,54,72,0.12)",
   },
   main: { flex: 1 },
@@ -645,8 +832,8 @@ const styles = {
     marginBottom: 12,
   },
   headerBtn: {
-    background: "#0D3B66",
-    color: "#fff",
+    background: "#193648",
+    color: "#FFFFFF",
     borderRadius: 10,
     padding: "8px 12px",
     border: "none",
@@ -657,8 +844,8 @@ const styles = {
     fontWeight: 800,
   },
   toast: {
-    background: "#0D3B66",
-    color: "#fff",
+    background: "#193648",
+    color: "#FFFFFF",
     padding: "8px 12px",
     borderRadius: 8,
     display: "inline-block",
@@ -670,7 +857,7 @@ const styles = {
     background: "#fff",
     borderRadius: 12,
     padding: 18,
-    boxShadow: "0 10px 30px rgba(11,59,102,0.06)",
+    boxShadow: "0 10px 30px rgba(25,54,72,0.08)",
     marginBottom: 18,
   },
   cardHeader: {
@@ -679,13 +866,13 @@ const styles = {
     alignItems: "flex-start",
     marginBottom: 12,
   },
-  label: { fontSize: 13, color: "#3E5F6E", fontWeight: 700, marginTop: 8, marginBottom: 6 },
+  label: { fontSize: 13, color: "#193648", fontWeight: 700, marginTop: 8, marginBottom: 6 },
   labelSmall: { fontSize: 12, color: "#617988", marginBottom: 6 },
   input: {
     width: "100%",
     padding: "10px 12px",
     borderRadius: 8,
-    border: "1px solid #E6F0F8",
+    border: "1px solid #FFFFFF",
     outline: "none",
   },
   avatarWrap: {
@@ -693,18 +880,18 @@ const styles = {
     height: 86,
     borderRadius: 12,
     overflow: "hidden",
-    border: "1px solid #E6F0F8",
+    border: "1px solid #FFFFFF",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "#FAFDFF",
+    background: "#F4F8FF",
   },
-  avatarPlaceholder: { width: 86, height: 86, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: "#EDF7FA", color: "#0D3B66" },
+  avatarPlaceholder: { width: 86, height: 86, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: "#EAF2FF", color: "#193648" },
   avatar: { width: "100%", height: "100%", objectFit: "cover" },
 
   primaryBtn: {
-    background: "#00A3A3",
-    color: "#fff",
+    background: "#193648",
+    color: "#FFFFFF",
     borderRadius: 10,
     padding: "10px 14px",
     border: "none",
@@ -712,8 +899,8 @@ const styles = {
     fontWeight: 800,
   },
   primaryBtnSmall: {
-    background: "#0D3B66",
-    color: "#fff",
+    background: "#193648",
+    color: "#FFFFFF",
     borderRadius: 8,
     padding: "8px 10px",
     border: "none",
@@ -722,23 +909,23 @@ const styles = {
   },
   ghostBtn: {
     background: "transparent",
-    color: "#0D3B66",
+    color: "#193648",
     borderRadius: 8,
     padding: "8px 10px",
-    border: "1px solid #E6F0F8",
+    border: "1px solid #FFFFFF",
     cursor: "pointer",
   },
 
   ghostBtnSmall: {
     background: "transparent",
-    color: "#334155",
+    color: "#193648",
     borderRadius: 8,
     padding: "8px 10px",
-    border: "1px solid #E6F0F8",
+    border: "1px solid #FFFFFF",
     cursor: "pointer",
   },
 
-  prefRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, background: "#FAFDFF", borderRadius: 8 },
+  prefRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, background: "#F4F8FF", borderRadius: 8 },
 
   switch: { position: "relative", display: "inline-block", width: 46, height: 26 },
   slider: {
@@ -748,7 +935,7 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: "#E6EEF2",
+    background: "#FFFFFF",
     borderRadius: 26,
     transition: ".2s",
   },
@@ -760,12 +947,12 @@ const styles = {
     padding: "8px 12px",
     borderRadius: 8,
     cursor: "pointer",
-    background: "#F5FBFB",
-    border: "1px dashed #D4E9E9",
-    color: "#0B5F6A",
+    background: "#F0F6FF",
+    border: "1px dashed #FFFFFF",
+    color: "#193648",
     fontWeight: 700,
   },
-  previewImg: { width: 140, height: 80, objectFit: "cover", borderRadius: 8, border: "1px solid #E6F0F8" },
+  previewImg: { width: 140, height: 80, objectFit: "cover", borderRadius: 8, border: "1px solid #FFFFFF" },
   noPreview: { color: "#6B7C8A", fontSize: 13 },
 
   modal: {
@@ -774,7 +961,7 @@ const styles = {
     background: "#fff",
     borderRadius: 14,
     padding: 20,
-    boxShadow: "0 18px 50px rgba(11,59,102,0.26)",
+    boxShadow: "0 18px 50px rgba(25,54,72,0.26)",
   },
   form: { display: "flex", flexDirection: "column", gap: 12 },
   formRow: { display: "flex", gap: 12 },
