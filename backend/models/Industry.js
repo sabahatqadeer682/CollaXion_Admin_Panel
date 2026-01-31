@@ -1,26 +1,23 @@
 import mongoose from "mongoose";
 
-const industrySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  address: String,
-  email: String,
-  contact: String,
-  location: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
-      default: "Point",
+const industrySchema = new mongoose.Schema(
+  {
+    placeId: { type: String, unique: true, required: true },
+    name: String,
+    address: String,
+    location: {
+      type: { type: String, enum: ["Point"], default: "Point" },
+      coordinates: { type: [Number], required: true },
     },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
-      required: true,
-    },
+    phone: String,
+    website: String,
+    rating: Number,
+    userRatingsTotal: Number,
+    googleMapsUrl: String,
   },
-});
+  { timestamps: true }
+);
 
-// ✅ Create geospatial index
 industrySchema.index({ location: "2dsphere" });
 
 export default mongoose.model("Industry", industrySchema);
-
