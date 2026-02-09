@@ -11,6 +11,7 @@ const industrySchema = new mongoose.Schema(
     },
     phone: String,
     website: String,
+    email: String, 
     rating: Number,
     userRatingsTotal: Number,
     googleMapsUrl: String,
