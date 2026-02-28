@@ -195,7 +195,7 @@ const MainDashboardWeb = () => {
             >
               👋
             </motion.span>
-            <span style={styles.username}>Welcome, Ms.Amna</span>
+            <span style={styles.username}>Welcome, Ms.Tazzaina</span>
             
           </div>
           
