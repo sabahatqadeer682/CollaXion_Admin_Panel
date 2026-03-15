@@ -1,781 +1,846 @@
 // src/pages/SystemSettings.jsx
 import React, { useState, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  User,
-  Bell,
-  Moon,
-  ShieldCheck,
-  Database,
-  CloudUpload,
-  Zap,
-  Save,
-  Clock,
-  Key,
-  ImageIcon,
+  User, Bell, ShieldCheck, Database, CloudUpload, Zap,
+  Save, Key, CheckCircle, AlertTriangle, Monitor, Globe,
+  Clock, Camera, Eye, EyeOff, RefreshCw, Download,
+  Upload, Shield, Activity, Layers, ChevronRight, ArrowLeft,
+  Cpu, Mail, Moon, Sun, Sliders, AlertCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-/**
- * SystemSettings.jsx
- * - Modern Web Dashboard style (light background)
- * - Inline CSS only
- * - Hardcoded admin: username "admin", password "admin123"
- */
+// ─── Brand palette ───────────────────────────────────────────────────────────
+// Primary navy  : #193648
+// Mid blue      : #3A70B0
+// Accent light  : #AAC3FC
+// Page bg       : #E2EEF9 → #FFFFFF
+// Card bg       : #FFFFFF
+// Text dark     : #193648
+// Text muted    : #5a7e9a
 
-const HARDCODED_ADMIN = {
-  username: "admin",
-  password: "admin123",
-  displayName: "Admin",
-  email: "admin@collaxion.local",
+const C = {
+  navy:      "#193648",
+  navyLight: "#1e4060",
+  blue:      "#3A70B0",
+  blueMid:   "#2d5a8e",
+  blueLight: "#AAC3FC",
+  pageBg:    "linear-gradient(135deg, #E2EEF9 0%, #FFFFFF 100%)",
+  cardBg:    "#FFFFFF",
+  border:    "#D4E3F5",
+  borderMid: "#b8d0ea",
+  textDark:  "#193648",
+  textMid:   "#3A70B0",
+  textMuted: "#5a7e9a",
+  textFaint: "#8fa8bb",
+  success:   "#1a7a4a",
+  successBg: "#e6f7ef",
+  error:     "#b91c1c",
+  errorBg:   "#fef2f2",
+  warn:      "#b45309",
+  warnBg:    "#fffbeb",
 };
 
-const initialSettings = {
-  preferences: {
-    theme: "light",
-    notifications: true,
-    language: "English",
-  },
-  security: {
-    twoFA: false,
+// ─── Font injection ──────────────────────────────────────────────────────────
+const FontStyle = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; }
+    input, select, textarea, button { font-family: 'Poppins', sans-serif; }
+    input:focus, select:focus { border-color: #3A70B0 !important; outline: none; box-shadow: 0 0 0 3px rgba(58,112,176,0.14) !important; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #E2EEF9; }
+    ::-webkit-scrollbar-thumb { background: #AAC3FC; border-radius: 10px; }
+  `}</style>
+);
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+const ADMIN = {
+  username: "admin", password: "admin123",
+  displayName: "Ms. Tazzaina", email: "tazzaina@collaxion.edu.pk", role: "Industry Liaison",
+};
+
+const initSettings = {
+  preferences:  { theme: "light", notifications: true, emailAlerts: true, language: "English", compactMode: false, soundAlerts: false },
+  security:     {
+    twoFA: false, sessionTimeout: "30",
     loginHistory: [
-      { id: 1, when: "2025-10-28 14:12", ip: "103.45.12.11", device: "Chrome on Windows" },
-      { id: 2, when: "2025-10-20 09:03", ip: "41.220.3.44", device: "Firefox on Mac" },
+      { id: 1, when: "2025-11-02 14:12", ip: "103.45.12.11", device: "Chrome · Windows", status: "success" },
+      { id: 2, when: "2025-11-01 09:03", ip: "41.220.3.44",  device: "Firefox · Mac",    status: "success" },
+      { id: 3, when: "2025-10-29 21:47", ip: "192.168.1.5",  device: "Safari · iPhone",  status: "failed"  },
     ],
   },
-  integrations: {
-    slack: false,
-    github: false,
-    googleDrive: false,
-  },
-  profile: {
-    displayName: "Admin",
-    email: "admin@collaxion.local",
-    avatar: null,
-  },
+  integrations: { slack: false, github: false, googleDrive: false, microsoftTeams: false },
+  profile:      { displayName: ADMIN.displayName, email: ADMIN.email, role: ADMIN.role, phone: "+92 300 1234567" },
 };
 
-const SystemSettings = () => {
-  const [activeSection, setActiveSection] = useState("profile");
-  const [settings, setSettings] = useState(() => ({ ...initialSettings }));
-  const [adminPassword, setAdminPassword] = useState(HARDCODED_ADMIN.password);
-  const [profileImagePreview, setProfileImagePreview] = useState(settings.profile.avatar);
-  const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
-  const [message, setMessage] = useState(null);
-  const fileInputRef = useRef(null);
+// ─── Micro components ────────────────────────────────────────────────────────
 
-  // Helper: update nested settings
-  const updateSettings = (path, value) => {
-    setSettings((s) => {
-      const next = JSON.parse(JSON.stringify(s));
-      const keys = path.split(".");
-      let obj = next;
-      for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
-      obj[keys[keys.length - 1]] = value;
-      return next;
-    });
-    flash("Saved");
-  };
-
-  const flash = (txt) => {
-    setMessage(txt);
-    setTimeout(() => setMessage(null), 2000);
-  };
-
-  // PROFILE: avatar upload
-  const onProfileImage = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const url = URL.createObjectURL(f);
-    setProfileImagePreview(url);
-    setSettings((s) => ({ ...s, profile: { ...s.profile, avatar: url } }));
-    flash("Profile image updated (preview)");
-  };
-
-  // PROFILE: change password
-  const handleChangePassword = (e) => {
-    e.preventDefault();
-    if (passwordForm.current !== HARDCODED_ADMIN.password) {
-      alert("Current password is incorrect.");
-      return;
-    }
-    if (!passwordForm.newPass || passwordForm.newPass.length < 6) {
-      alert("New password must be at least 6 characters.");
-      return;
-    }
-    if (passwordForm.newPass !== passwordForm.confirm) {
-      alert("New password and confirm do not match.");
-      return;
-    }
-    setAdminPassword(passwordForm.newPass);
-    HARDCODED_ADMIN.password = passwordForm.newPass; 
-    setPasswordForm({ current: "", newPass: "", confirm: "" });
-    flash("Password changed");
-  };
-
-  // BACKUP: export settings as JSON
-  const handleExport = () => {
-    const payload = {
-      settings,
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "collaxion-settings.json";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    flash("Exported settings");
-  };
-
-  // BACKUP: import JSON
-  const handleImport = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result);
-        if (parsed.settings) {
-          setSettings(parsed.settings);
-          setProfileImagePreview(parsed.settings.profile?.avatar || null);
-          flash("Imported settings");
-        } else {
-          alert("Invalid settings file.");
-        }
-      } catch (err) {
-        alert("Failed to parse JSON.");
-      }
-    };
-    reader.readAsText(f);
-  };
-
-  // 🔹 Session-only toggle functions
-  const togglePref = (key) => {
-    setSettings((prev) => ({
-      ...prev,
-      preferences: { ...prev.preferences, [key]: !prev.preferences[key] },
-    }));
-  };
-
-  const toggleIntegration = (key) => {
-    setSettings((prev) => ({
-      ...prev,
-      integrations: { ...prev.integrations, [key]: !prev.integrations[key] },
-    }));
-  };
-
-  const toggle2FA = () => {
-    setSettings((prev) => ({
-      ...prev,
-      security: { ...prev.security, twoFA: !prev.security.twoFA },
-    }));
-  };
-
-  // Language change
-  const changeLanguage = (lang) =>
-    setSettings((s) => ({ ...s, preferences: { ...s.preferences, language: lang } }));
-
-  // Profile save (displayName + email)
-  const handleProfileSave = (e) => {
-    e.preventDefault();
-    const form = new FormData(e.target);
-    const displayName = form.get("displayName");
-    const email = form.get("email");
-    setSettings((s) => ({ ...s, profile: { ...s.profile, displayName, email } }));
-    flash("Profile saved");
-  };
-
-  // Sidebar button helper
-  const sectionBtn = (key, label, Icon) => (
-    <button
-      onClick={() => setActiveSection(key)}
+const Toggle = ({ checked, onChange }) => (
+  <motion.div
+    onClick={onChange}
+    whileTap={{ scale: 0.92 }}
+    style={{
+      width: 46, height: 25, borderRadius: 13, cursor: "pointer", position: "relative", flexShrink: 0,
+      background: checked ? `linear-gradient(135deg, ${C.blueMid}, ${C.blue})` : "#cbd5e1",
+      boxShadow: checked ? "0 2px 10px rgba(58,112,176,0.35)" : "none",
+      transition: "all 0.3s",
+    }}
+  >
+    <motion.div
+      animate={{ x: checked ? 23 : 3 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
       style={{
-        ...styles.sideBtn,
-        ...(activeSection === key ? styles.sideBtnActive : {}),
+        position: "absolute", top: 4, width: 17, height: 17, borderRadius: "50%",
+        background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
       }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Icon size={18} />
-        <div style={{ textAlign: "left" }}>
-          <div style={{ fontWeight: 700 }}>{label}</div>
-          <div style={{ fontSize: 12, color: "#617988" }}>
-            {key === "profile" && "Edit profile & avatar"}
-            {key === "preferences" && "Notifications, language & theme"}
-            {key === "security" && "Password, 2FA & login history"}
-            {key === "backup" && "Export / import settings"}
-            {key === "integrations" && "Third-party toggles"}
-            {key === "sysinfo" && "Version & support"}
-          </div>
-        </div>
-      </div>
-      <div style={{ opacity: 0.6, fontSize: 12 }}>{activeSection === key ? "Active" : ""}</div>
-    </button>
-  );
+    />
+  </motion.div>
+);
 
+const StatusChip = ({ label, color, bg }) => (
+  <span style={{
+    fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em",
+    padding: "3px 10px", borderRadius: 20, textTransform: "uppercase",
+    background: bg, color,
+    border: `1px solid ${color}33`,
+  }}>{label}</span>
+);
 
+// ─── Layout pieces ───────────────────────────────────────────────────────────
 
+const Card = ({ children, style = {}, accent }) => (
+  <div style={{
+    background: C.cardBg,
+    border: `1.5px solid ${accent ? accent + "44" : C.border}`,
+    borderRadius: 18, padding: "22px 24px",
+    boxShadow: accent
+      ? `0 4px 20px ${accent}18, 0 1px 4px rgba(25,54,72,0.06)`
+      : "0 4px 20px rgba(25,54,72,0.07)",
+    ...style,
+  }}>{children}</div>
+);
+
+const CardTitle = ({ children }) => (
+  <div style={{
+    fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.1em",
+    textTransform: "uppercase", color: C.textFaint,
+    marginBottom: 18, borderBottom: `1px solid ${C.border}`, paddingBottom: 10,
+  }}>
+    {children}
+  </div>
+);
+
+const Field = ({ label, children }) => (
+  <div style={{ marginBottom: 14 }}>
+    <label style={{
+      display: "block", fontSize: "0.72rem", fontWeight: 700,
+      color: C.textMuted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 6,
+    }}>{label}</label>
+    {children}
+  </div>
+);
+
+const Input = ({ readOnly, style: sx = {}, ...props }) => (
+  <input
+    readOnly={readOnly}
+    style={{
+      width: "100%", padding: "10px 14px", borderRadius: 10,
+      border: `1.5px solid ${C.border}`,
+      background: readOnly ? "#f1f7fd" : "#fff",
+      color: readOnly ? C.textFaint : C.textDark,
+      fontSize: "0.88rem", outline: "none",
+      transition: "border-color 0.2s, box-shadow 0.2s",
+      ...sx,
+    }}
+    {...props}
+  />
+);
+
+const Btn = ({ children, onClick, type = "button", variant = "primary", style: sx = {} }) => {
+  const variants = {
+    primary: { background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,  color: "#fff", boxShadow: "0 4px 14px rgba(58,112,176,0.3)", border: "none" },
+    ghost:   { background: "#fff", color: C.textMid, border: `1.5px solid ${C.border}`, boxShadow: "none" },
+    danger:  { background: "linear-gradient(135deg,#991b1b,#dc2626)", color: "#fff", border: "none", boxShadow: "0 4px 14px rgba(220,38,38,0.25)" },
+  };
   return (
-    <div style={styles.page}>
-      <div style={styles.container}>
-        <aside style={styles.sidebar}>
-          <div style={{ marginBottom: 14 }}>
-            <div style={styles.logo}>CollaXion</div>
-            <div style={{ color: "#6B8794", fontSize: 13 }}>System Settings</div>
-          </div>
+    <motion.button
+      whileTap={{ scale: 0.96 }} whileHover={{ opacity: 0.88 }}
+      onClick={onClick} type={type}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 8,
+        borderRadius: 10, padding: "10px 20px", fontWeight: 700,
+        fontSize: "0.84rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif",
+        whiteSpace: "nowrap", transition: "opacity 0.2s",
+        ...variants[variant], ...sx,
+      }}
+    >{children}</motion.button>
+  );
+};
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {sectionBtn("profile", "Profile", User)}
-            {sectionBtn("preferences", "Preferences", Bell)}
-            {sectionBtn("security", "Security", ShieldCheck)}
-            {sectionBtn("backup", "Backup & Restore", CloudUpload)}
-            {sectionBtn("integrations", "Integrations", Zap)}
-            {sectionBtn("sysinfo", "System Info", Database)}
-          </div>
-
-          <div style={{ marginTop: "auto", fontSize: 13, color: "#6B8794" }}>
-            <div>Logged in as</div>
-            <div style={{ fontWeight: 800, marginTop: 6 }}>{HARDCODED_ADMIN.username}</div>
-          </div>
-        </aside>
-
-        <main style={styles.main}>
-          <header style={styles.header}>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#0D3B66" }}>Settings</div>
-              <div style={{ color: "#647D8A", marginTop: 6 }}>Customize application behavior and security</div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <button
-                style={styles.headerBtn}
-                onClick={() => {
-                  // quick save all (mock) -> just flash
-                  flash("All settings saved");
-                }}
-              >
-                <Save size={14} /> Save all
-              </button>
-            </div>
-          </header>
-
-          <div style={{ marginTop: 18 }}>
-            {/* message toast */}
-            {message && <div style={styles.toast}>{message}</div>}
-
-            {/* Content area */}
-            <motion.div layout>
-              {/* PROFILE */}
-              {activeSection === "profile" && (
-                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                      <User size={22} color="#0D3B66" />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>Profile</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Admin profile & avatar</div>
-                      </div>
-                    </div>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Manage account identity</div>
-                  </div>
-
-                  <form onSubmit={handleProfileSave} style={{ display: "flex", gap: 24 }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={styles.label}>Username</label>
-                      <input value={HARDCODED_ADMIN.username} readOnly style={styles.input} />
-                      <label style={styles.label}>Display name</label>
-                      <input name="displayName" defaultValue={settings.profile.displayName} style={styles.input} />
-                      <label style={styles.label}>Email</label>
-                      <input name="email" defaultValue={settings.profile.email} style={styles.input} />
-                      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                        <button style={styles.primaryBtn} type="submit">Save profile</button>
-                        <button
-                          type="button"
-                          style={styles.ghostBtn}
-                          onClick={() => {
-                            setSettings(initialSettings);
-                            setProfileImagePreview(initialSettings.profile.avatar);
-                            flash("Reverted profile");
-                          }}
-                        >
-                          Reset
-                        </button>
-                      </div>
-                    </div>
-
-                    <div style={{ width: 260, display: "flex", flexDirection: "column", gap: 10 }}>
-                      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                        <div style={styles.avatarWrap}>
-                          {profileImagePreview ? (
-                            <img src={profileImagePreview} alt="avatar" style={styles.avatar} />
-                          ) : (
-                            <div style={styles.avatarPlaceholder}><User size={36} /></div>
-                          )}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{settings.profile.displayName}</div>
-                          <div style={{ fontSize: 13, color: "#617988" }}>{settings.profile.email}</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label style={styles.labelSmall}>Upload profile image</label>
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={onProfileImage} style={{ display: "block" }} />
-                      </div>
-
-                      <div style={{ marginTop: 6 }}>
-                        <label style={styles.labelSmall}>Change password</label>
-                        <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                          <input placeholder="Current password" type="password" value={passwordForm.current} onChange={(e) => setPasswordForm((p) => ({ ...p, current: e.target.value }))} style={styles.input} />
-                          <input placeholder="New password" type="password" value={passwordForm.newPass} onChange={(e) => setPasswordForm((p) => ({ ...p, newPass: e.target.value }))} style={styles.input} />
-                          <input placeholder="Confirm new password" type="password" value={passwordForm.confirm} onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))} style={styles.input} />
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <button type="submit" style={styles.primaryBtnSmall}>Change password</button>
-                            <button type="button" style={styles.ghostBtnSmall} onClick={() => setPasswordForm({ current: "", newPass: "", confirm: "" })}>Clear</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </form>
-                </motion.section>
-              )}
-
-              {/* PREFERENCES */}
-              {activeSection === "preferences" && (
-                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                      <Bell size={22} color="#0D3B66" />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>App Preferences</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Theme, notifications and language</div>
-                      </div>
-                    </div>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Customize user experience</div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 18 }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      <div style={styles.prefRow}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>Dark mode</div>
-                          <div style={{ fontSize: 13, color: "#617988" }}>Toggle the UI theme</div>
-                        </div>
-                        <label style={styles.switch}>
-                          <input type="checkbox" checked={settings.preferences.theme === "dark"} onChange={() => updateSettings("preferences.theme", settings.preferences.theme === "dark" ? "light" : "dark")} />
-                          <span style={styles.slider}></span>
-                        </label>
-                      </div>
-
-                      <div style={styles.prefRow}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>Notifications</div>
-                          <div style={{ fontSize: 13, color: "#617988" }}>Email & system notifications</div>
-                        </div>
-                        <label style={styles.switch}>
-                          <input type="checkbox" checked={settings.preferences.notifications} onChange={() => { togglePref("notifications"); flash("Notifications updated"); }} />
-                          <span style={styles.slider}></span>
-                        </label>
-                      </div>
-
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>Language</div>
-                          <div style={{ fontSize: 13, color: "#617988" }}>UI language</div>
-                        </div>
-                        <select value={settings.preferences.language} onChange={(e) => changeLanguage(e.target.value)} style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #E6F0F8" }}>
-                          <option>English</option>
-                          <option>Urdu</option>
-                          <option>Arabic</option>
-                          <option>Chinese</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div style={{ padding: 12, background: "#FAFDFF", borderRadius: 10 }}>
-                      <div style={{ fontWeight: 800, marginBottom: 8 }}>Preview</div>
-                      <div style={{ fontSize: 13, color: "#617988" }}>How the app appearance looks with current preferences</div>
-                      <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
-                        <div style={{ width: 56, height: 56, borderRadius: 8, background: settings.preferences.theme === "dark" ? "#1F2937" : "#EAF4FB" }} />
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{settings.profile.displayName}</div>
-                          <div style={{ fontSize: 13, color: "#617988" }}>{settings.profile.email}</div>
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 12 }}>
-                        <button style={styles.primaryBtnSmall} onClick={() => flash("Preferences saved")}>Save Preferences</button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-
-              {/* SECURITY */}
-              {activeSection === "security" && (
-                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                      <ShieldCheck size={22} color="#0D3B66" />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>Security</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Password & two-factor authentication</div>
-                      </div>
-                    </div>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Protect your account</div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 18 }}>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-                      <div style={styles.prefRow}>
-                        <div>
-                          <div style={{ fontWeight: 700 }}>Two-Factor Authentication (2FA)</div>
-                          <div style={{ fontSize: 13, color: "#617988" }}>Add an extra layer of security to login</div>
-                        </div>
-                        <label style={styles.switch}>
-                          <input type="checkbox" checked={settings.security.twoFA} onChange={toggle2FA} />
-                          <span style={styles.slider}></span>
-                        </label>
-                      </div>
-
-                      <div style={{ marginTop: 8 }}>
-                        <div style={{ fontWeight: 700, marginBottom: 8 }}>Recent login activity</div>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          {settings.security.loginHistory.map((h) => (
-                            <div key={h.id} style={{ display: "flex", justifyContent: "space-between", background: "#FAFDFF", padding: 10, borderRadius: 8 }}>
-                              <div style={{ fontSize: 13 }}>
-                                <div style={{ fontWeight: 700 }}>{h.device}</div>
-                                <div style={{ color: "#617988", fontSize: 12 }}>{h.ip}</div>
-                              </div>
-                              <div style={{ color: "#617988", fontSize: 12 }}>{h.when}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ width: 320 }}>
-                      <div style={{ background: "#FAFDFF", padding: 12, borderRadius: 10 }}>
-                        <div style={{ fontWeight: 800 }}>Password Management</div>
-                        <div style={{ fontSize: 13, color: "#617988", marginTop: 8 }}>Change your password (admin)</div>
-                        <div style={{ marginTop: 10 }}>
-                          <div style={{ fontSize: 13, color: "#334155", marginBottom: 8 }}>Current Admin Password: <strong style={{ marginLeft: 6 }}>{adminPassword ? "******" : "not set"}</strong></div>
-                          <button style={styles.ghostBtn} onClick={() => { navigator.clipboard?.writeText(adminPassword); flash("Password copied"); }}>Copy Password</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-
-              {/* BACKUP */}
-              {activeSection === "backup" && (
-                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                      <CloudUpload size={22} color="#0D3B66" />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>Backup & Restore</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Export and import settings</div>
-                      </div>
-                    </div>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Create or restore backups</div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                    <button style={styles.primaryBtn} onClick={handleExport}><Save size={14} /> Export settings</button>
-                    <label style={styles.uploadLabel}>
-                      <input type="file" accept="application/json" onChange={handleImport} style={{ display: "none" }} />
-                      <CloudUpload size={14} /> Import settings
-                    </label>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Current settings snapshot will be exported.</div>
-                  </div>
-                </motion.section>
-              )}
-
-              {/* INTEGRATIONS */}
-              {activeSection === "integrations" && (
-                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                      <Zap size={22} color="#0D3B66" />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>Integrations</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Third party tools</div>
-                      </div>
-                    </div>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Enable or disable integrations</div>
-                  </div>
-
-                  <div style={{ display: "grid", gap: 12 }}>
-                    <div style={styles.prefRow}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>Slack</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Send notifications to Slack channels</div>
-                      </div>
-                      <label style={styles.switch}>
-                        <input type="checkbox" checked={settings.integrations.slack} onChange={() => toggleIntegration("slack")} />
-                        <span style={styles.slider}></span>
-                      </label>
-                    </div>
-
-                    <div style={styles.prefRow}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>GitHub</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Enable repo integrations</div>
-                      </div>
-                      <label style={styles.switch}>
-                        <input type="checkbox" checked={settings.integrations.github} onChange={() => toggleIntegration("github")} />
-                        <span style={styles.slider}></span>
-                      </label>
-                    </div>
-
-                    <div style={styles.prefRow}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>Google Drive</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Backup to Google Drive (mock)</div>
-                      </div>
-                      <label style={styles.switch}>
-                        <input type="checkbox" checked={settings.integrations.googleDrive} onChange={() => toggleIntegration("googleDrive")} />
-                        <span style={styles.slider}></span>
-                      </label>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-
-              {/* SYSTEM INFO */}
-              {activeSection === "sysinfo" && (
-                <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={styles.card}>
-                  <div style={styles.cardHeader}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                      <Database size={22} color="#0D3B66" />
-                      <div>
-                        <div style={{ fontWeight: 800, fontSize: 16 }}>System Info</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>Version and support info</div>
-                      </div>
-                    </div>
-                    <div style={{ color: "#617988", fontSize: 13 }}>Application metadata</div>
-                  </div>
-
-                  <div style={{ display: "grid", gap: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>App Version</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>1.4.2</div>
-                      </div>
-                      <div style={{ fontSize: 13, color: "#617988" }}>Build 2025-10-30</div>
-                    </div>
-
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>Developer</div>
-                        <div style={{ fontSize: 13, color: "#617988" }}>CollaXion Team</div>
-                      </div>
-                      <div style={{ fontSize: 13, color: "#617988" }}>support@collaxion.app</div>
-                    </div>
-
-                    <div style={{ marginTop: 8 }}>
-                      <button style={styles.primaryBtn} onClick={() => flash("System info copied")}>Copy system info</button>
-                    </div>
-                  </div>
-                </motion.section>
-              )}
-            </motion.div>
-          </div>
-        </main>
+const PrefRow = ({ icon: Icon, title, desc, checked, onChange, accent = C.blue }) => (
+  <div style={{
+    display: "flex", alignItems: "center", justifyContent: "space-between",
+    padding: "13px 16px", borderRadius: 12, marginBottom: 10,
+    background: checked ? "#EEF5FF" : "#f8fbff",
+    border: `1.5px solid ${checked ? C.blueLight : C.border}`,
+    transition: "all 0.25s",
+  }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: checked ? "#dbeafe" : "#EDF4FF",
+        border: `1.5px solid ${checked ? C.blueLight : C.border}`,
+      }}>
+        <Icon size={16} color={checked ? C.blue : C.textFaint} />
+      </div>
+      <div>
+        <div style={{ fontSize: "0.88rem", fontWeight: 600, color: C.textDark }}>{title}</div>
+        <div style={{ fontSize: "0.75rem", color: C.textMuted, marginTop: 2 }}>{desc}</div>
       </div>
     </div>
+    <Toggle checked={checked} onChange={onChange} />
+  </div>
+);
+
+const InfoRow = ({ label, value, mono, highlight }) => (
+  <div style={{
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+    padding: "10px 0", borderBottom: `1px solid ${C.border}`,
+  }}>
+    <span style={{ fontSize: "0.8rem", color: C.textMuted }}>{label}</span>
+    <span style={{
+      fontSize: "0.82rem", fontWeight: 700,
+      color: highlight || C.textDark,
+      fontFamily: mono ? "monospace" : "inherit",
+    }}>{value}</span>
+  </div>
+);
+
+const NavItem = ({ icon: Icon, label, sub, active, onClick, warn }) => (
+  <motion.button
+    whileTap={{ scale: 0.97 }}
+    onClick={onClick}
+    style={{
+      display: "flex", alignItems: "center", gap: 12, width: "100%",
+      padding: "10px 14px", borderRadius: 12, border: "none", cursor: "pointer",
+      textAlign: "left", fontFamily: "'Poppins', sans-serif",
+      background: active ? `linear-gradient(135deg, ${C.navy}, ${C.navyLight})` : "transparent",
+      color: active ? "#fff" : C.textMuted,
+      boxShadow: active ? "0 4px 16px rgba(25,54,72,0.18)" : "none",
+      transition: "all 0.2s",
+    }}
+  >
+    <div style={{
+      width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: active ? "rgba(255,255,255,0.15)" : "#EEF5FF",
+    }}>
+      <Icon size={16} color={active ? "#fff" : C.blue} />
+    </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: "0.85rem", fontWeight: active ? 700 : 500, lineHeight: 1.2 }}>{label}</div>
+      <div style={{ fontSize: "0.71rem", opacity: active ? 0.65 : 0.7, marginTop: 2 }}>{sub}</div>
+    </div>
+    {warn && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", boxShadow: "0 0 6px #f59e0b80", flexShrink: 0 }} />}
+    {active && <ChevronRight size={13} color="rgba(255,255,255,0.5)" />}
+  </motion.button>
+);
+
+// ─── Main Component ──────────────────────────────────────────────────────────
+const SystemSettings = () => {
+  const navigate = useNavigate();
+  const [section, setSection]       = useState("profile");
+  const [settings, setSettings]     = useState({ ...initSettings });
+  const [adminPw, setAdminPw]       = useState(ADMIN.password);
+  const [imgPreview, setImgPreview] = useState(null);
+  const [pwForm, setPwForm]         = useState({ current: "", newP: "", confirm: "" });
+  const [showPw, setShowPw]         = useState({ c: false, n: false, cf: false });
+  const [toast, setToast]           = useState(null);
+  const [pForm, setPForm]           = useState({ ...initSettings.profile });
+  const fileRef                     = useRef(null);
+
+  const flash  = (msg, type = "ok") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const tPref  = (k) => setSettings(s => ({ ...s, preferences: { ...s.preferences, [k]: !s.preferences[k] } }));
+  const tInteg = (k) => { setSettings(s => ({ ...s, integrations: { ...s.integrations, [k]: !s.integrations[k] } })); flash(`${k} ${settings.integrations[k] ? "disconnected" : "connected"}`); };
+  const t2FA   = () => { setSettings(s => ({ ...s, security: { ...s.security, twoFA: !s.security.twoFA } })); flash(settings.security.twoFA ? "2FA disabled" : "2FA enabled"); };
+
+  const onImg       = (e) => { const f = e.target.files?.[0]; if (!f) return; setImgPreview(URL.createObjectURL(f)); flash("Photo updated"); };
+  const saveProfile = (e) => { e.preventDefault(); setSettings(s => ({ ...s, profile: { ...s.profile, ...pForm } })); flash("Profile saved"); };
+  const changePw    = (e) => {
+    e.preventDefault();
+    if (pwForm.current !== adminPw)      { flash("Wrong current password", "err"); return; }
+    if (pwForm.newP.length < 6)          { flash("Min 6 characters required", "err"); return; }
+    if (pwForm.newP !== pwForm.confirm)  { flash("Passwords don't match", "err"); return; }
+    setAdminPw(pwForm.newP); setPwForm({ current: "", newP: "", confirm: "" });
+    flash("Password updated successfully");
+  };
+  const doExport = () => {
+    const blob = new Blob([JSON.stringify({ settings, at: new Date().toISOString() }, null, 2)], { type: "application/json" });
+    const u = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = u; a.download = "collaxion-settings.json"; a.click(); URL.revokeObjectURL(u);
+    flash("Settings exported");
+  };
+  const doImport = (e) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { try { const p = JSON.parse(r.result); if (p.settings) { setSettings(p.settings); flash("Settings imported"); } else flash("Invalid file", "err"); } catch { flash("Parse error", "err"); } };
+    r.readAsText(f);
+  };
+
+  const navItems = [
+    { key: "profile",      icon: User,        label: "Profile",          sub: "Identity & avatar"        },
+    { key: "preferences",  icon: Sliders,     label: "Preferences",      sub: "Theme & notifications"    },
+    { key: "security",     icon: ShieldCheck, label: "Security",         sub: "Password & 2FA",  warn: !settings.security.twoFA },
+    { key: "backup",       icon: CloudUpload, label: "Backup & Restore", sub: "Export / import"          },
+    { key: "integrations", icon: Zap,         label: "Integrations",     sub: "Connected services"       },
+    { key: "sysinfo",      icon: Cpu,         label: "System Info",      sub: "Build & status"           },
+  ];
+
+  return (
+    <>
+      <FontStyle />
+      <div style={{ fontFamily: "'Poppins', sans-serif", background: C.pageBg, minHeight: "100vh" }}>
+
+        {/* Toast */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              style={{
+                position: "fixed", top: 22, left: "50%", zIndex: 9999,
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "12px 22px", borderRadius: 14, fontWeight: 700, fontSize: "0.88rem",
+                background: toast.type === "err" ? "#991b1b" : C.navy,
+                color: "#fff", boxShadow: "0 8px 28px rgba(25,54,72,0.28)",
+                border: `1px solid ${toast.type === "err" ? "#dc262650" : "#3A70B050"}`,
+              }}
+              initial={{ opacity: 0, y: -30, x: "-50%" }}
+              animate={{ opacity: 1, y: 0,   x: "-50%" }}
+              exit={{ opacity: 0,   y: -30,  x: "-50%" }}
+            >
+              {toast.type === "err"
+                ? <AlertTriangle size={15} color="#fca5a5" />
+                : <CheckCircle  size={15} color={C.blueLight} />}
+              {toast.msg}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div style={{ display: "flex", height: "100vh" }}>
+
+          {/* ── Sidebar ── */}
+          <aside style={{
+            width: 265, flexShrink: 0,
+            background: C.navy,
+            display: "flex", flexDirection: "column",
+            padding: "24px 16px", gap: 0, overflowY: "auto",
+            boxShadow: "4px 0 24px rgba(25,54,72,0.18)",
+          }}>
+            {/* Logo */}
+            <div style={{ marginBottom: 26, paddingLeft: 6 }}>
+              <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
+                Colla<span style={{ color: C.blueLight }}>X</span>ion
+              </div>
+              <div style={{ fontSize: "0.7rem", color: C.blueLight, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>
+                System Settings
+              </div>
+            </div>
+
+            {/* Profile mini */}
+            <div style={{
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 14, padding: "13px 14px",
+              marginBottom: 20, display: "flex", alignItems: "center", gap: 12,
+            }}>
+              <div style={{
+                width: 42, height: 42, borderRadius: 12, flexShrink: 0, overflow: "hidden",
+                border: `2px solid ${C.blueLight}66`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "rgba(255,255,255,0.1)",
+              }}>
+                {imgPreview
+                  ? <img src={imgPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : <User size={20} color={C.blueLight} />
+                }
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "0.86rem", fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {pForm.displayName}
+                </div>
+                <div style={{ fontSize: "0.72rem", color: C.blueLight, marginTop: 2 }}>{pForm.role}</div>
+              </div>
+            </div>
+
+            {/* Nav items */}
+            <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+              {navItems.map(item => (
+                <NavItem
+                  key={item.key}
+                  icon={item.icon}
+                  label={item.label}
+                  sub={item.sub}
+                  warn={item.warn}
+                  active={section === item.key}
+                  onClick={() => setSection(item.key)}
+                />
+              ))}
+            </nav>
+
+            {/* Back */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/maindashboard")}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, width: "100%",
+                marginTop: 16, padding: "10px 14px", borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.15)", background: "transparent",
+                color: C.blueLight, fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+                fontFamily: "'Poppins', sans-serif",
+              }}
+            >
+              <ArrowLeft size={14} /> Back to Dashboard
+            </motion.button>
+          </aside>
+
+          {/* ── Main Content ── */}
+          <main style={{ flex: 1, overflowY: "auto", padding: "36px 48px" }}>
+
+            {/* Topbar */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
+              <div>
+                <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: C.textDark, margin: 0 }}>
+                  {navItems.find(n => n.key === section)?.label}
+                </h1>
+                <p style={{ fontSize: "0.88rem", color: C.textMid, margin: "6px 0 0 0" }}>
+                  {navItems.find(n => n.key === section)?.sub}
+                </p>
+              </div>
+              <Btn onClick={() => flash("All settings saved")}>
+                <Save size={14} /> Save All
+              </Btn>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={section}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.22 }}
+              >
+
+                {/* ══ PROFILE ══ */}
+                {section === "profile" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 24 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      <Card>
+                        <CardTitle>Account Information</CardTitle>
+                        <form onSubmit={saveProfile}>
+                          <Field label="Username">
+                            <Input value={ADMIN.username} readOnly />
+                          </Field>
+                          <Field label="Display Name">
+                            <Input value={pForm.displayName} onChange={e => setPForm(p => ({ ...p, displayName: e.target.value }))} />
+                          </Field>
+                          <Field label="Email Address">
+                            <Input type="email" value={pForm.email} onChange={e => setPForm(p => ({ ...p, email: e.target.value }))} />
+                          </Field>
+                          <Field label="Phone">
+                            <Input value={pForm.phone} onChange={e => setPForm(p => ({ ...p, phone: e.target.value }))} />
+                          </Field>
+                          <Field label="Role">
+                            <Input value={pForm.role} readOnly />
+                          </Field>
+                          <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+                            <Btn type="submit"><Save size={14} /> Save Profile</Btn>
+                            <Btn variant="ghost" onClick={() => { setPForm({ ...initSettings.profile }); flash("Profile reset"); }}>
+                              <RefreshCw size={13} /> Reset
+                            </Btn>
+                          </div>
+                        </form>
+                      </Card>
+
+                      <Card>
+                        <CardTitle>Change Password</CardTitle>
+                        <form onSubmit={changePw}>
+                          {[
+                            ["current", "Current Password",    "c"],
+                            ["newP",    "New Password",        "n"],
+                            ["confirm", "Confirm New Password","cf"],
+                          ].map(([field, ph, sk]) => (
+                            <Field key={field} label={ph}>
+                              <div style={{ position: "relative" }}>
+                                <Input
+                                  type={showPw[sk] ? "text" : "password"}
+                                  placeholder="••••••••"
+                                  value={pwForm[field]}
+                                  onChange={e => setPwForm(p => ({ ...p, [field]: e.target.value }))}
+                                  style={{ paddingRight: 42 }}
+                                />
+                                <button type="button"
+                                  onClick={() => setShowPw(p => ({ ...p, [sk]: !p[sk] }))}
+                                  style={{ position: "absolute", right: 13, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.textFaint }}>
+                                  {showPw[sk] ? <EyeOff size={15} /> : <Eye size={15} />}
+                                </button>
+                              </div>
+                            </Field>
+                          ))}
+                          <Btn type="submit"><Key size={14} /> Update Password</Btn>
+                        </form>
+                      </Card>
+                    </div>
+
+                    {/* Right col */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      <Card accent={C.blue}>
+                        <CardTitle>Profile Photo</CardTitle>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18, padding: "8px 0" }}>
+                          <div style={{
+                            width: 104, height: 104, borderRadius: 24, overflow: "hidden",
+                            border: `3px solid ${C.blueLight}`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            background: "#EEF5FF",
+                            boxShadow: "0 6px 24px rgba(58,112,176,0.18)",
+                          }}>
+                            {imgPreview
+                              ? <img src={imgPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                              : <User size={44} color={C.blue} />
+                            }
+                          </div>
+                          <div style={{ textAlign: "center" }}>
+                            <div style={{ fontSize: "1rem", fontWeight: 700, color: C.textDark }}>{pForm.displayName}</div>
+                            <div style={{ fontSize: "0.78rem", color: C.textMid, marginTop: 4 }}>{pForm.role}</div>
+                            <div style={{ fontSize: "0.74rem", color: C.textMuted, marginTop: 3 }}>{pForm.email}</div>
+                          </div>
+                          <input ref={fileRef} type="file" accept="image/*" onChange={onImg} style={{ display: "none" }} />
+                          <Btn onClick={() => fileRef.current?.click()} style={{ width: "100%", justifyContent: "center" }}>
+                            <Camera size={14} /> Upload Photo
+                          </Btn>
+                        </div>
+                      </Card>
+
+                      <Card>
+                        <CardTitle>Session Info</CardTitle>
+                        <InfoRow label="Username"    value={ADMIN.username}    mono />
+                        <InfoRow label="Last Login"  value="2025-11-02 14:12" />
+                        <InfoRow label="Session"     value="Active"            highlight={C.success} />
+                        <InfoRow label="Permissions" value="Full Access"       highlight={C.blue} />
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {/* ══ PREFERENCES ══ */}
+                {section === "preferences" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
+                    <div>
+                      <Card style={{ marginBottom: 20 }}>
+                        <CardTitle>Display & Interface</CardTitle>
+                        <PrefRow icon={settings.preferences.theme === "dark" ? Moon : Sun} title="Dark Mode" desc="Switch between light and dark interface theme" checked={settings.preferences.theme === "dark"} onChange={() => { tPref("theme"); flash("Theme updated"); }} />
+                        <PrefRow icon={Layers} title="Compact Mode" desc="Reduce whitespace for denser information display" checked={settings.preferences.compactMode} onChange={() => { tPref("compactMode"); flash("Compact mode updated"); }} />
+                      </Card>
+                      <Card>
+                        <CardTitle>Notifications & Alerts</CardTitle>
+                        <PrefRow icon={Bell}    title="System Notifications" desc="In-app alerts and dashboard notifications"      checked={settings.preferences.notifications}  onChange={() => { tPref("notifications");  flash("Notifications updated"); }} />
+                        <PrefRow icon={Mail}    title="Email Alerts"         desc="Receive important updates via email"              checked={settings.preferences.emailAlerts}    onChange={() => { tPref("emailAlerts");    flash("Email alerts updated"); }} />
+                        <PrefRow icon={Monitor} title="Sound Alerts"         desc="Audio cues for critical system notifications"    checked={settings.preferences.soundAlerts}    onChange={() => { tPref("soundAlerts");    flash("Sound alerts updated"); }} />
+                      </Card>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      <Card>
+                        <CardTitle>Language</CardTitle>
+                        <Field label="Interface Language">
+                          <select
+                            value={settings.preferences.language}
+                            onChange={e => { setSettings(sv => ({ ...sv, preferences: { ...sv.preferences, language: e.target.value } })); flash(`Language → ${e.target.value}`); }}
+                            style={{
+                              width: "100%", padding: "10px 14px", borderRadius: 10,
+                              border: `1.5px solid ${C.border}`, background: "#fff",
+                              color: C.textDark, fontSize: "0.88rem", outline: "none",
+                            }}
+                          >
+                            {["English","Urdu","Arabic","Chinese","French"].map(l => <option key={l}>{l}</option>)}
+                          </select>
+                        </Field>
+                      </Card>
+
+                      <Card accent={C.blue}>
+                        <CardTitle>Current Configuration</CardTitle>
+                        <InfoRow label="Theme"         value={settings.preferences.theme === "dark" ? "🌙 Dark" : "☀️ Light"} />
+                        <InfoRow label="Notifications" value={settings.preferences.notifications ? "Enabled"  : "Disabled"} highlight={settings.preferences.notifications ? C.success : C.error} />
+                        <InfoRow label="Email Alerts"  value={settings.preferences.emailAlerts    ? "On" : "Off"}           highlight={settings.preferences.emailAlerts    ? C.success : C.error} />
+                        <InfoRow label="Language"      value={settings.preferences.language} />
+                        <InfoRow label="Compact Mode"  value={settings.preferences.compactMode    ? "On" : "Off"} />
+                        <Btn style={{ marginTop: 16, width: "100%", justifyContent: "center" }} onClick={() => flash("Preferences saved")}>
+                          <Save size={14} /> Save Preferences
+                        </Btn>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {/* ══ SECURITY ══ */}
+                {section === "security" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      <Card accent={settings.security.twoFA ? C.blue : "#f59e0b"}>
+                        <CardTitle>Two-Factor Authentication</CardTitle>
+                        <div style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          padding: "16px 18px", borderRadius: 14, marginBottom: 12,
+                          background: settings.security.twoFA ? "#EEF5FF" : C.warnBg,
+                          border: `1.5px solid ${settings.security.twoFA ? C.blueLight : "#fde68a"}`,
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                            <div style={{
+                              width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              background: settings.security.twoFA ? "#DBEAFE" : "#fef3c7",
+                            }}>
+                              <Shield size={20} color={settings.security.twoFA ? C.blue : "#d97706"} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: settings.security.twoFA ? C.navy : "#b45309" }}>
+                                {settings.security.twoFA ? "2FA is Active" : "2FA is Disabled"}
+                              </div>
+                              <div style={{ fontSize: "0.75rem", color: C.textMuted, marginTop: 2 }}>
+                                {settings.security.twoFA ? "Your account has extra protection" : "Enable to strengthen your security"}
+                              </div>
+                            </div>
+                          </div>
+                          <Toggle checked={settings.security.twoFA} onChange={t2FA} />
+                        </div>
+                        {!settings.security.twoFA && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, background: "#fffbeb", border: "1px solid #fde68a" }}>
+                            <AlertCircle size={14} color="#d97706" />
+                            <span style={{ fontSize: "0.78rem", color: C.warn }}>Enable 2FA to better protect your account.</span>
+                          </div>
+                        )}
+                      </Card>
+
+                      <Card>
+                        <CardTitle>Session Timeout</CardTitle>
+                        <Field label="Auto-logout after inactivity">
+                          <select
+                            value={settings.security.sessionTimeout}
+                            onChange={e => { setSettings(sv => ({ ...sv, security: { ...sv.security, sessionTimeout: e.target.value } })); flash("Timeout updated"); }}
+                            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${C.border}`, background: "#fff", color: C.textDark, fontSize: "0.88rem", outline: "none" }}
+                          >
+                            {[["15","15 minutes"],["30","30 minutes"],["60","1 hour"],["120","2 hours"],["Never","Never"]].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                          </select>
+                        </Field>
+                        <InfoRow label="Current Setting" value={settings.security.sessionTimeout === "Never" ? "Never" : `${settings.security.sessionTimeout} min`} highlight={C.blue} />
+                      </Card>
+                    </div>
+
+                    <Card>
+                      <CardTitle>Recent Login Activity</CardTitle>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {settings.security.loginHistory.map((h, i) => (
+                          <motion.div key={h.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 14, padding: "13px 16px", borderRadius: 12,
+                              background: h.status === "failed" ? C.errorBg : "#EEF5FF",
+                              border: `1.5px solid ${h.status === "failed" ? "#fecaca" : C.blueLight}`,
+                            }}>
+                            <div style={{
+                              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              background: h.status === "failed" ? "#fee2e2" : "#DBEAFE",
+                            }}>
+                              {h.status === "failed"
+                                ? <AlertTriangle size={16} color="#dc2626" />
+                                : <CheckCircle  size={16} color={C.blue} />}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: "0.84rem", fontWeight: 600, color: C.textDark }}>{h.device}</div>
+                              <div style={{ fontSize: "0.74rem", color: C.textMuted, fontFamily: "monospace", marginTop: 3 }}>{h.ip}</div>
+                            </div>
+                            <div style={{ textAlign: "right", flexShrink: 0 }}>
+                              <div style={{ fontSize: "0.72rem", color: C.textFaint, marginBottom: 4 }}>{h.when}</div>
+                              <StatusChip
+                                label={h.status}
+                                color={h.status === "failed" ? "#dc2626" : C.blue}
+                                bg={h.status === "failed" ? "#fee2e2" : "#DBEAFE"}
+                              />
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* ══ BACKUP ══ */}
+                {section === "backup" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                    <Card accent={C.blue}>
+                      <CardTitle>Export Settings</CardTitle>
+                      <p style={{ fontSize: "0.85rem", color: C.textMuted, lineHeight: 1.7, marginBottom: 20 }}>
+                        Download a complete snapshot of your current configuration as a JSON file. Includes preferences, security settings, and integration toggles.
+                      </p>
+                      <InfoRow label="Format"   value="JSON"  mono />
+                      <InfoRow label="Version"  value="1.4.2" mono />
+                      <InfoRow label="Sections" value="6" />
+                      <InfoRow label="Last Export" value="Never" />
+                      <Btn style={{ marginTop: 20, width: "100%", justifyContent: "center" }} onClick={doExport}>
+                        <Download size={15} /> Export Configuration
+                      </Btn>
+                    </Card>
+
+                    <Card>
+                      <CardTitle>Restore Settings</CardTitle>
+                      <p style={{ fontSize: "0.85rem", color: C.textMuted, lineHeight: 1.7, marginBottom: 20 }}>
+                        Import a previously exported JSON file to restore your configuration. Current settings will be overwritten.
+                      </p>
+                      <div style={{
+                        border: `2px dashed ${C.borderMid}`, borderRadius: 14,
+                        padding: "36px 20px", textAlign: "center",
+                        background: "#f8fbff",
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
+                      }}>
+                        <Upload size={32} color={C.textFaint} />
+                        <div style={{ fontSize: "0.85rem", color: C.textMuted }}>Drop your JSON file here or</div>
+                        <label>
+                          <input type="file" accept="application/json" onChange={doImport} style={{ display: "none" }} />
+                          <Btn variant="ghost" style={{ cursor: "pointer" }}>
+                            <Upload size={14} /> Choose File
+                          </Btn>
+                        </label>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "10px 14px", borderRadius: 10, background: C.warnBg, border: "1px solid #fde68a" }}>
+                        <AlertCircle size={13} color="#d97706" />
+                        <span style={{ fontSize: "0.75rem", color: C.warn }}>Current settings will be replaced on import.</span>
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* ══ INTEGRATIONS ══ */}
+                {section === "integrations" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                    {[
+                      { key: "slack",          label: "Slack",           desc: "Send notifications to Slack channels",       emoji: "💬" },
+                      { key: "github",          label: "GitHub",          desc: "Link repositories and track project activity",emoji: "🐙" },
+                      { key: "googleDrive",     label: "Google Drive",    desc: "Automated backup of settings and documents", emoji: "📁" },
+                      { key: "microsoftTeams",  label: "Microsoft Teams", desc: "Receive alerts inside Teams channels",       emoji: "🟦" },
+                    ].map(({ key, label, desc, emoji }) => {
+                      const on = settings.integrations[key];
+                      return (
+                        <motion.div key={key} whileHover={{ y: -3 }}
+                          style={{
+                            background: on ? "#EEF5FF" : C.cardBg,
+                            border: `1.5px solid ${on ? C.blueLight : C.border}`,
+                            borderRadius: 18, padding: "22px 24px",
+                            boxShadow: on ? "0 6px 20px rgba(58,112,176,0.12)" : "0 4px 16px rgba(25,54,72,0.06)",
+                            transition: "all 0.3s",
+                          }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <div style={{ fontSize: "2rem" }}>{emoji}</div>
+                              <div>
+                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: C.textDark }}>{label}</div>
+                                <div style={{ marginTop: 5 }}>
+                                  <StatusChip
+                                    label={on ? "Connected" : "Disconnected"}
+                                    color={on ? C.blue : C.textFaint}
+                                    bg={on ? "#DBEAFE" : "#f1f5f9"}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <Toggle checked={on} onChange={() => tInteg(key)} />
+                          </div>
+                          <div style={{ fontSize: "0.8rem", color: C.textMuted, borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+                            {desc}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* ══ SYSTEM INFO ══ */}
+                {section === "sysinfo" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                      <Card>
+                        <CardTitle>Application Details</CardTitle>
+                        <InfoRow label="App Name"    value="CollaXion" />
+                        <InfoRow label="Version"     value="v1.4.2"    mono highlight={C.blue} />
+                        <InfoRow label="Build Date"  value="2025-10-30" mono />
+                        <InfoRow label="Environment" value="Production" highlight={C.success} />
+                        <InfoRow label="Platform"    value="Web · React 18" />
+                        <InfoRow label="Node"        value="v20.11.0" mono />
+                        <Btn variant="ghost" style={{ marginTop: 16 }} onClick={() => { navigator.clipboard?.writeText("CollaXion v1.4.2 | 2025-10-30"); flash("Copied!"); }}>
+                          Copy System Info
+                        </Btn>
+                      </Card>
+
+                      <Card>
+                        <CardTitle>Support & Contact</CardTitle>
+                        <InfoRow label="Developer"     value="CollaXion Team" />
+                        <InfoRow label="Support Email" value="support@collaxion.app" />
+                        <InfoRow label="Docs"          value="docs.collaxion.app" />
+                        <InfoRow label="Uptime (30d)"  value="99.8%" highlight={C.success} />
+                      </Card>
+                    </div>
+
+                    <Card accent={C.blue}>
+                      <CardTitle>Live System Status</CardTitle>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {[
+                          { name: "API Server",    latency: "42ms", ok: true  },
+                          { name: "Database",      latency: "18ms", ok: true  },
+                          { name: "File Storage",  latency: "61ms", ok: true  },
+                          { name: "Email Service", latency: "—",    ok: false },
+                          { name: "Auth Service",  latency: "29ms", ok: true  },
+                        ].map((svc, i) => (
+                          <motion.div key={i} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
+                            style={{
+                              display: "flex", alignItems: "center", justifyContent: "space-between",
+                              padding: "12px 16px", borderRadius: 12,
+                              background: svc.ok ? "#EEF5FF" : C.warnBg,
+                              border: `1.5px solid ${svc.ok ? C.blueLight : "#fde68a"}`,
+                            }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <div style={{
+                                width: 10, height: 10, borderRadius: "50%",
+                                background: svc.ok ? C.blue : "#f59e0b",
+                                boxShadow: svc.ok ? `0 0 7px ${C.blue}` : "0 0 7px #f59e0b",
+                              }} />
+                              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: C.textDark }}>{svc.name}</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <span style={{ fontSize: "0.74rem", fontFamily: "monospace", color: C.textMuted }}>{svc.latency}</span>
+                              <StatusChip
+                                label={svc.ok ? "Operational" : "Degraded"}
+                                color={svc.ok ? C.blue : "#d97706"}
+                                bg={svc.ok ? "#DBEAFE" : "#fef3c7"}
+                              />
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "#EEF5FF", border: `1px solid ${C.blueLight}` }}>
+                        <Activity size={13} color={C.blue} />
+                        <span style={{ fontSize: "0.75rem", color: C.textMid }}>4 of 5 services operational — Last checked: just now</span>
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+      </div>
+    </>
   );
 };
 
 export default SystemSettings;
-
-/* ===== Inline styles ===== */
-const styles = {
-  page: {
-    fontFamily: "'Poppins', sans-serif",
-    background: "#F7FBFD",
-    minHeight: "100vh",
-    padding: 28,
-    color: "#0B2B3A",
-  },
-  container: {
-  display: "flex",
-  gap: 24,
-  width: "100%",
-  height: "100%",
-  margin: 0,
-},
-
-  sidebar: {
-    width: 320,
-    background: "#FFFFFF",
-    borderRadius: 12,
-    padding: 18,
-    boxShadow: "0 8px 30px rgba(11,59,102,0.06)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  logo: { fontWeight: 900, fontSize: 20, color: "#0D3B66" },
-  sideBtn: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 12px",
-    borderRadius: 10,
-    cursor: "pointer",
-    background: "transparent",
-    border: "none",
-    boxShadow: "none",
-    transition: "all .18s",
-    color: "#113A56",
-  },
-  sideBtnActive: {
-    background: "linear-gradient(180deg,#193648,#0E2B3A)",
-    color: "#fff",
-    boxShadow: "0 8px 18px rgba(25,54,72,0.12)",
-  },
-  main: { flex: 1 },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  headerBtn: {
-    background: "#0D3B66",
-    color: "#fff",
-    borderRadius: 10,
-    padding: "8px 12px",
-    border: "none",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    fontWeight: 800,
-  },
-  toast: {
-    background: "#0D3B66",
-    color: "#fff",
-    padding: "8px 12px",
-    borderRadius: 8,
-    display: "inline-block",
-    marginBottom: 12,
-    fontWeight: 700,
-  },
-
-  card: {
-    background: "#fff",
-    borderRadius: 12,
-    padding: 18,
-    boxShadow: "0 10px 30px rgba(11,59,102,0.06)",
-    marginBottom: 18,
-  },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  label: { fontSize: 13, color: "#3E5F6E", fontWeight: 700, marginTop: 8, marginBottom: 6 },
-  labelSmall: { fontSize: 12, color: "#617988", marginBottom: 6 },
-  input: {
-    width: "100%",
-    padding: "10px 12px",
-    borderRadius: 8,
-    border: "1px solid #E6F0F8",
-    outline: "none",
-  },
-  avatarWrap: {
-    width: 86,
-    height: 86,
-    borderRadius: 12,
-    overflow: "hidden",
-    border: "1px solid #E6F0F8",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#FAFDFF",
-  },
-  avatarPlaceholder: { width: 86, height: 86, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, background: "#EDF7FA", color: "#0D3B66" },
-  avatar: { width: "100%", height: "100%", objectFit: "cover" },
-
-  primaryBtn: {
-    background: "#00A3A3",
-    color: "#fff",
-    borderRadius: 10,
-    padding: "10px 14px",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 800,
-  },
-  primaryBtnSmall: {
-    background: "#0D3B66",
-    color: "#fff",
-    borderRadius: 8,
-    padding: "8px 10px",
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 700,
-  },
-  ghostBtn: {
-    background: "transparent",
-    color: "#0D3B66",
-    borderRadius: 8,
-    padding: "8px 10px",
-    border: "1px solid #E6F0F8",
-    cursor: "pointer",
-  },
-
-  ghostBtnSmall: {
-    background: "transparent",
-    color: "#334155",
-    borderRadius: 8,
-    padding: "8px 10px",
-    border: "1px solid #E6F0F8",
-    cursor: "pointer",
-  },
-
-  prefRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, background: "#FAFDFF", borderRadius: 8 },
-
-  switch: { position: "relative", display: "inline-block", width: 46, height: 26 },
-  slider: {
-    position: "absolute",
-    cursor: "pointer",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "#E6EEF2",
-    borderRadius: 26,
-    transition: ".2s",
-  },
-
-  uploadLabel: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "8px 12px",
-    borderRadius: 8,
-    cursor: "pointer",
-    background: "#F5FBFB",
-    border: "1px dashed #D4E9E9",
-    color: "#0B5F6A",
-    fontWeight: 700,
-  },
-  previewImg: { width: 140, height: 80, objectFit: "cover", borderRadius: 8, border: "1px solid #E6F0F8" },
-  noPreview: { color: "#6B7C8A", fontSize: 13 },
-
-  modal: {
-    width: 760,
-    maxWidth: "94%",
-    background: "#fff",
-    borderRadius: 14,
-    padding: 20,
-    boxShadow: "0 18px 50px rgba(11,59,102,0.26)",
-  },
-  form: { display: "flex", flexDirection: "column", gap: 12 },
-  formRow: { display: "flex", gap: 12 },
-};
