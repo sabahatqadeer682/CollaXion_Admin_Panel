@@ -7,6 +7,17 @@ import mouRoutes from "./routes/mouRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import meetingMinutesRoutes from "./routes/meetingMinutesRoutes.js"; // NEW LINE
 
+
+
+// Import Auth Routes
+import authRoutes from "./routes/authRoutes.js";
+
+// Import CoCurricular Routes
+import coCurricularEventRoutes from "./routes/coCurricularEventRoutes.js";
+import coCurricularTaskRoutes from "./routes/coCurricularTaskRoutes.js";
+import coCurricularInvitationRoutes from "./routes/coCurricularInvitationRoutes.js";
+import coCurricularNotificationRoutes from "./routes/coCurricularNotificationRoutes.js";
+
 dotenv.config();
 
 const app = express();
@@ -36,6 +47,13 @@ app.use("/api/industries", industryRoutes);
 app.use("/api/mous", mouRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/meeting-minutes", meetingMinutesRoutes); // NEW LINE
+
+
+// Co-Curricular Routes
+app.use("/api/cocurricular/events", coCurricularEventRoutes);
+app.use("/api/cocurricular/tasks", coCurricularTaskRoutes);
+app.use("/api/cocurricular/invitations", coCurricularInvitationRoutes);
+app.use("/api/cocurricular/notifications", coCurricularNotificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
