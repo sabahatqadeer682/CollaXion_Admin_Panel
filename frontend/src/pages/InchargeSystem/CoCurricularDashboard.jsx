@@ -5,19 +5,11 @@ import {
   Menu, Calendar, FileText, Plus, Edit, Trash2,
   CheckCircle, AlertCircle, Clock, User, LogOut, Bell,
   Download, Mail, TrendingUp, BarChart3, Target, Users,
-  Image, Paperclip, Send, Settings, Key
+  Image, Paperclip, Send, Settings, Key, X, Camera,
+  FileText as FilePdf
 } from "lucide-react";
-
-/**
- * Single-file CoCurricular Dashboard (frontend-only)
- * Theme colors from image:
- *  - dark: #040415
- *  - primary: #aac3fd
- *  - light: #dfe8fe
- *  - nearWhite: #fcfdff
- *
- * Inline styles only. Framer Motion for animations.
- */
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export default function CoCurricularDashboard() {
   // THEME
@@ -26,8 +18,32 @@ export default function CoCurricularDashboard() {
     primary: "#E2EEF9",
     light: "#dfe8fe",
     nearWhite: "#fcfdff",
-    accentText: "#193648"
+    accentText: "#193648",
+    mediumBlue: "#4a6fa5",
+    softBlue: "#7fa3c9"
   };
+
+  // API Configuration
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const COCURRICULAR_API = `${API_BASE}/cocurricular`;
+
+  // Refs for export
+  const dashboardRef = useRef(null);
+  const exportMenuRef = useRef(null);
+
+  // Export state
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Add Task Form State
+  const [showAddTaskForm, setShowAddTaskForm] = useState(false);
+  const [newTaskForm, setNewTaskForm] = useState({
+    title: "",
+    assignedTo: "",
+    assignedToEmail: "",
+    deadline: "",
+    description: ""
+  });
 
   // NAV & UI STATE
   const [drawerOpen, setDrawerOpen] = useState(true);
@@ -38,26 +54,25 @@ export default function CoCurricularDashboard() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
-  // DATA (mock / local)
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Finalize Tech Summit Schedule", assignedTo: "Prof. R. Mehta", email: "r.mehta@collxion.edu", deadline: "2024-11-12", status: "In Progress", progress: 75 },
-    { id: 2, title: "Sports Team Registration", assignedTo: "Prof. A. Khan", email: "a.khan@collxion.edu", deadline: "2024-11-20", status: "Pending", progress: 30 },
-    { id: 3, title: "Cultural Event Budget Approval", assignedTo: "Prof. S. Ahmed", email: "s.ahmed@collxion.edu", deadline: "2024-11-10", status: "Overdue", progress: 0 },
-    { id: 4, title: "Venue Booking for Workshop", assignedTo: "Prof. R. Mehta", email: "r.mehta@collxion.edu", deadline: "2024-11-28", status: "Pending", progress: 10 },
-  ]);
-  const [events, setEvents] = useState([
-    { id: 1, name: "AI & Robotics Workshop", date: "2024-11-15", venue: "CS Lab", expected: 80, registered: 72, category: "Technical", coordinator: "Dr. N. Sharma", budget: 15000, poster: null, status: "upcoming" },
-    { id: 2, name: "Annual Sports Day", date: "2024-11-22", venue: "Main Ground", expected: 500, registered: 480, category: "Sports", coordinator: "Prof. P. Singh", budget: 45000, poster: null, status: "upcoming" },
-    { id: 3, name: "Cultural Night 2024", date: "2024-12-01", venue: "Open Air Theatre", expected: 800, registered: 720, category: "Cultural", coordinator: "Ms. R. Gupta", budget: 75000, poster: null, status: "upcoming" },
-  ]);
+  // DATA
+  const [tasks, setTasks] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
-  // Notifications & mock history
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "Budget approval pending for Cultural Night", type: "urgent", seen: false },
-    { id: 2, text: "Venue booking confirmed for AI Workshop", type: "info", seen: false },
-  ]);
+  // Task Edit State
+  const [editingTask, setEditingTask] = useState(null);
+  const [showTaskEditModal, setShowTaskEditModal] = useState(false);
+  const [editTaskForm, setEditTaskForm] = useState({
+    title: "",
+    assignedTo: "",
+    assignedToEmail: "",
+    deadline: "",
+    status: "",
+    progress: 0,
+    description: ""
+  });
 
-  // Event Form state (with poster upload)
+  // Event Form state
   const [newEvent, setNewEvent] = useState({
     name: "",
     date: "",
@@ -72,15 +87,8 @@ export default function CoCurricularDashboard() {
     posterPreview: null,
   });
   const posterRef = useRef(null);
-  const onPosterChange = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = (ev) => setNewEvent(prev => ({ ...prev, posterFile: f, posterPreview: ev.target.result }));
-    r.readAsDataURL(f);
-  };
 
-  // Invitations recipients (mock)
+  // Invitations recipients
   const [recipients, setRecipients] = useState([
     { id: 1, name: "ABC Industries", email: "contact@abcind.com", selected: false },
     { id: 2, name: "NextGen Tech", email: "info@nextgen.com", selected: false },
@@ -89,76 +97,452 @@ export default function CoCurricularDashboard() {
   const [inviteMsg, setInviteMsg] = useState("");
 
   // Chart tooltip state
-  const [chartTooltip, setChartTooltip] = useState(null); // {x,y,content}
+  const [chartTooltip, setChartTooltip] = useState(null);
 
-  // Derived data
-  const upcomingEvents = events.filter(e => e.status === "upcoming");
-  const avgProgress = Math.round(tasks.reduce((s, t) => s + t.progress, 0) / Math.max(1, tasks.length));
-  const overdueCount = tasks.filter(t => new Date(t.deadline) < new Date()).length;
-  const deadlineAlerts = tasks.filter(t => {
-    if (t.status === "Completed") return false;
-    const diff = (new Date(t.deadline) - new Date()) / (1000*60*60*24);
-    return diff < 0 || diff <= 2;
-  });
+  // Profile
+  const [profile, setProfile] = useState({ name: "Prof. Sarah Ahmed", email: "sarah.ahmed@collxion.edu", dp: null });
+  const [changePwdOpen, setChangePwdOpen] = useState(false);
+  const [pwdForm, setPwdForm] = useState({ oldPwd: "", newPwd: "", confirm: "" });
 
-  // Small helpers
-  const handleCreateOrUpdateEvent = () => {
+  // ========== EXPORT FUNCTIONS ==========
+  const handleExportClick = () => {
+    setShowExportMenu(!showExportMenu);
+  };
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Export as PNG
+  const exportAsPNG = async () => {
+    if (!dashboardRef.current) return;
+    
+    setIsExporting(true);
+    setShowExportMenu(false);
+    
+    try {
+      // Temporarily remove tooltip if visible
+      if (chartTooltip) setChartTooltip(null);
+      
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        backgroundColor: theme.light,
+        logging: false,
+        allowTaint: false,
+        useCORS: true
+      });
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.download = `cocurricular-dashboard-${new Date().toISOString().slice(0,10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      alert('Dashboard exported as PNG successfully!');
+    } catch (error) {
+      console.error('Error exporting PNG:', error);
+      alert('Failed to export as PNG. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Export as PDF
+  const exportAsPDF = async () => {
+    if (!dashboardRef.current) return;
+    
+    setIsExporting(true);
+    setShowExportMenu(false);
+    
+    try {
+      // Temporarily remove tooltip if visible
+      if (chartTooltip) setChartTooltip(null);
+      
+      const canvas = await html2canvas(dashboardRef.current, {
+        scale: 2,
+        backgroundColor: theme.light,
+        logging: false,
+        allowTaint: false,
+        useCORS: true
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [canvas.width / 2, canvas.height / 2]
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+      pdf.save(`cocurricular-dashboard-${new Date().toISOString().slice(0,10)}.pdf`);
+      
+      alert('Dashboard exported as PDF successfully!');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Failed to export as PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // ========== FETCH DATA FROM API ==========
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        fetchEvents(),
+        fetchTasks(),
+        fetchNotifications()
+      ]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const token = localStorage.getItem("coCurricularToken");
+      const response = await fetch(`${COCURRICULAR_API}/events`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const token = localStorage.getItem("coCurricularToken");
+      const response = await fetch(`${COCURRICULAR_API}/tasks`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTasks(data);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem("coCurricularToken");
+      const response = await fetch(`${COCURRICULAR_API}/notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  // ========== TASK HANDLERS ==========
+  const handleAddTask = async () => {
+    if (!newTaskForm.title || !newTaskForm.assignedTo || !newTaskForm.deadline) {
+        alert("Please fill all required fields");
+        return;
+    }
+
+    const token = localStorage.getItem("coCurricularToken");
+   
+    try {
+        const response = await fetch(`${COCURRICULAR_API}/tasks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                title: newTaskForm.title,
+                assignedTo: newTaskForm.assignedTo,
+                assignedToEmail: newTaskForm.assignedToEmail,
+                deadline: newTaskForm.deadline,
+                status: "Pending",
+                progress: 0,
+                description: newTaskForm.description
+            })
+        });
+
+        if (response.ok) {
+            const newTask = await response.json();
+            setTasks([newTask, ...tasks]);
+            setShowAddTaskForm(false);
+            setNewTaskForm({
+                title: "",
+                assignedTo: "",
+                assignedToEmail: "",
+                deadline: "",
+                description: ""
+            });
+            alert("Task added successfully!");
+        } else {
+            alert("Failed to add task");
+        }
+    } catch (error) {
+        console.error("Error adding task:", error);
+        alert("Error adding task");
+    }
+  };
+
+  const markTaskDone = async (id) => {
+    const token = localStorage.getItem("coCurricularToken");
+    try {
+      const response = await fetch(`${COCURRICULAR_API}/tasks/${id}/complete`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+     
+      if (response.ok) {
+        const completedTask = await response.json();
+        setTasks(tasks.map(t => t._id === completedTask._id ? completedTask : t));
+        alert("Task marked as completed!");
+      } else {
+        alert("Failed to complete task");
+      }
+    } catch (error) {
+      console.error("Error completing task:", error);
+      alert("Error completing task");
+    }
+  };
+
+  const handleDeleteTask = async (id) => {
+    if (!window.confirm("Delete this task?")) return;
+   
+    const token = localStorage.getItem("coCurricularToken");
+    try {
+      const response = await fetch(`${COCURRICULAR_API}/tasks/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+     
+      if (response.ok) {
+        setTasks(tasks.filter(t => t._id !== id));
+        alert("Task deleted successfully");
+      } else {
+        alert("Failed to delete task");
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Error deleting task");
+    }
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setEditTaskForm({
+      title: task.title || "",
+      assignedTo: task.assignedTo || "",
+      assignedToEmail: task.assignedToEmail || "",
+      deadline: task.deadline ? new Date(task.deadline).toISOString().slice(0,10) : "",
+      status: task.status || "Pending",
+      progress: task.progress || 0,
+      description: task.description || ""
+    });
+    setShowTaskEditModal(true);
+  };
+
+  const handleUpdateTask = async () => {
+    if (!editTaskForm.title || !editTaskForm.assignedTo || !editTaskForm.deadline) {
+      alert("Please fill required fields");
+      return;
+    }
+
+    const token = localStorage.getItem("coCurricularToken");
+   
+    try {
+      const response = await fetch(`${COCURRICULAR_API}/tasks/${editingTask._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editTaskForm)
+      });
+
+      if (response.ok) {
+        const updatedTask = await response.json();
+        setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t));
+        setShowTaskEditModal(false);
+        setEditingTask(null);
+        alert("Task updated successfully!");
+      } else {
+        alert("Failed to update task");
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+      alert("Error updating task");
+    }
+  };
+
+  const sendTaskReminder = (task) => {
+    alert(`Reminder sent to ${task.assignedTo} — task: ${task.title}`);
+  };
+
+  // ========== EVENT HANDLERS ==========
+  const handleCreateOrUpdateEvent = async () => {
     if (!newEvent.name || !newEvent.date || !newEvent.venue || !newEvent.expected || !newEvent.coordinator) {
       alert("Please fill required fields");
       return;
     }
+
+    const token = localStorage.getItem("coCurricularToken");
     const ev = {
-      id: editingEvent ? editingEvent.id : Date.now(),
-      ...newEvent,
+      name: newEvent.name,
+      date: newEvent.date,
+      venue: newEvent.venue,
       expected: parseInt(newEvent.expected || "0"),
       registered: editingEvent ? editingEvent.registered || 0 : Math.floor(Math.random()*50)+10,
+      category: newEvent.category,
+      coordinator: newEvent.coordinator,
+      coordinatorEmail: newEvent.email,
       budget: parseFloat(newEvent.budget) || 0,
+      description: newEvent.description,
       poster: newEvent.posterPreview || null,
       status: "upcoming"
     };
-    if (editingEvent) {
-      setEvents(events.map(e => e.id === editingEvent.id ? ev : e));
-      alert("Event updated");
-    } else {
-      setEvents([ev, ...events]);
-      alert("Event created");
+
+    try {
+      let response;
+      if (editingEvent) {
+        response = await fetch(`${COCURRICULAR_API}/events/${editingEvent._id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(ev)
+        });
+      } else {
+        response = await fetch(`${COCURRICULAR_API}/events`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(ev)
+        });
+      }
+
+      if (response.ok) {
+        const savedEvent = await response.json();
+        if (editingEvent) {
+          setEvents(events.map(e => e._id === savedEvent._id ? savedEvent : e));
+          alert("Event updated");
+        } else {
+          setEvents([savedEvent, ...events]);
+          alert("Event created");
+        }
+        resetEventForm();
+        setActiveSection("manage");
+      } else {
+        alert("Failed to save event");
+      }
+    } catch (error) {
+      console.error("Error saving event:", error);
+      alert("Error saving event");
     }
-    resetEventForm();
-    setActiveSection("manage");
   };
+
   const resetEventForm = () => {
-    setNewEvent({ name: "", date: "", venue: "", expected: "", category: "Technical", coordinator: "", email: "", budget: "", description: "", posterFile: null, posterPreview: null });
+    setNewEvent({
+      name: "", date: "", venue: "", expected: "", category: "Technical",
+      coordinator: "", email: "", budget: "", description: "",
+      posterFile: null, posterPreview: null
+    });
     setEditingEvent(null);
     setShowEventForm(false);
   };
+
   const handleEditEvent = (e) => {
     setEditingEvent(e);
-    setNewEvent({ ...e, expected: e.expected || "", budget: e.budget || "", posterFile: null, posterPreview: e.poster || null });
+    setNewEvent({
+      ...e,
+      expected: e.expected?.toString() || "",
+      budget: e.budget?.toString() || "",
+      email: e.coordinatorEmail || "",
+      posterFile: null,
+      posterPreview: e.poster || null
+    });
     setShowEventForm(true);
     setActiveSection("create");
   };
-  const handleDeleteEvent = (id) => {
+
+  const handleDeleteEvent = async (id) => {
     if (!window.confirm("Delete event?")) return;
-    setEvents(events.filter(e => e.id !== id));
+   
+    const token = localStorage.getItem("coCurricularToken");
+    try {
+      const response = await fetch(`${COCURRICULAR_API}/events/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+     
+      if (response.ok) {
+        setEvents(events.filter(e => e._id !== id));
+        alert("Event deleted");
+      } else {
+        alert("Failed to delete event");
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Error deleting event");
+    }
   };
 
-  // Tasks
-  const markTaskDone = (id) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, status: "Completed", progress: 100 } : t));
-  };
-  const sendTaskReminder = (task) => {
-    alert(`Reminder sent to ${task.assignedTo} (${task.email}) — task: ${task.title}`);
+  // ========== NOTIFICATION HANDLERS ==========
+  const markNotificationSeen = async (id) => {
+    const token = localStorage.getItem("coCurricularToken");
+    try {
+      const response = await fetch(`${COCURRICULAR_API}/notifications/${id}/seen`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+     
+      if (response.ok) {
+        setNotifications(notifications.map(n =>
+          n._id === id ? { ...n, seen: true } : n
+        ));
+      }
+    } catch (error) {
+      console.error("Error marking notification:", error);
+    }
   };
 
-  // Notifications
-  const markNotificationSeen = (id) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, seen: true } : n));
-  };
-
-  // Profile actions
-  const [profile, setProfile] = useState({ name: "Prof. Sarah Ahmed", email: "sarah.ahmed@collxion.edu", dp: null });
-  const [changePwdOpen, setChangePwdOpen] = useState(false);
-  const [pwdForm, setPwdForm] = useState({ oldPwd: "", newPwd: "", confirm: "" });
+  // ========== PROFILE ACTIONS ==========
   const changePassword = () => {
     if (!pwdForm.oldPwd || !pwdForm.newPwd || pwdForm.newPwd !== pwdForm.confirm) {
       alert("Check password fields");
@@ -170,21 +554,106 @@ export default function CoCurricularDashboard() {
     setProfileOpen(false);
   };
 
-  // Invitations send
-  const sendInvites = (eventObj) => {
+  // ========== INVITATIONS HANDLERS ==========
+  const sendInvites = async (eventObj) => {
     const selected = recipients.filter(r => r.selected);
     if (selected.length === 0) { alert("Select recipients"); return; }
-    if (!eventObj) { alert("Select an event (or go to Manage Events and select invite)"); return; }
-    alert(`Invites sent for ${eventObj.name} to ${selected.map(s => s.name).join(", ")}`);
-    setRecipients(recipients.map(r => ({ ...r, selected: false })));
-    setInviteMsg("");
-    setInviteModalOpen(false);
+    if (!eventObj) { alert("Select an event"); return; }
+
+    const token = localStorage.getItem("coCurricularToken");
+    try {
+      for (const recipient of selected) {
+        await fetch(`${COCURRICULAR_API}/invitations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            eventId: eventObj._id,
+            recipientName: recipient.name,
+            recipientEmail: recipient.email,
+            message: inviteMsg || `You are invited to attend "${eventObj.name}"`
+          })
+        });
+      }
+
+      alert(`Invites sent for ${eventObj.name} to ${selected.map(s => s.name).join(", ")}`);
+      setRecipients(recipients.map(r => ({ ...r, selected: false })));
+      setInviteMsg("");
+      setInviteModalOpen(false);
+    } catch (error) {
+      console.error("Error sending invites:", error);
+    }
   };
 
-  // Sidebar variants
+  // ========== FILE HANDLERS ==========
+  const onPosterChange = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => setNewEvent(prev => ({ ...prev, posterFile: f, posterPreview: ev.target.result }));
+    r.readAsDataURL(f);
+  };
+
+  // ========== LOGOUT ==========
+  const handleLogout = () => {
+    if (!window.confirm("Logout?")) return;
+    localStorage.removeItem("coCurricularToken");
+    localStorage.removeItem("coCurricularUser");
+    window.location.href = "/co-curricular-login";
+  };
+
+  // ========== SIDEBAR VARIANTS ==========
   const sidebarVariants = { open: { width: 280 }, closed: { width: 72 } };
 
-  // Chart data (simple)
+  // ========== HELPER FUNCTIONS FOR THEME COLORS ==========
+  const getProgressRingColor = (progress) => {
+    if (progress >= 80) return theme.dark;
+    if (progress >= 50) return theme.mediumBlue;
+    if (progress >= 20) return theme.softBlue;
+    return theme.primary;
+  };
+
+  const getStatusStyle = (status, isOverdue) => {
+    if (isOverdue) {
+      return { background: "#ef4444", color: "#fff" };
+    }
+    
+    switch(status) {
+      case "Completed":
+        return { background: theme.dark, color: "#fff" };
+      case "In Progress":
+        return { background: theme.mediumBlue, color: "#fff" };
+      case "Pending":
+        return { background: theme.softBlue, color: "#fff" };
+      default:
+        return { background: theme.primary, color: theme.dark };
+    }
+  };
+
+  const getProgressBarColor = (status, isOverdue, progress) => {
+    if (status === "Completed") return theme.dark;
+    if (isOverdue) return "#ef4444";
+    if (progress >= 75) return theme.dark;
+    if (progress >= 50) return theme.mediumBlue;
+    if (progress >= 25) return theme.softBlue;
+    return theme.primary;
+  };
+
+  // ========== DERIVED DATA ==========
+  const upcomingEvents = events.filter(e => e.status === "upcoming");
+  const avgProgress = tasks.length > 0
+    ? Math.round(tasks.reduce((s, t) => s + t.progress, 0) / tasks.length)
+    : 0;
+  const overdueCount = tasks.filter(t => new Date(t.deadline) < new Date() && t.status !== "Completed").length;
+  const deadlineAlerts = tasks.filter(t => {
+    if (t.status === "Completed") return false;
+    const diff = (new Date(t.deadline) - new Date()) / (1000*60*60*24);
+    return diff < 0 || diff <= 2;
+  });
+
+  // Chart data
   const weeklyProgress = [
     { day: "Mon", completed: 3 },
     { day: "Tue", completed: 5 },
@@ -195,12 +664,13 @@ export default function CoCurricularDashboard() {
     { day: "Sun", completed: 1 },
   ];
 
-  // ---------- Small subcomponents inside file (keeps single file) ----------
-
+  // ========== SUBCOMPONENTS ==========
   function ProgressRing({ progress = 50, size = 68, stroke = 8 }) {
     const r = (size - stroke) / 2;
     const c = 2 * Math.PI * r;
     const dash = (progress / 100) * c;
+    const ringColor = getProgressRingColor(progress);
+    
     return (
       <svg width={size} height={size} style={{ display: "block" }}>
         <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={theme.light} strokeWidth={stroke} />
@@ -209,7 +679,7 @@ export default function CoCurricularDashboard() {
           cy={size/2}
           r={r}
           fill="none"
-          stroke={theme.primary}
+          stroke={ringColor}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
@@ -263,7 +733,7 @@ export default function CoCurricularDashboard() {
     const categories = Object.keys(counts);
     const total = categories.reduce((s, c) => s + counts[c], 0) || 1;
     let start = 0;
-    const colors = [theme.primary, "#f59e0b", "#16a34a", "#ef4444", "#8b5cf6"];
+    const colors = [theme.dark, theme.mediumBlue, theme.softBlue, theme.primary, "#8b5cf6"];
     return (
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {categories.map((c, i) => {
@@ -288,7 +758,7 @@ export default function CoCurricularDashboard() {
     );
   }
 
-  // ---------- UI Layout (single-file but split logically) ----------
+  // ========== NAVIGATION ITEMS ==========
   const navItems = [
     { label: "Dashboard", icon: <BarChart3 size={18} />, id: "dashboard" },
     { label: "Responsibilities", icon: <FileText size={18} />, id: "responsibilities" },
@@ -297,16 +767,7 @@ export default function CoCurricularDashboard() {
     { label: "Invitations", icon: <Mail size={18} />, id: "invitations" },
   ];
 
-  // LOGOUT action (both places)
-  const handleLogout = () => {
-    if (!window.confirm("Logout?")) return;
-    alert("Logged out (mock)");
-    // In real app, redirect or clear tokens; here we'll reset UI
-    setActiveSection("dashboard");
-    setProfileOpen(false);
-  };
-
-  // make sure profile menu closes when clicking outside
+  // Click outside handlers
   useEffect(() => {
     const onDocClick = (e) => {
       if (!e.target.closest) return;
@@ -321,7 +782,7 @@ export default function CoCurricularDashboard() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  // ---------- RENDER ----------
+  // ========== RENDER ==========
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', sans-serif", background: theme.light }}>
       {/* SIDEBAR */}
@@ -371,7 +832,7 @@ export default function CoCurricularDashboard() {
                     onClick={() => { setActiveSection(n.id); setShowEventForm(n.id === "create"); if (n.id !== "create") setShowEventForm(false); }}
                     style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, cursor: "pointer",
-                      background: active ? "rgba(170,195,253,0.12)" : "transparent", color: active ? theme.accentText : theme.nearWhite, fontWeight: 700
+                      background: active ? "rgba(170,195,253,0.12)" : "transparent", color: active ? theme.primary : theme.nearWhite, fontWeight: 700
                     }}
                   >
                     <div style={{ width: 28, display: "flex", justifyContent: "center" }}>{n.icon}</div>
@@ -379,9 +840,8 @@ export default function CoCurricularDashboard() {
                   </div>
                 );
               })}
-              {/* Logout under Invitations as requested */}
               <div
-                onClick={() => { setActiveSection("invitations"); setInviteModalOpen(false); /* keep view */ }}
+                onClick={() => { setActiveSection("invitations"); setInviteModalOpen(false); }}
                 style={{ marginTop: 12, padding: "10px 12px", borderRadius: 8, color: theme.nearWhite, cursor: "pointer" }}
               >
                 {drawerOpen ? "Invite & Logout" : <Mail size={18} />}
@@ -421,13 +881,13 @@ export default function CoCurricularDashboard() {
 
                   <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                     <button onClick={() => { setChangePwdOpen(false); setProfileOpen(false); alert("Profile edit (mock)"); }} style={{ padding: 10, borderRadius: 8, border: "1px solid #eef2ff", background: "#fff", cursor: "pointer", textAlign: "left" }}>
-                      <Settings size={14} style={{ marginRight: 8 }} /> Profile & Settings
+                      <Settings size={14} /> Profile & Settings
                     </button>
                     <button onClick={() => { setChangePwdOpen(p => !p); }} style={{ padding: 10, borderRadius: 8, border: "1px solid #eef2ff", background: "#fff", cursor: "pointer", textAlign: "left" }}>
-                      <Key size={14} style={{ marginRight: 8 }} /> Change Password
+                      <Key size={14} /> Change Password
                     </button>
                     <button onClick={handleLogout} style={{ padding: 10, borderRadius: 8, border: "1px solid #fee2e2", background: "#fff", color: "#ef4444", cursor: "pointer", textAlign: "left" }}>
-                      <LogOut size={14} style={{ marginRight: 8 }} /> Logout
+                      <LogOut size={14} /> Logout
                     </button>
                   </div>
 
@@ -462,7 +922,100 @@ export default function CoCurricularDashboard() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", position: "relative" }} ref={exportMenuRef}>
+            {/* EXPORT BUTTON WITH DROPDOWN */}
+            <div style={{ position: "relative" }}>
+              <button 
+                onClick={handleExportClick}
+                disabled={isExporting}
+                style={{ 
+                  padding: "10px 16px", 
+                  borderRadius: 8, 
+                  border: "none", 
+                  background: theme.primary, 
+                  color: theme.accentText, 
+                  cursor: isExporting ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  opacity: isExporting ? 0.7 : 1
+                }}
+              >
+                <Download size={16} />
+                {isExporting ? "Exporting..." : "Export"}
+              </button>
+
+              {/* EXPORT DROPDOWN MENU */}
+              <AnimatePresence>
+                {showExportMenu && !isExporting && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "100%",
+                      marginTop: 8,
+                      background: "#fff",
+                      borderRadius: 8,
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                      width: 200,
+                      zIndex: 1000,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <button
+                      onClick={exportAsPNG}
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        border: "none",
+                        background: "#fff",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        fontSize: 14,
+                        color: theme.dark,
+                        transition: "background 0.2s",
+                        borderBottom: "1px solid #eef2ff"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.light}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}
+                    >
+                      <Camera size={18} color={theme.dark} />
+                      <span>Export as PNG</span>
+                    </button>
+                    
+                    <button
+                      onClick={exportAsPDF}
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        border: "none",
+                        background: "#fff",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        fontSize: 14,
+                        color: theme.dark,
+                        transition: "background 0.2s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = theme.light}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}
+                    >
+                      <FilePdf size={18} color={theme.dark} />
+                      <span>Export as PDF</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <div style={{ position: "relative" }}>
               <button className="notifBtn" onClick={() => setNotifOpen(s => !s)} style={{ background: theme.light, padding: 10, borderRadius: 8, border: "none", cursor: "pointer" }}>
                 <Bell size={16} />
@@ -474,14 +1027,14 @@ export default function CoCurricularDashboard() {
                     <div style={{ fontWeight: 800, marginBottom: 8 }}>Notifications</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {notifications.map(n => (
-                        <div key={n.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: 8, borderRadius: 8, background: n.seen ? "#fff" : theme.light }}>
+                        <div key={n._id} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: 8, borderRadius: 8, background: n.seen ? "#fff" : theme.light }}>
                           <div>
-                            <div style={{ fontWeight: 700 }}>{n.text}</div>
+                            <div style={{ fontWeight: 700 }}>{n.title || n.text}</div>
                             <div style={{ fontSize: 12, color: "#64748b" }}>{n.type}</div>
                           </div>
                           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                            <button onClick={() => { markNotificationSeen(n.id); }} style={{ background: "transparent", border: "1px solid #eef2ff", padding: 6, borderRadius: 6 }}>Mark</button>
-                            <button onClick={() => setNotifications(notifications.filter(x => x.id !== n.id))} style={{ background: "transparent", border: "1px solid #fee2e2", color: "#ef4444", padding: 6, borderRadius: 6 }}>Dismiss</button>
+                            <button onClick={() => { markNotificationSeen(n._id); }} style={{ background: "transparent", border: "1px solid #eef2ff", padding: 6, borderRadius: 6 }}>Mark</button>
+                            <button onClick={() => setNotifications(notifications.filter(x => x._id !== n._id))} style={{ background: "transparent", border: "1px solid #fee2e2", color: "#ef4444", padding: 6, borderRadius: 6 }}>Dismiss</button>
                           </div>
                         </div>
                       ))}
@@ -494,16 +1047,15 @@ export default function CoCurricularDashboard() {
           </div>
         </div>
 
-        {/* PAGE CONTENT */}
-        <div style={{ padding: 24 }}>
+        {/* PAGE CONTENT - Add ref here to capture entire dashboard */}
+        <div ref={dashboardRef} style={{ padding: 24 }}>
           {/* Dashboard */}
           {activeSection === "dashboard" && (
             <>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: theme.dark }}>Dashboard Overview</h2>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #e6eefc", background: "#fff", cursor: "pointer" }}><Download size={14} /></button>
-                  <button style={{ padding: "10px 12px", borderRadius: 8, border: "none", background: theme.primary, color: theme.accentText, cursor: "pointer" }}>Export</button>
+                  <button onClick={fetchAllData} style={{ padding: "10px 12px", borderRadius: 8, border: "1px solid #e6eefc", background: "#fff", cursor: "pointer" }}><Download size={14} /></button>
                 </div>
               </div>
 
@@ -557,7 +1109,7 @@ export default function CoCurricularDashboard() {
 
                     <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
                       {upcomingEvents.slice(0,4).map(ev => (
-                        <div key={ev.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }}>
+                        <div key={ev._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }}>
                           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                             <div style={{ width: 56, height: 56, borderRadius: 8, background: theme.light, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               <Calendar size={20} />
@@ -569,7 +1121,7 @@ export default function CoCurricularDashboard() {
                           </div>
                           <div style={{ textAlign: "right" }}>
                             <div style={{ fontWeight: 800 }}>₹{(ev.budget||0).toLocaleString()}</div>
-                            <div style={{ fontSize: 12, color: "#64748b" }}>{ev.registered}/{ev.expected}</div>
+                            <div style={{ fontSize: 12, color: "#64748b" }}>{ev.registered || 0}/{ev.expected}</div>
                             <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
                               <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 8, border: "1px solid #e6eefc" }}>Edit</button>
                               <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 6, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Invite</button>
@@ -584,18 +1136,21 @@ export default function CoCurricularDashboard() {
                     <div style={{ fontWeight: 800 }}>Alerts</div>
                     <div style={{ marginTop: 8 }}>
                       {deadlineAlerts.length === 0 && <div style={{ color: "#64748b" }}>No urgent alerts</div>}
-                      {deadlineAlerts.slice(0,3).map(a => (
-                        <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px dashed #eef2ff", marginTop: 8 }}>
-                          <div>
-                            <div style={{ fontWeight: 800 }}>{a.title}</div>
-                            <div style={{ fontSize: 12, color: "#64748b" }}>{a.status === "Overdue" ? "Overdue" : "Due soon"} • {a.deadline}</div>
+                      {deadlineAlerts.slice(0,3).map(a => {
+                        const statusStyle = getStatusStyle(a.status, new Date(a.deadline) < new Date());
+                        return (
+                          <div key={a._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: 8, borderRadius: 8, border: "1px dashed #eef2ff", marginTop: 8 }}>
+                            <div>
+                              <div style={{ fontWeight: 800 }}>{a.title}</div>
+                              <div style={{ fontSize: 12, color: "#64748b" }}>{a.status === "Overdue" ? "Overdue" : "Due soon"} • {new Date(a.deadline).toLocaleDateString()}</div>
+                            </div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                              <button onClick={() => sendTaskReminder(a)} style={{ padding: 6, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Remind</button>
+                              <button onClick={() => markTaskDone(a._id)} style={{ padding: 6, borderRadius: 8, border: "1px solid #e6eefc" }}>Mark Done</button>
+                            </div>
                           </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                            <button onClick={() => sendTaskReminder(a)} style={{ padding: 6, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Remind</button>
-                            <button onClick={() => markTaskDone(a.id)} style={{ padding: 6, borderRadius: 8, border: "1px solid #e6eefc" }}>Mark Done</button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -617,7 +1172,7 @@ export default function CoCurricularDashboard() {
                       <div>
                         <div style={{ fontWeight: 900 }}>{tasks.length}</div>
                         <div style={{ fontSize: 12, color: "#64748b" }}>Total tasks</div>
-                        <div style={{ marginTop: 8, fontSize: 12, color: overdueCount ? "#ef4444" : "#16a34a" }}>{overdueCount} overdue</div>
+                        <div style={{ marginTop: 8, fontSize: 12, color: overdueCount ? "#ef4444" : theme.dark }}>{overdueCount} overdue</div>
                       </div>
                     </div>
                   </div>
@@ -632,16 +1187,168 @@ export default function CoCurricularDashboard() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Responsibilities</h2>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { const id = Date.now(); setTasks([{ id, title: "New Task", assignedTo: "TBD", email: "", deadline: new Date().toISOString().slice(0,10), status: "Pending", progress: 0}, ...tasks]); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Add Task</button>
+                  <button
+                    onClick={() => setShowAddTaskForm(!showAddTaskForm)}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 8,
+                      background: showAddTaskForm ? "#ef4444" : theme.primary,
+                      color: showAddTaskForm ? "#fff" : theme.accentText,
+                      border: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      transition: "all 0.3s ease"
+                    }}
+                  >
+                    {showAddTaskForm ? <X size={16} /> : <Plus size={16} />}
+                    {showAddTaskForm ? "Cancel" : "Add Task"}
+                  </button>
                 </div>
               </div>
 
+              {/* Inline Add Task Form */}
+              <AnimatePresence>
+                {showAddTaskForm && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    style={{
+                      background: "#fff",
+                      padding: 20,
+                      borderRadius: 12,
+                      marginBottom: 20,
+                      border: `2px solid ${theme.primary}`,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                    }}
+                  >
+                    <h3 style={{ margin: "0 0 16px 0", fontSize: 18, fontWeight: 800 }}>Add New Task</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div>
+                        <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>Task Title *</label>
+                        <input
+                          type="text"
+                          value={newTaskForm.title}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, title: e.target.value})}
+                          style={{
+                            width: "100%", padding: 10,
+                            border: "1px solid #eef2ff", borderRadius: 8,
+                            fontSize: 14
+                          }}
+                          placeholder="Enter task title"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>Assigned To *</label>
+                        <input
+                          type="text"
+                          value={newTaskForm.assignedTo}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, assignedTo: e.target.value})}
+                          style={{
+                            width: "100%", padding: 10,
+                            border: "1px solid #eef2ff", borderRadius: 8,
+                            fontSize: 14
+                          }}
+                          placeholder="Person name"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>Email</label>
+                        <input
+                          type="email"
+                          value={newTaskForm.assignedToEmail}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, assignedToEmail: e.target.value})}
+                          style={{
+                            width: "100%", padding: 10,
+                            border: "1px solid #eef2ff", borderRadius: 8,
+                            fontSize: 14
+                          }}
+                          placeholder="email@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>Deadline *</label>
+                        <input
+                          type="date"
+                          value={newTaskForm.deadline}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, deadline: e.target.value})}
+                          style={{
+                            width: "100%", padding: 10,
+                            border: "1px solid #eef2ff", borderRadius: 8,
+                            fontSize: 14
+                          }}
+                        />
+                      </div>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>Description</label>
+                        <textarea
+                          value={newTaskForm.description}
+                          onChange={(e) => setNewTaskForm({...newTaskForm, description: e.target.value})}
+                          style={{
+                            width: "100%", padding: 10,
+                            border: "1px solid #eef2ff", borderRadius: 8,
+                            fontSize: 14, minHeight: 80,
+                            fontFamily: "inherit"
+                          }}
+                          placeholder="Task description"
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+                      <button
+                        onClick={handleAddTask}
+                        style={{
+                          padding: "12px 24px",
+                          background: theme.primary,
+                          color: theme.accentText,
+                          border: "none",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          flex: 1
+                        }}
+                      >
+                        Create Task
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowAddTaskForm(false);
+                          setNewTaskForm({
+                            title: "",
+                            assignedTo: "",
+                            assignedToEmail: "",
+                            deadline: "",
+                            description: ""
+                          });
+                        }}
+                        style={{
+                          padding: "12px 24px",
+                          border: "1px solid #eef2ff",
+                          background: "#fff",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontWeight: 600
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Tasks Grid */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12 }}>
                 {tasks.map(task => {
-                  const isOverdue = new Date(task.deadline) < new Date();
+                  const isOverdue = new Date(task.deadline) < new Date() && task.status !== "Completed";
                   const daysLeft = Math.ceil((new Date(task.deadline) - new Date()) / (1000*60*60*24));
+                  const statusStyle = getStatusStyle(task.status, isOverdue);
+                  const progressBarColor = getProgressBarColor(task.status, isOverdue, task.progress);
+                  
                   return (
-                    <motion.div key={task.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
+                    <motion.div key={task._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ background: "#fff", padding: 12, borderRadius: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
                           <div style={{ fontWeight: 900 }}>{task.title}</div>
@@ -657,21 +1364,72 @@ export default function CoCurricularDashboard() {
                         <div style={{ width: 84 }}><ProgressRing progress={task.progress} size={84} stroke={8} /></div>
                         <div style={{ flex: 1 }}>
                           <div style={{ height: 10, background: theme.light, borderRadius: 6, overflow: "hidden" }}>
-                            <div style={{ width: `${task.progress}%`, height: "100%", background: task.status === "Completed" ? "#16a34a" : (isOverdue ? "#ef4444" : "#f59e0b"), transition: "width 0.4s" }} />
+                            <div style={{
+                              width: `${task.progress}%`, height: "100%",
+                              background: progressBarColor,
+                              transition: "width 0.4s"
+                            }} />
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
                             <div style={{ fontSize: 12, color: "#64748b" }}>Deadline</div>
-                            <div style={{ fontSize: 12 }}>{task.deadline}</div>
+                            <div style={{ fontSize: 12 }}>{new Date(task.deadline).toLocaleDateString()}</div>
                           </div>
                         </div>
                       </div>
 
                       <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                        <button onClick={() => markTaskDone(task.id)} style={{ padding: 8, borderRadius: 8, background: "#16a34a", color: "#fff" }}><CheckCircle size={14} /> Mark Done</button>
-                        <button onClick={() => sendTaskReminder(task)} style={{ padding: 8, borderRadius: 8, background: "#f59e0b", color: "#fff" }}><Mail size={14} /> Remind</button>
+                        <button onClick={() => markTaskDone(task._id)} style={{ 
+                          padding: 8, borderRadius: 8, 
+                          background: task.status === "Completed" ? theme.light : theme.dark, 
+                          color: task.status === "Completed" ? "#64748b" : "#fff", 
+                          border: "none", 
+                          cursor: task.status === "Completed" ? "not-allowed" : "pointer", 
+                          display: "flex", 
+                          alignItems: "center", 
+                          gap: 4 
+                        }}>
+                          <CheckCircle size={14} /> Mark Done
+                        </button>
+                        <button onClick={() => sendTaskReminder(task)} style={{ 
+                          padding: 8, borderRadius: 8, 
+                          background: theme.mediumBlue, 
+                          color: "#fff", 
+                          border: "none", 
+                          cursor: "pointer", 
+                          display: "flex", 
+                          alignItems: "center", 
+                          gap: 4 
+                        }}>
+                          <Mail size={14} /> Remind
+                        </button>
                         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                          <button onClick={() => setTasks(tasks.filter(t => t.id !== task.id))} style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>
+                          {/* EDIT BUTTON */}
+                          <button
+                            onClick={() => handleEditTask(task)}
+                            style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", color: "#193648", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center" }}
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTask(task._id)}
+                            style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center" }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
+                      </div>
+                      
+                      {/* Status Badge */}
+                      <div style={{ 
+                        marginTop: 8, 
+                        padding: "4px 8px", 
+                        borderRadius: 999,
+                        display: "inline-block",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        ...statusStyle
+                      }}>
+                        {task.status}
                       </div>
                     </motion.div>
                   );
@@ -686,8 +1444,8 @@ export default function CoCurricularDashboard() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>{editingEvent ? "Edit Event" : "Create Event"}</h2>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={resetEventForm} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff" }}>Reset</button>
-                  <button onClick={handleCreateOrUpdateEvent} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>{editingEvent ? "Update" : "Create"}</button>
+                  <button onClick={resetEventForm} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", background: "#fff", cursor: "pointer" }}>Reset</button>
+                  <button onClick={handleCreateOrUpdateEvent} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}>{editingEvent ? "Update" : "Create"}</button>
                 </div>
               </div>
 
@@ -738,12 +1496,12 @@ export default function CoCurricularDashboard() {
                       <div style={{ display: "flex", gap: 8 }}>
                         <input ref={posterRef} id="poster" type="file" accept="image/*" style={{ display: "none" }} onChange={onPosterChange} />
                         <label htmlFor="poster" onClick={()=>posterRef.current && posterRef.current.click()} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText, cursor: "pointer" }}><Paperclip size={14} /> Choose</label>
-                        {newEvent.posterPreview && <button onClick={()=>setNewEvent(prev=>({...prev, posterFile:null, posterPreview:null}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>}
+                        {newEvent.posterPreview && <button onClick={()=>setNewEvent(prev=>({...prev, posterFile:null, posterPreview:null}))} style={{ padding: 8, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444", cursor: "pointer" }}><Trash2 size={14} /></button>}
                       </div>
 
                       <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                        <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff" }}>Invite</button>
-                        <button onClick={handleCreateOrUpdateEvent} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText }}>{editingEvent ? "Update" : "Create"}</button>
+                        <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 8, borderRadius: 6, border: "1px solid #eef2ff", cursor: "pointer" }}>Invite</button>
+                        <button onClick={handleCreateOrUpdateEvent} style={{ padding: 8, borderRadius: 6, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}>{editingEvent ? "Update" : "Create"}</button>
                       </div>
                     </div>
                   </div>
@@ -757,7 +1515,7 @@ export default function CoCurricularDashboard() {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Manage Events</h2>
-                <div><button onClick={() => { setActiveSection("create"); setShowEventForm(true); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>New Event</button></div>
+                <div><button onClick={() => { setActiveSection("create"); setShowEventForm(true); }} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}>New Event</button></div>
               </div>
 
               <div style={{ background: "#fff", borderRadius: 12, padding: 12 }}>
@@ -774,7 +1532,7 @@ export default function CoCurricularDashboard() {
                   </thead>
                   <tbody>
                     {events.map(ev => (
-                      <tr key={ev.id} style={{ borderBottom: "1px solid #eef2ff" }}>
+                      <tr key={ev._id} style={{ borderBottom: "1px solid #eef2ff" }}>
                         <td style={{ padding: 8 }}>
                           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                             <div style={{ width: 48, height: 48, borderRadius: 8, background: theme.light, display: "flex", alignItems: "center", justifyContent: "center" }}><Calendar size={18} /></div>
@@ -784,15 +1542,15 @@ export default function CoCurricularDashboard() {
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: 8 }}>{ev.date}</td>
+                        <td style={{ padding: 8 }}>{new Date(ev.date).toLocaleDateString()}</td>
                         <td style={{ padding: 8 }}>{ev.venue}</td>
                         <td style={{ padding: 8 }}>{ev.coordinator}</td>
                         <td style={{ padding: 8 }}>₹{(ev.budget||0).toLocaleString()}</td>
                         <td style={{ padding: 8 }}>
                           <div style={{ display: "flex", gap: 8 }}>
-                            <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff" }}><Edit size={14} /></button>
-                            <button onClick={() => handleDeleteEvent(ev.id)} style={{ padding: 6, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444" }}><Trash2 size={14} /></button>
-                            <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 6, borderRadius: 6, background: theme.primary, color: theme.accentText }}><Send size={14} /></button>
+                            <button onClick={() => handleEditEvent(ev)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff", cursor: "pointer" }}><Edit size={14} /></button>
+                            <button onClick={() => handleDeleteEvent(ev._id)} style={{ padding: 6, borderRadius: 6, border: "1px solid #fee2e2", color: "#ef4444", cursor: "pointer" }}><Trash2 size={14} /></button>
+                            <button onClick={() => { setInviteModalOpen(true); }} style={{ padding: 6, borderRadius: 6, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}><Send size={14} /></button>
                           </div>
                         </td>
                       </tr>
@@ -809,8 +1567,8 @@ export default function CoCurricularDashboard() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Invitations</h2>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setInviteModalOpen(true)} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}>Open Invite Modal</button>
-                  <button onClick={handleLogout} style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444" }}>Logout</button>
+                  <button onClick={() => setInviteModalOpen(true)} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}>Open Invite Modal</button>
+                  <button onClick={handleLogout} style={{ padding: 8, borderRadius: 8, border: "1px solid #fee2e2", color: "#ef4444", background: "#fff", cursor: "pointer" }}>Logout</button>
                 </div>
               </div>
 
@@ -820,7 +1578,7 @@ export default function CoCurricularDashboard() {
                     <div style={{ fontWeight: 800 }}>Recipients</div>
                     <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
                       {recipients.map(r => (
-                        <label key={r.id} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <label key={r.id} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
                           <div>
                             <div style={{ fontWeight: 800 }}>{r.name}</div>
                             <div style={{ fontSize: 12, color: "#64748b" }}>{r.email}</div>
@@ -841,15 +1599,208 @@ export default function CoCurricularDashboard() {
                         setInviteMsg(`You are invited to attend "${v}" — please confirm participation.`);
                       }}>
                         <option value="">Event templates...</option>
-                        {events.map(ev => <option key={ev.id} value={ev.name}>{ev.name}</option>)}
+                        {events.map(ev => <option key={ev._id} value={ev.name}>{ev.name}</option>)}
                       </select>
-                      <button onClick={() => sendInvites(events[0])} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}><Send size={14} /> Send</button>
+                      <button onClick={() => sendInvites(events[0])} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}><Send size={14} /> Send</button>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
+
+          {/* EDIT TASK MODAL */}
+          <AnimatePresence>
+            {showTaskEditModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  position: "fixed", inset: 0,
+                  background: "rgba(2,6,23,0.4)",
+                  display: "flex", alignItems: "center",
+                  justifyContent: "center", zIndex: 1500,
+                  padding: 20
+                }}
+                onClick={() => setShowTaskEditModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.9, y: 20 }}
+                  style={{
+                    width: 500, maxWidth: "100%",
+                    background: "#fff", borderRadius: 12,
+                    padding: 24
+                  }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div style={{
+                    display: "flex", justifyContent: "space-between",
+                    alignItems: "center", marginBottom: 20
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>
+                      Edit Task
+                    </h3>
+                    <button
+                      onClick={() => setShowTaskEditModal(false)}
+                      style={{
+                        background: "none", border: "none",
+                        cursor: "pointer", fontSize: 20
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Task Title *
+                      </label>
+                      <input
+                        type="text"
+                        value={editTaskForm.title}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, title: e.target.value})}
+                        style={{
+                          width: "100%", padding: 10,
+                          border: "1px solid #eef2ff", borderRadius: 8,
+                          fontSize: 14
+                        }}
+                        placeholder="Enter task title"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Assigned To *
+                      </label>
+                      <input
+                        type="text"
+                        value={editTaskForm.assignedTo}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, assignedTo: e.target.value})}
+                        style={{
+                          width: "100%", padding: 10,
+                          border: "1px solid #eef2ff", borderRadius: 8,
+                          fontSize: 14
+                        }}
+                        placeholder="Person name"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={editTaskForm.assignedToEmail}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, assignedToEmail: e.target.value})}
+                        style={{
+                          width: "100%", padding: 10,
+                          border: "1px solid #eef2ff", borderRadius: 8,
+                          fontSize: 14
+                        }}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Deadline *
+                      </label>
+                      <input
+                        type="date"
+                        value={editTaskForm.deadline}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, deadline: e.target.value})}
+                        style={{
+                          width: "100%", padding: 10,
+                          border: "1px solid #eef2ff", borderRadius: 8,
+                          fontSize: 14
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Status
+                      </label>
+                      <select
+                        value={editTaskForm.status}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, status: e.target.value})}
+                        style={{
+                          width: "100%", padding: 10,
+                          border: "1px solid #eef2ff", borderRadius: 8,
+                          fontSize: 14, background: "#fff"
+                        }}
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Progress ({editTaskForm.progress}%)
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={editTaskForm.progress}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, progress: parseInt(e.target.value)})}
+                        style={{ width: "100%" }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontWeight: 700, display: "block", marginBottom: 6 }}>
+                        Description
+                      </label>
+                      <textarea
+                        value={editTaskForm.description}
+                        onChange={(e) => setEditTaskForm({...editTaskForm, description: e.target.value})}
+                        style={{
+                          width: "100%", padding: 10,
+                          border: "1px solid #eef2ff", borderRadius: 8,
+                          fontSize: 14, minHeight: 80,
+                          fontFamily: "inherit"
+                        }}
+                        placeholder="Task description"
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                      <button
+                        onClick={() => setShowTaskEditModal(false)}
+                        style={{
+                          flex: 1, padding: 12,
+                          border: "1px solid #eef2ff",
+                          background: "#fff", borderRadius: 8,
+                          cursor: "pointer", fontWeight: 600
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleUpdateTask}
+                        style={{
+                          flex: 1, padding: 12,
+                          background: theme.primary,
+                          color: theme.accentText, border: "none",
+                          borderRadius: 8, cursor: "pointer", fontWeight: 600
+                        }}
+                      >
+                        Update Task
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Chart tooltip */}
           <AnimatePresence>
@@ -869,7 +1820,7 @@ export default function CoCurricularDashboard() {
                 <div style={{ width: 820, maxWidth: "96%", background: "#fff", borderRadius: 12, padding: 16 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <div style={{ fontWeight: 900 }}>Send Invitations</div>
-                    <div><button onClick={() => setInviteModalOpen(false)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff" }}>Close</button></div>
+                    <div><button onClick={() => setInviteModalOpen(false)} style={{ padding: 6, borderRadius: 6, border: "1px solid #eef2ff", cursor: "pointer" }}>Close</button></div>
                   </div>
 
                   <div style={{ display: "flex", gap: 12 }}>
@@ -877,7 +1828,7 @@ export default function CoCurricularDashboard() {
                       <div style={{ fontWeight: 800 }}>Select Recipients</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
                         {recipients.map(r => (
-                          <label key={r.id} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <label key={r.id} style={{ padding: 8, borderRadius: 8, border: "1px solid #eef2ff", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
                             <div>
                               <div style={{ fontWeight: 800 }}>{r.name}</div>
                               <div style={{ fontSize: 12, color: "#64748b" }}>{r.email}</div>
@@ -896,9 +1847,9 @@ export default function CoCurricularDashboard() {
                           const v = e.target.value; if(!v) return; setInviteMsg(`You are invited to "${v}". Please confirm.`);
                         }}>
                           <option value="">Event templates</option>
-                          {events.map(ev => <option key={ev.id} value={ev.name}>{ev.name}</option>)}
+                          {events.map(ev => <option key={ev._id} value={ev.name}>{ev.name}</option>)}
                         </select>
-                        <button onClick={() => sendInvites(events[0])} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText }}><Send size={14} /> Send</button>
+                        <button onClick={() => sendInvites(events[0])} style={{ padding: 8, borderRadius: 8, background: theme.primary, color: theme.accentText, border: "none", cursor: "pointer" }}><Send size={14} /> Send</button>
                       </div>
                     </div>
                   </div>
