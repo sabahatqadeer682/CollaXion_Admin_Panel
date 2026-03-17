@@ -3,6 +3,21 @@ import MeetingMinutes from "../models/MeetingMinutes.js";
 
 const router = express.Router();
 
+
+
+
+
+// ✅ Ye line ADD karo existing routes ke saath — sabse upar
+router.get("/all", async (req, res) => {
+    try {
+        const meetingMinutes = await MeetingMinutes.find().sort({ generatedAt: -1 });
+        res.status(200).json({ success: true, data: meetingMinutes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to fetch", error: error.message });
+    }
+});
+
+
 // Create new meeting minutes
 router.post("/", async (req, res) => {
     try {
