@@ -18,6 +18,9 @@ import coCurricularEventRoutes from "./routes/coCurricularEventRoutes.js";
 import coCurricularTaskRoutes from "./routes/coCurricularTaskRoutes.js";
 import coCurricularInvitationRoutes from "./routes/coCurricularInvitationRoutes.js";
 import coCurricularNotificationRoutes from "./routes/coCurricularNotificationRoutes.js";
+import industryRegistrationsRoute from "./routes/Industryregistrations.route.js";
+
+
 
 const app = express();
 
@@ -198,6 +201,7 @@ app.use("/api/cocurricular/events", coCurricularEventRoutes);
 app.use("/api/cocurricular/tasks", coCurricularTaskRoutes);
 app.use("/api/cocurricular/invitations", coCurricularInvitationRoutes);
 app.use("/api/cocurricular/notifications", coCurricularNotificationRoutes);
+app.use("/api/industry-registrations", industryRegistrationsRoute);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
