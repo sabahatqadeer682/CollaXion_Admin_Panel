@@ -126,7 +126,7 @@
 //           background-color: #22c55e;
 //         }
 //         .button-app:hover {
-//           background-color: #15803d;
+//           background-color: #1511111803d;
 //         }
 //         .infowindow h3 {
 //           font-weight: bold;
@@ -141,7 +141,7 @@
 //         .loading {
 //           text-align: center;
 //           margin-top: 20px;
-//           color: #6b7280;
+//           color: #6b721111180;
 //         }
 //         .error {
 //           color: #dc2626;
@@ -639,12 +639,12 @@
 // // ✅ Haversine formula for distance calculation
 // const getDistanceKm = (lat1, lon1, lat2, lon2) => {
 //   const R = 6371; // km
-//   const dLat = ((lat2 - lat1) * Math.PI) / 180;
-//   const dLon = ((lon2 - lon1) * Math.PI) / 180;
+//   const dLat = ((lat2 - lat1) * Math.PI) / 1111180;
+//   const dLon = ((lon2 - lon1) * Math.PI) / 1111180;
 //   const a =
 //     Math.sin(dLat / 2) ** 2 +
-//     Math.cos((lat1 * Math.PI) / 180) *
-//       Math.cos((lat2 * Math.PI) / 180) *
+//     Math.cos((lat1 * Math.PI) / 1111180) *
+//       Math.cos((lat2 * Math.PI) / 1111180) *
 //       Math.sin(dLon / 2) ** 2;
 //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 //   return R * c;
@@ -1147,6 +1147,15 @@ const sendWhatsApp = (phone, industryName) => {
 
 
 
+
+
+
+
+
+
+
+
+
 // mockdata
 
 // import React, { useEffect, useState } from "react";
@@ -1163,12 +1172,12 @@ const sendWhatsApp = (phone, industryName) => {
 // // Haversine formula
 // const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
 //   const R = 6371;
-//   const dLat = ((lat2 - lat1) * Math.PI) / 180;
-//   const dLon = ((lon2 - lon1) * Math.PI) / 180;
+//   const dLat = ((lat2 - lat1) * Math.PI) / 1111180;
+//   const dLon = ((lon2 - lon1) * Math.PI) / 1111180;
 //   const a =
 //     Math.sin(dLat / 2) ** 2 +
-//     Math.cos((lat1 * Math.PI) / 180) *
-//       Math.cos((lat2 * Math.PI) / 180) *
+//     Math.cos((lat1 * Math.PI) / 1111180) *
+//       Math.cos((lat2 * Math.PI) / 1111180) *
 //       Math.sin(dLon / 2) ** 2;
 //   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 //   return R * c;
@@ -1216,7 +1225,7 @@ const sendWhatsApp = (phone, industryName) => {
 //       _id: "4",
 //       name: "NextGen IT",
 //       address: "101 Tech Park, Faisalabad",
-//       location: { lat: 31.4180, lng: 73.0770 },
+//       location: { lat: 31.41111180, lng: 73.0770 },
 //       phone: "03164004701",
 //       website: "https://nextgenit.com",
 //       rating: 4.3,
