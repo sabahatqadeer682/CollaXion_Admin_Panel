@@ -44,6 +44,20 @@ const stampSchema = new mongoose.Schema({
   note: { type: String },
 }, { _id: false });
 
+const signatureSchema = new mongoose.Schema({
+  mode:     { type: String, enum: ["draw", "type", "upload"], default: "type" },
+  dataUrl:  { type: String },   // base64 PNG (canvas/upload)
+  text:     { type: String },   // typed name fallback
+  signedBy: { type: String },
+  signedAt: { type: String },
+}, { _id: false });
+
+const meetingSlotSchema = new mongoose.Schema({
+  date: { type: String },
+  time: { type: String },
+  note: { type: String },
+}, { _id: false });
+
 const meetingSchema = new mongoose.Schema({
   date:      { type: String },
   time:      { type: String },
@@ -51,6 +65,17 @@ const meetingSchema = new mongoose.Schema({
   agenda:    { type: String },
   menu:      { type: String },
   attendees: { type: String },
+
+  // Multiple proposed time slots (when university offers options to industry)
+  options:   { type: [meetingSlotSchema], default: [] },
+
+  // Final confirmed slot (set once both parties agree)
+  confirmedSlot: { type: meetingSlotSchema, default: null },
+  confirmedAt:   { type: String, default: null },
+
+  // Industry's counter-proposed slot
+  industryProposedSlot: { type: meetingSlotSchema, default: null },
+  industryProposedAt:   { type: String, default: null },
 }, { _id: false });
 
 const mouSchema = new mongoose.Schema({
@@ -111,6 +136,10 @@ const mouSchema = new mongoose.Schema({
   universityStamp: { type: stampSchema, default: null },
   industryStamp:   { type: stampSchema, default: null },
 
+  // ── Digital Signatures ────────────────────────────────────────
+  universitySignature: { type: signatureSchema, default: null },
+  industrySignature:   { type: signatureSchema, default: null },
+
   // ── Meeting ───────────────────────────────────────────────────
   scheduledMeeting: { type: meetingSchema, default: null },
 
@@ -121,9 +150,20 @@ const mouSchema = new mongoose.Schema({
   extraDetails:   { type: [String], default: [] },
   customFields:   { type: mongoose.Schema.Types.Mixed, default: [] },
   pdfData:        { type: String },
+  pdfHtml:        { type: String },                    // university → industry: printable HTML snapshot
+  pdfSentAt:      { type: String, default: null },     // when liaison dispatched the PDF
+  industryPdfHtml:   { type: String },                 // industry → university: PDF returned by industry
+  industryPdfSentAt: { type: String, default: null },  // when industry returned their version
   attachmentName: { type: String },
   attachmentData: { type: String },
   attachmentType: { type: String },
+
+  // Logos used for the printable PDF / header preview
+  universityLogo: { type: String },
+  industryLogo:   { type: String },
+
+  // Change log persisted so both sides see the history
+  changeLog:      { type: [mongoose.Schema.Types.Mixed], default: [] },
 },
 { timestamps: true });
 

@@ -1,6 +1,7 @@
 import express from "express";
 // Industryregistrations.route.js mein line 1 pe:
 import IndustryRegistration from "../models/Industryregistration.model.js";
+import { notifyLiaison } from "../utils/liaisonNotifier.js";
 const router = express.Router();
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +61,17 @@ router.post("/", async (req, res) => {
     });
 
     await registration.save();
+
+    notifyLiaison({
+      title:    "New Industry Registration",
+      message:  `${registration.companyName} submitted a registration request.`,
+      category: "industry-registration",
+      type:     "info",
+      link:     "/industry-registrations",
+      sourceId: String(registration._id),
+      industry: registration.companyName,
+    });
+
     res.status(201).json({ message: "Registration saved successfully", registration });
   } catch (err) {
     console.error("Error saving registration:", err);

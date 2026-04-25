@@ -1153,8 +1153,9 @@ const MainDashboardWeb = () => {
   const [hoveredCard, setHoveredCard]     = useState(null);
   const [showNotifs, setShowNotifs]       = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [toast, setToast]                 = useState(null);
   const notifRef                          = useRef(null);
-  const baselineRef                       = useRef({ ready: false, regs: new Map(), mous: new Map(), apps: new Map(), events: new Map() });
+  const baselineRef                       = useRef({ ready: false, apps: new Map(), events: new Map(), liaison: new Set() });
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -1168,90 +1169,69 @@ const MainDashboardWeb = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ── Real-time notifications: poll backend, push notifs for new items / status changes ──
+  // ── Real-time notifications ──
+  // Industry-side actions (registrations + MOU activity) are driven by backend
+  // /api/liaison-notifications (persisted). Student-app + event entries are still
+  // detected client-side via diff polling.
   useEffect(() => {
     let cancelled = false;
     const safeJson = (url) =>
       fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
+    const iconForCategory = (cat) => {
+      switch (cat) {
+        case "industry-registration":         return { icon: Building2,     iconBg: "#E2EEF9", iconColor: "#193648" };
+        case "industry-mou-proposed-changes": return { icon: AlertCircle,   iconBg: "#FEF3C7", iconColor: "#92400E" };
+        case "industry-mou-approved":         return { icon: UserCheck,     iconBg: "#D1FAE5", iconColor: "#065F46" };
+        case "industry-mou-rejected":         return { icon: AlertCircle,   iconBg: "#FEE2E2", iconColor: "#DC2626" };
+        case "industry-mou-mutual":           return { icon: FileSignature, iconBg: "#D1FAE5", iconColor: "#065F46" };
+        case "industry-mou-meeting":          return { icon: CalendarPlus,  iconBg: "#EDE9FE", iconColor: "#6D28D9" };
+        case "industry-mou-response":         return { icon: Send,          iconBg: "#DBEAFE", iconColor: "#1D4ED8" };
+        default:                              return { icon: FileSignature, iconBg: "#E2EEF9", iconColor: "#193648" };
+      }
+    };
+
     const poll = async () => {
-      const [regsRes, mousRes, appsRes, eventsRes] = await Promise.all([
-        safeJson(`${BASE_API}/api/industry-registrations`),
-        safeJson(`${BASE_API}/api/mous`),
+      const [liaisonRes, appsRes, eventsRes] = await Promise.all([
+        safeJson(`${BASE_API}/api/liaison-notifications?limit=80`),
         safeJson(`${BASE_API}/api/liaison/applications`),
         safeJson(`${BASE_API}/api/events`),
       ]);
       if (cancelled) return;
 
-      const regs   = regsRes?.registrations || [];
-      const mous   = Array.isArray(mousRes) ? mousRes : (mousRes?.data || []);
-      const apps   = appsRes?.data || [];
-      const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes?.data || []);
+      const liaisonItems = liaisonRes?.items || [];
+      const apps         = appsRes?.data || [];
+      const events       = Array.isArray(eventsRes) ? eventsRes : (eventsRes?.data || []);
 
       const baseline = baselineRef.current;
-      const fresh = [];
+      const fresh    = [];
+      const firstRun = !baseline.ready;
 
-      // Industry Registrations — new entries
-      const regsMap = new Map(regs.map((r) => [String(r._id), r]));
-      if (baseline.ready) {
-        for (const [id, reg] of regsMap) {
-          if (!baseline.regs.has(id)) {
-            fresh.push({
-              id: `reg-${id}-${Date.now()}`,
-              type: "registration",
-              icon: Building2,
-              iconBg: "#E2EEF9",
-              iconColor: "#193648",
-              title: "New Industry Registration",
-              message: `${reg.companyName || "An industry"} submitted a registration request.`,
-              time: relativeTime(reg.timestamp || reg.createdAt),
-              read: false,
-              route: "/industry-registrations",
-            });
-          }
-        }
-      }
-      baseline.regs = regsMap;
+      // Backend-driven liaison notifications (industry-side actions)
+      const liaisonMapped = liaisonItems.map((n) => {
+        const meta = iconForCategory(n.category);
+        return {
+          id:        `liaison-${n._id}`,
+          backendId: n._id,
+          type:      n.category || "industry",
+          icon:      meta.icon,
+          iconBg:    meta.iconBg,
+          iconColor: meta.iconColor,
+          title:     n.title,
+          message:   n.message,
+          time:      relativeTime(n.createdAt),
+          read:      n.seen,
+          route:     n.link || "/maindashboard",
+        };
+      });
 
-      // MOUs — new + status changes
-      const mousMap = new Map(mous.map((m) => [String(m._id), m]));
-      if (baseline.ready) {
-        for (const [id, mou] of mousMap) {
-          const prev = baseline.mous.get(id);
-          if (!prev) {
-            fresh.push({
-              id: `mou-new-${id}-${Date.now()}`,
-              type: "mou",
-              icon: FileSignature,
-              iconBg: "#E2EEF9",
-              iconColor: "#193648",
-              title: "MOU Created",
-              message: `${mou.title || "A new MOU"} has been added.`,
-              time: relativeTime(mou.createdAt),
-              read: false,
-              route: "/mou-management",
-            });
-          } else if (prev.status !== mou.status) {
-            fresh.push({
-              id: `mou-status-${id}-${Date.now()}`,
-              type: "mou",
-              icon: FileSignature,
-              iconBg: "#E2EEF9",
-              iconColor: "#193648",
-              title: "MOU Status Updated",
-              message: `${mou.title || "MOU"}: ${prev.status} → ${mou.status}.`,
-              time: "Just now",
-              read: false,
-              route: "/mou-management",
-            });
-          }
-        }
-      }
-      baseline.mous = mousMap;
+      const newLiaisonIds = liaisonMapped
+        .filter((n) => !baseline.liaison.has(n.backendId))
+        .map((n) => n.backendId);
 
-      // Student Applications — new entries
+      // Student Applications — new entries (client-side diff)
       const appsMap = new Map(apps.map((a) => [String(a._id), a]));
-      if (baseline.ready) {
+      if (!firstRun) {
         for (const [id, app] of appsMap) {
           if (!baseline.apps.has(id)) {
             const studentName =
@@ -1276,9 +1256,9 @@ const MainDashboardWeb = () => {
       }
       baseline.apps = appsMap;
 
-      // Events — new entries
+      // Events — new entries (client-side diff)
       const eventsMap = new Map(events.map((e) => [String(e._id), e]));
-      if (baseline.ready) {
+      if (!firstRun) {
         for (const [id, ev] of eventsMap) {
           if (!baseline.events.has(id)) {
             fresh.push({
@@ -1298,12 +1278,31 @@ const MainDashboardWeb = () => {
       }
       baseline.events = eventsMap;
 
+      // Track which backend liaison notifications we've already merged
+      liaisonItems.forEach((n) => baseline.liaison.add(n._id));
       baseline.ready = true;
-      if (fresh.length) setNotifications((prev) => [...fresh, ...prev]);
+
+      // Merge: liaison list (source of truth from backend) + locally-detected fresh + previously-shown locals
+      setNotifications((prev) => {
+        const localOnly = prev.filter((n) => !n.backendId);
+        const merged = [...fresh, ...liaisonMapped, ...localOnly];
+        const seen = new Set();
+        return merged.filter((n) => {
+          if (seen.has(n.id)) return false;
+          seen.add(n.id);
+          return true;
+        });
+      });
+
+      if (!firstRun) {
+        const popable = liaisonMapped.find((n) => newLiaisonIds.includes(n.backendId)) ||
+                        fresh[0];
+        if (popable) setToast(popable);
+      }
     };
 
     poll();
-    const id = setInterval(poll, 15000);
+    const id = setInterval(poll, 5000);
     const onFocus = () => poll();
     window.addEventListener("focus", onFocus);
     return () => {
@@ -1313,13 +1312,35 @@ const MainDashboardWeb = () => {
     };
   }, []);
 
-  const markRead = (id) =>
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  const markAll  = () =>
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 4500);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const markRead = (id) => {
+    setNotifications((prev) => {
+      const next = prev.map((n) => (n.id === id ? { ...n, read: true } : n));
+      const target = prev.find((n) => n.id === id);
+      if (target?.backendId) {
+        fetch(`${BASE_API}/api/liaison-notifications/${target.backendId}/seen`, {
+          method: "PATCH",
+        }).catch(() => {});
+      }
+      return next;
+    });
+  };
+  const markAll  = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  const clearAll = () => setNotifications([]);
+    fetch(`${BASE_API}/api/liaison-notifications/mark-all-seen`, {
+      method: "PATCH",
+    }).catch(() => {});
+  };
+  const clearAll = () => {
+    setNotifications([]);
+    fetch(`${BASE_API}/api/liaison-notifications`, { method: "DELETE" }).catch(() => {});
+    baselineRef.current.liaison = new Set();
+  };
 
   const toggleSidebar = () => setCollapsed(!collapsed);
   const handleLogout  = () => {
@@ -1441,6 +1462,41 @@ const MainDashboardWeb = () => {
 
   return (
     <div style={styles.container}>
+      {/* ===== Real-time Toast (top-right) ===== */}
+      <AnimatePresence>
+        {toast && (() => {
+          const ToastIcon = toast.icon || Bell;
+          return (
+            <motion.div
+              initial={{ opacity: 0, x: 30, y: -10 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, x: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 26 }}
+              style={styles.toast}
+              onClick={() => {
+                if (toast.backendId) markRead(toast.id);
+                navigate(toast.route || "/maindashboard");
+                setToast(null);
+              }}
+            >
+              <div style={{ ...styles.toastIcon, background: toast.iconBg || "#E2EEF9" }}>
+                <ToastIcon size={18} color={toast.iconColor || "#193648"} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={styles.toastTitle}>{toast.title}</div>
+                <div style={styles.toastMsg}>{toast.message}</div>
+              </div>
+              <button
+                style={styles.toastClose}
+                onClick={(e) => { e.stopPropagation(); setToast(null); }}
+              >
+                <X size={14} />
+              </button>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
       {/* ===== Sidebar ===== */}
       <motion.aside
         style={{ ...styles.sidebar, width: sidebarWidth }}
@@ -2110,6 +2166,56 @@ const styles = {
     marginBottom: 8,
   },
   topRight:    { display: "flex", alignItems: "center", gap: "14px" },
+  toast: {
+    position: "fixed",
+    top: 24,
+    right: 24,
+    zIndex: 2000,
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    width: 360,
+    maxWidth: "calc(100vw - 32px)",
+    background: "#fff",
+    borderRadius: 14,
+    boxShadow: "0 18px 50px rgba(15,23,42,0.18), 0 0 0 1px rgba(15,23,42,0.06)",
+    padding: "14px 14px 14px 14px",
+    cursor: "pointer",
+    fontFamily: "'Poppins', sans-serif",
+    borderLeft: "4px solid #3A70B0",
+  },
+  toastIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    flexShrink: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toastTitle: {
+    fontSize: "0.9rem",
+    fontWeight: 700,
+    color: "#0F172A",
+    marginBottom: 3,
+  },
+  toastMsg: {
+    fontSize: "0.78rem",
+    color: "#475569",
+    lineHeight: 1.45,
+  },
+  toastClose: {
+    background: "#F8FAFC",
+    border: "none",
+    color: "#64748B",
+    borderRadius: 8,
+    padding: 5,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
   bellWrap:    { position: "relative" },
   bellBtn: {
     position: "relative",

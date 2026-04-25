@@ -167,6 +167,7 @@
 
 import express from "express";
 import Mou from "../models/Mou.js";
+import { notifyLiaison, diffMouForIndustryActions } from "../utils/liaisonNotifier.js";
 
 const router = express.Router();
 
@@ -244,6 +245,8 @@ router.put("/:id", async (req, res) => {
     const data = { ...req.body };
     if (data.mouNumber === null || data.mouNumber === "") delete data.mouNumber;
 
+    const previous = await Mou.findById(req.params.id).lean();
+
     const updatedMou = await Mou.findByIdAndUpdate(
       req.params.id,
       data,
@@ -251,6 +254,12 @@ router.put("/:id", async (req, res) => {
     );
 
     if (!updatedMou) return res.status(404).json({ message: "MOU not found" });
+
+    if (previous) {
+      const events = diffMouForIndustryActions(previous, updatedMou.toObject());
+      events.forEach((ev) => notifyLiaison(ev));
+    }
+
     res.status(200).json(updatedMou);
   } catch (error) {
     console.error("❌ Error updating MOU:", error.message);
@@ -289,6 +298,8 @@ router.put("/:id/stamp", async (req, res) => {
     const mou = await Mou.findById(req.params.id);
     if (!mou) return res.status(404).json({ message: "MOU not found" });
 
+    const previous = mou.toObject();
+
     mou.universityStamp = { by: by || "University Admin", type, note, date: new Date().toISOString() };
 
     if (type === "approve") {
@@ -300,6 +311,10 @@ router.put("/:id/stamp", async (req, res) => {
     }
 
     await mou.save();
+
+    const events = diffMouForIndustryActions(previous, mou.toObject());
+    events.forEach((ev) => notifyLiaison(ev));
+
     res.status(200).json(mou);
   } catch (error) {
     res.status(500).json({ message: "Error stamping MOU", error: error.message });

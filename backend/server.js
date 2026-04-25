@@ -19,6 +19,7 @@ import coCurricularTaskRoutes from "./routes/coCurricularTaskRoutes.js";
 import coCurricularInvitationRoutes from "./routes/coCurricularInvitationRoutes.js";
 import coCurricularNotificationRoutes from "./routes/coCurricularNotificationRoutes.js";
 import industryRegistrationsRoute from "./routes/Industryregistrations.route.js";
+import liaisonNotificationRoutes from "./routes/liaisonNotificationRoutes.js";
 
 
 import inchargeRoutes from "./routes/applicationInchargeRoutes.js";
@@ -204,6 +205,7 @@ app.use("/api/cocurricular/tasks", coCurricularTaskRoutes);
 app.use("/api/cocurricular/invitations", coCurricularInvitationRoutes);
 app.use("/api/cocurricular/notifications", coCurricularNotificationRoutes);
 app.use("/api/industry-registrations", industryRegistrationsRoute);
+app.use("/api/liaison-notifications", liaisonNotificationRoutes);
 
 app.use("/api/email", emailRoutes);
 
