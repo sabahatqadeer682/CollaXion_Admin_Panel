@@ -3496,17 +3496,32 @@ const MouApp = () => {
   const [loading, setLoading]       = useState(true);
   const [meetingModal, setMeetingModal]       = useState(false);
   const [approveModal, setApproveModal]       = useState(false);
-  const [responseModal, setResponseModal]     = useState(false);
-  const [industryMeetingModal, setIndustryMeetingModal] = useState(false); // Industry proposes/edits slot
   const [stampType, setStampType]   = useState("");
   const [notifPanel, setNotifPanel] = useState(false);
   const [notifLog, setNotifLog]     = useState([]);
 
-  useEffect(() => { fetchMous(); }, []);
+  useEffect(() => {
+    fetchMous();
+    // Live sync: auto-refresh so industry-side updates (approval, proposed changes,
+    // meeting confirmation) flow back to admin without a manual reload.
+    const id = setInterval(() => fetchMous({ silent: true }), 15000);
+    const onFocus = () => fetchMous({ silent: true });
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
 
-  const fetchMous = async () => {
-    try { setLoading(true); const res = await axios.get(API_URL); setMous(res.data); }
-    catch (e) { console.error(e); } finally { setLoading(false); }
+  const fetchMous = async ({ silent = false } = {}) => {
+    try {
+      if (!silent) setLoading(true);
+      const res = await axios.get(API_URL);
+      setMous(res.data);
+      // Keep open detail view in sync with the freshly fetched record
+      setSelected((prev) => prev ? (res.data.find((m) => m._id === prev._id) || prev) : prev);
+    } catch (e) { console.error(e); }
+    finally { if (!silent) setLoading(false); }
   };
 
   const pushNotif = (msg, type = "info") => {
@@ -3544,79 +3559,6 @@ const MouApp = () => {
     } catch { pushNotif("Error sending MOU", "error"); }
   };
 
-  // NEW: Handle industry response (the response button)
-  const handleIndustryResponse = async (responseData) => {
-    if (!selected) return;
-    try {
-      const logType = responseData.type === "accept" ? "industry_approve"
-        : responseData.type === "reject" ? "industry_reject"
-        : responseData.type === "change" ? "industry_change"
-        : "industry_response";
-
-      const changeLog = addChangeLogEntry(selected, logType, {
-        party: "Industry",
-        from: selected.industry,
-        message: responseData.message,
-      });
-
-      let newStatus = selected.status;
-      if (responseData.type === "accept") newStatus = "Approved by Industry";
-      else if (responseData.type === "reject") newStatus = "Rejected";
-      else if (responseData.type === "change") newStatus = "Changes Proposed";
-      else newStatus = "Industry Responded";
-
-      const industryStamp = responseData.type === "accept"
-        ? { by: selected.industry, type: "approve", date: new Date().toISOString() }
-        : selected.industryStamp;
-
-      const updatePayload = {
-        title:              selected.title,
-        university:         selected.university,
-        industry:           selected.industry,
-        collaborationType:  selected.collaborationType,
-        startDate:          selected.startDate,
-        endDate:            selected.endDate,
-        description:        selected.description,
-        objectives:         selected.objectives,
-        responsibilities:   selected.responsibilities,
-        terms:              selected.terms,
-        signatories:        selected.signatories,
-        universityContact:  selected.universityContact,
-        industryContact:    selected.industryContact,
-        universityLogo:     selected.universityLogo,
-        industryLogo:       selected.industryLogo,
-        universityStamp:    selected.universityStamp,
-        scheduledMeeting:   selected.scheduledMeeting,
-        sentAt:             selected.sentAt,
-        status:             newStatus,
-        changeLog,
-        industryStamp,
-        industryResponseAt: new Date().toISOString(),
-        proposedChanges: responseData.changes
-          ? [...(selected.proposedChanges || []), ...responseData.changes]
-          : (selected.proposedChanges || []),
-      };
-
-      const res = await axios.put(`${API_URL}/${selected._id}`, updatePayload);
-      updateLocal(res.data);
-      setResponseModal(false);
-
-      if (responseData.type === "accept") {
-        pushNotif(`🎉 ${selected.industry} has approved the MOU!`, "success");
-        setTimeout(() => pushNotif("University notified of industry approval.", "info"), 1200);
-      } else if (responseData.type === "reject") {
-        pushNotif(`${selected.industry} rejected the MOU.`, "error");
-      } else if (responseData.type === "change") {
-        pushNotif(`${selected.industry} proposed changes to the MOU.`, "info");
-      } else {
-        pushNotif(`${selected.industry} sent a response/comment.`, "info");
-      }
-    } catch (err) {
-      console.error("Industry response error:", err?.response?.data || err.message);
-      pushNotif(`Error: ${err?.response?.data?.message || err.message || "Could not save response"}`, "error");
-    }
-  };
-
   const handleApproveReject = async (type) => {
     if (!selected) return;
     const stamp = { by: "University Admin", type, date: new Date().toISOString() };
@@ -3643,27 +3585,6 @@ const MouApp = () => {
         pushNotif("MOU rejected. Industry will be notified.", "error");
       }
     } catch { pushNotif("Error updating status", "error"); }
-  };
-
-  const handleIndustryApprove = async () => {
-    if (!selected) return;
-    const stamp = { by: selected.industry, type: "approve", date: new Date().toISOString() };
-    try {
-      const isMutual = selected.status === "Approved by University";
-      const changeLog = addChangeLogEntry(selected, "industry_approve", {
-        party: "Industry",
-        from: selected.industry,
-        message: isMutual ? `${selected.industry} approved — MOU is now Mutually Approved` : `${selected.industry} has approved the MOU`,
-      });
-      const res = await axios.put(`${API_URL}/${selected._id}`, {
-        ...buildPayload(selected),
-        status: isMutual ? "Mutually Approved" : "Approved by Industry",
-        industryStamp: stamp, industryResponseAt: new Date().toISOString(), changeLog,
-      });
-      updateLocal(res.data);
-      if (isMutual) pushNotif("🎉 Both parties approved! MOU is Mutually Approved.", "success");
-      else { pushNotif(`${selected.industry} has approved the MOU!`, "success"); setTimeout(() => pushNotif("University notified of industry approval.", "info"), 1200); }
-    } catch { pushNotif("Error processing industry approval", "error"); }
   };
 
   // ── University saves meeting (with options or single slot) ──
@@ -3703,77 +3624,6 @@ const MouApp = () => {
     } catch (err) {
       console.error(err);
       pushNotif("Error saving meeting", "error");
-    }
-  };
-
-  // ── Industry selects one of university's options → IMMEDIATE confirm ──
-  const handleIndustryMeetingSelect = async (opt) => {
-    if (!selected) return;
-    const slot = { date: opt.date || "", time: opt.time || "", note: opt.note || "" };
-    const now  = new Date().toISOString();
-    try {
-      const updatedMeeting = {
-        ...selected.scheduledMeeting,
-        confirmedSlot:        slot,
-        confirmedAt:          now,
-        industryProposedSlot: null,
-        industryProposedAt:   null,
-      };
-      const changeLog = addChangeLogEntry(selected, "meeting_confirmed", {
-        party:   "Industry",
-        from:    selected.industry,
-        message: `${selected.industry} confirmed meeting: ${slot.date} at ${slot.time}`,
-      });
-      const res = await axios.put(`${API_URL}/${selected._id}`, {
-        ...buildPayload(selected),
-        scheduledMeeting: updatedMeeting,
-        changeLog,
-      });
-      // Always force confirmedSlot in local state
-      updateLocal({
-        ...res.data,
-        scheduledMeeting: { ...(res.data.scheduledMeeting || selected.scheduledMeeting || {}), confirmedSlot: slot, confirmedAt: now, industryProposedSlot: null },
-      });
-      pushNotif(`🤝 Meeting confirmed: ${slot.date} at ${slot.time}!`, "success");
-    } catch (err) {
-      console.error(err);
-      pushNotif(`Error: ${err?.response?.data?.message || err.message}`, "error");
-    }
-  };
-
-  // ── Industry proposes their own custom slot → pending university confirm ──
-  const handleIndustryProposeMeeting = async (slotData) => {
-    if (!selected) return;
-    const proposal = { date: slotData.date || "", time: slotData.time || "", note: slotData.note || "" };
-    const now = new Date().toISOString();
-    try {
-      const updatedMeeting = {
-        ...selected.scheduledMeeting,
-        industryProposedSlot: proposal,
-        industryProposedAt:   now,
-        confirmedSlot:        null,
-        confirmedAt:          null,
-      };
-      const changeLog = addChangeLogEntry(selected, "meeting_proposed", {
-        party:   "Industry",
-        from:    selected.industry,
-        message: `${selected.industry} proposed slot: ${proposal.date} at ${proposal.time}`,
-      });
-      const res = await axios.put(`${API_URL}/${selected._id}`, {
-        ...buildPayload(selected),
-        scheduledMeeting: updatedMeeting,
-        changeLog,
-      });
-      updateLocal({
-        ...res.data,
-        scheduledMeeting: { ...(res.data.scheduledMeeting || selected.scheduledMeeting || {}), industryProposedSlot: proposal, industryProposedAt: now, confirmedSlot: null, confirmedAt: null },
-      });
-      setIndustryMeetingModal(false);
-      pushNotif(`${selected.industry} proposed: ${proposal.date} at ${proposal.time}`, "info");
-      setTimeout(() => pushNotif("University notified of industry's proposed slot.", "info"), 1000);
-    } catch (err) {
-      console.error(err);
-      pushNotif(`Error: ${err?.response?.data?.message || err.message}`, "error");
     }
   };
 
@@ -3824,27 +3674,6 @@ const MouApp = () => {
     await axios.delete(`${API_URL}/${id}`);
     setMous(s => s.filter(m => m._id !== id));
     if (view === "detail") goBack();
-  };
-
-  const simulateIndustryChange = async () => {
-    if (!selected) return;
-    try {
-      const changeLog = addChangeLogEntry(selected, "industry_change", {
-        party: "Industry",
-        from: selected.industry,
-        field: "Duration",
-        oldValue: fmtDate(selected.endDate),
-        newValue: "Extended by 6 months",
-        reason: "Project scope expanded",
-      });
-      const res = await axios.put(`${API_URL}/${selected._id}`, {
-        ...buildPayload(selected), status: "Changes Proposed",
-        proposedChanges: [...(selected.proposedChanges || []), { field: "Duration", oldValue: fmtDate(selected.endDate), newValue: "Extended by 6 months", reason: "Project scope expanded", date: new Date().toISOString() }],
-        industryResponseAt: new Date().toISOString(), changeLog,
-      });
-      updateLocal(res.data);
-      pushNotif(`${selected.industry} has proposed changes to the MOU!`, "info");
-    } catch { pushNotif("Error simulating change", "error"); }
   };
 
   const updateLocal = (updated) => {
@@ -3938,11 +3767,7 @@ const MouApp = () => {
             onScheduleMeeting={() => setMeetingModal(true)}
             onApproveReject={(type) => { setStampType(type); setApproveModal(true); }}
             onUpdate={updateLocal} onSendAfterApprove={handleSendAfterApprove}
-            onSimulateChange={simulateIndustryChange} onIndustryApprove={handleIndustryApprove}
             onDownloadPdf={() => generateMouPdf(selected)}
-            onIndustryResponse={() => setResponseModal(true)}
-            onIndustryMeetingSelect={handleIndustryMeetingSelect}
-            onIndustryProposeMeeting={() => setIndustryMeetingModal(true)}
             onUniversityConfirmIndustrySlot={handleUniversityConfirmIndustrySlot}
           />
         )}
@@ -3953,22 +3778,6 @@ const MouApp = () => {
       </AnimatePresence>
       <AnimatePresence>
         {approveModal && <StampModal type={stampType} mou={selected} onClose={() => setApproveModal(false)} onConfirm={() => handleApproveReject(stampType)} />}
-      </AnimatePresence>
-      {/* Industry Response Modal */}
-      <AnimatePresence>
-        {responseModal && selected && (
-          <IndustryResponseModal mou={selected} onClose={() => setResponseModal(false)} onSave={handleIndustryResponse} />
-        )}
-      </AnimatePresence>
-      {/* Industry Meeting Slot Modal */}
-      <AnimatePresence>
-        {industryMeetingModal && selected && (
-          <IndustryMeetingModal
-            mou={selected}
-            onClose={() => setIndustryMeetingModal(false)}
-            onSave={handleIndustryProposeMeeting}
-          />
-        )}
       </AnimatePresence>
     </div>
   );
@@ -4197,7 +4006,7 @@ const CreateMou = ({ onBack, onSaved }) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  DETAIL VIEW
 // ═══════════════════════════════════════════════════════════════════════════════
-const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApproveReject, onUpdate, onSendAfterApprove, onSimulateChange, onIndustryApprove, onDownloadPdf, onIndustryResponse, onIndustryMeetingSelect, onIndustryProposeMeeting, onUniversityConfirmIndustrySlot }) => {
+const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApproveReject, onUpdate, onSendAfterApprove, onDownloadPdf, onUniversityConfirmIndustrySlot }) => {
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState(mou);
   const [saving, setSaving] = useState(false);
@@ -4207,17 +4016,13 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
   const hasChanges    = mou.proposedChanges && mou.proposedChanges.length > 0;
   const canSend       = ["Draft", "Rejected"].includes(mou.status);
   const canApprove    = ["Sent to Industry", "Changes Proposed", "Approved by Industry", "Industry Responded"].includes(mou.status);
-  const canIndApprove = ["Sent to Industry", "Changes Proposed", "Approved by University", "Industry Responded"].includes(mou.status) && !mou.industryStamp;
   const canSendAfter  = ["Approved by University", "Mutually Approved"].includes(mou.status);
   const canDownload   = ["Approved by Industry", "Approved by University", "Mutually Approved"].includes(mou.status);
   const isMutual      = mou.status === "Mutually Approved";
   const meeting       = mou.scheduledMeeting;
-  const canRespond    = ["Sent to Industry", "Changes Proposed"].includes(mou.status); // show response button
   const hasMeetingOptions = meeting?.options && meeting.options.length > 0;
   // Check confirmedSlot safely — must have .date to be valid
   const hasConfirmedSlot  = !!(meeting?.confirmedSlot?.date);
-  // Industry can confirm a single-slot meeting (no options, not yet confirmed)
-  const canIndustryConfirmSingle = !!(meeting && !hasMeetingOptions && !hasConfirmedSlot && meeting.date && meeting.time);
 
   const saveEdit = async () => {
     try {
@@ -4253,18 +4058,11 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
           ) : (
             <>
               {canSend       && <button style={S.btnSend} onClick={onSend}><Send size={14} /> Send to Industry</button>}
-              {canRespond    && (
-                <motion.button whileHover={{ scale: 1.04 }} style={S.btnResponse} onClick={onIndustryResponse}>
-                  <MessageSquare size={14} /> Industry Response
-                </motion.button>
-              )}
               {canApprove    && <><button style={S.btnApprove} onClick={() => onApproveReject("approve")}><CheckCircle size={14} /> Univ. Approve</button><button style={S.btnReject} onClick={() => onApproveReject("reject")}><XCircle size={14} /> Reject</button></>}
-              {canIndApprove && <motion.button whileHover={{ scale: 1.04 }} style={S.btnIndustryApprove} onClick={onIndustryApprove}><CheckSquare size={14} /> Industry Approve</motion.button>}
               {canSendAfter  && <button style={S.btnNotify} onClick={onSendAfterApprove}><Bell size={14} /> Notify Industry</button>}
               {canDownload   && <motion.button whileHover={{ scale: 1.04 }} style={S.btnDownload} onClick={onDownloadPdf}><Download size={14} /> Download PDF</motion.button>}
               <button style={S.btnMeeting} onClick={onScheduleMeeting}><Calendar size={14} /> {meeting ? "Edit Meeting" : "Schedule Meeting"}</button>
               <button style={S.btnOutline} onClick={() => setEditing(true)}><Edit3 size={14} /> Edit MOU</button>
-              {mou.status === "Sent to Industry" && <button style={{ ...S.btnOutline, color: "#7c3aed", borderColor: "#7c3aed" }} onClick={onSimulateChange}>🔧 Simulate Change</button>}
               <button style={S.btnDanger} onClick={onDelete}><Trash2 size={14} /></button>
             </>
           )}
@@ -4378,36 +4176,28 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
                   </motion.div>
                 )}
 
-                {/* ── STATE 3: OPTIONS LIST — industry selects or proposes own ── */}
+                {/* ── STATE 3: OPTIONS LIST — awaiting industry selection from their app ── */}
                 {!hasConfirmedSlot && !meeting.industryProposedSlot && hasMeetingOptions && (
                   <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ fontSize: 12, color: "#0284c7", fontWeight: 600, marginBottom: 8 }}>
-                      📋 University proposed these slots — Industry: select one or propose your own
+                      📋 University proposed these slots — awaiting {mou.industry} to pick or propose
                     </div>
                     {meeting.options.map((opt, i) => (
-                      <motion.div key={i} whileHover={{ scale: 1.01 }}
+                      <div key={i}
                         style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8faff", border: "1px solid #bfdbfe", borderRadius: 8, padding: "8px 12px", marginBottom: 6 }}>
                         <div>
                           <div style={{ fontWeight: 600, color: "#193648", fontSize: 12 }}>{opt.date} at {opt.time}</div>
                           {opt.note && <div style={{ fontSize: 11, color: "#64748b" }}>{opt.note}</div>}
                         </div>
-                        <button style={{ ...S.btnApprove, padding: "4px 10px", fontSize: 11 }} onClick={() => onIndustryMeetingSelect(opt)}>
-                          <Vote size={11} /> Select
-                        </button>
-                      </motion.div>
+                        <span style={{ fontSize: 10, color: "#64748b", fontWeight: 600 }}>Pending</span>
+                      </div>
                     ))}
                     <MeetingRow icon={<MapPin size={12} />} label="Venue"  val={meeting.venue} />
                     <MeetingRow icon={<Coffee size={12} />} label="Agenda" val={meeting.agenda} />
-                    {/* Industry proposes their own slot */}
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                      style={{ ...S.btnResponse, width: "100%", justifyContent: "center", padding: "9px", marginTop: 10 }}
-                      onClick={onIndustryProposeMeeting}>
-                      <Edit3 size={13} /> Industry — Propose Different Slot
-                    </motion.button>
                   </motion.div>
                 )}
 
-                {/* ── STATE 4: SINGLE SLOT — industry confirms or proposes own ── */}
+                {/* ── STATE 4: SINGLE SLOT — awaiting industry to confirm via their app ── */}
                 {!hasConfirmedSlot && !meeting.industryProposedSlot && !hasMeetingOptions && (
                   <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
                     <MeetingRow icon={<Clock size={12} />}  label="Date & Time" val={`${fmtDate(meeting.date)} at ${meeting.time}`} />
@@ -4415,19 +4205,8 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
                     <MeetingRow icon={<Coffee size={12} />} label="Agenda"       val={meeting.agenda} />
                     {meeting.menu      && <MeetingRow icon={<Coffee size={12} />} label="Menu"      val={meeting.menu} />}
                     {meeting.attendees && <MeetingRow icon={<User size={12} />}   label="Attendees" val={meeting.attendees} />}
-                    <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                      {canIndustryConfirmSingle && (
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                          style={{ ...S.btnApprove, justifyContent: "center", padding: "9px", fontSize: 12 }}
-                          onClick={() => onIndustryMeetingSelect({ date: meeting.date, time: meeting.time, note: "" })}>
-                          <Vote size={13} /> Confirm This Slot
-                        </motion.button>
-                      )}
-                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                        style={{ ...S.btnResponse, justifyContent: "center", padding: "9px", fontSize: 12 }}
-                        onClick={onIndustryProposeMeeting}>
-                        <Edit3 size={13} /> Propose New Slot
-                      </motion.button>
+                    <div style={{ marginTop: 10, fontSize: 11, color: "#64748b", fontWeight: 600, textAlign: "center" }}>
+                      Awaiting {mou.industry} confirmation from their portal…
                     </div>
                   </motion.div>
                 )}

@@ -19,7 +19,86 @@ import {
   User,
   Calendar,
   Briefcase,
+  MessageCircle,
 } from "lucide-react";
+
+const APP_DOWNLOAD_LINK = "https://collaxion.app/download";
+const DEFAULT_COUNTRY_CODE = "92";
+
+const slugify = (str = "") =>
+  str.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 10) || "industry";
+
+const randomDigits = (n) =>
+  Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join("");
+
+const generatePassword = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  return Array.from({ length: 10 }, () =>
+    chars.charAt(Math.floor(Math.random() * chars.length))
+  ).join("");
+};
+
+const generateCredentials = (companyName) => ({
+  username: `${slugify(companyName)}_${randomDigits(4)}`,
+  password: generatePassword(),
+});
+
+const buildConfirmationMessage = ({ contactName, companyName, username, password }) =>
+  `Assalam-o-Alaikum,
+
+Thank you for registering ${companyName || "your organisation"} with CollaXion! 
+
+We're delighted to inform you that your registration has been successfully *approved*. A warm welcome to the CollaXion Team - we're excited to have you on board as a valued partner in our university–industry collaboration network.
+
+*About CollaXion*
+CollaXion is a unified platform that bridges universities and industries, enabling seamless collaboration on internships, projects, research initiatives, and talent acquisition.
+
+*Get Started — Download the App*
+${APP_DOWNLOAD_LINK}
+
+ *Your Login Credentials*
+• Username: ${username}
+• Password: ${password}
+
+For your account's security, please change your password right after your first login.
+
+*What's Next?*
+• Sign in using the credentials above
+• Complete your company profile
+• Start posting opportunities and connecting with top student talent
+
+If you have any questions or need assistance, feel free to reach us at collaxionteam@gmail.com - our team is happy to help.
+
+We're truly excited to have you with us and look forward to a long-lasting, impactful collaboration. 
+
+Warm regards,
+*Team CollaXion*`;
+
+const normalisePhone = (raw = "") => {
+  let digits = String(raw).replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith("0")) digits = DEFAULT_COUNTRY_CODE + digits.slice(1);
+  if (digits.length <= 10) digits = DEFAULT_COUNTRY_CODE + digits;
+  return digits;
+};
+
+const sendWhatsAppConfirmation = (reg) => {
+  const phone = normalisePhone(reg.phone);
+  if (!phone) {
+    alert("Is registration mein valid phone number nahi hai.");
+    return;
+  }
+  const { username, password } = generateCredentials(reg.companyName);
+  const text = buildConfirmationMessage({
+    contactName: reg.contactName,
+    companyName: reg.companyName,
+    username,
+    password,
+  });
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  window.open(url, "_blank", "noopener,noreferrer");
+};
 
 const STATUS_CONFIG = {
   Pending:  { bg: "#FEF3C7", color: "#92400E", icon: Clock       },
@@ -123,6 +202,19 @@ const DetailModal = ({ reg, onClose, onApprove, onReject, updating }) => {
               </button>
             </div>
           )}
+
+          {reg.status === "Approved" && (
+            <div style={ms.actions}>
+              <button
+                style={{ ...ms.btn, ...ms.whatsappBtn }}
+                onClick={() => sendWhatsAppConfirmation(reg)}
+                title="Open WhatsApp with a prefilled welcome message — just press Send"
+              >
+                <MessageCircle size={16} />
+                Send WhatsApp Confirmation
+              </button>
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -181,6 +273,7 @@ const ms = {
   },
   approveBtn:    { background: "#D1FAE5", color: "#065F46" },
   rejectBtn:     { background: "#FEE2E2", color: "#DC2626" },
+  whatsappBtn:   { background: "#25D366", color: "#fff", boxShadow: "0 4px 14px rgba(37,211,102,0.35)" },
 };
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -424,6 +517,15 @@ export default function IndustryRegistrations() {
                         <button style={s.rejectSmBtn}  onClick={() => handleReject(reg._id)}>✗</button>
                       </>
                     )}
+                    {reg.status === "Approved" && (
+                      <button
+                        style={s.whatsappSmBtn}
+                        onClick={() => sendWhatsAppConfirmation(reg)}
+                        title="Send WhatsApp confirmation"
+                      >
+                        <MessageCircle size={16} />
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               );
@@ -570,6 +672,13 @@ const s = {
     border: "none", borderRadius: "10px", fontWeight: "800",
     cursor: "pointer", fontSize: "1rem", display: "flex",
     alignItems: "center", justifyContent: "center",
+  },
+  whatsappSmBtn: {
+    width: "38px", height: "38px", background: "#25D366", color: "#fff",
+    border: "none", borderRadius: "10px",
+    cursor: "pointer", display: "flex",
+    alignItems: "center", justifyContent: "center",
+    boxShadow: "0 4px 12px rgba(37,211,102,0.3)",
   },
   center: {
     display: "flex", flexDirection: "column",

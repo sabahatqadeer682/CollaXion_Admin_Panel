@@ -13,7 +13,7 @@ import eventRoutes from "./routes/eventRoutes.js";
 import meetingMinutesRoutes from "./routes/meetingMinutesRoutes.js";
 
 import authRoutes from "./routes/authRoutes.js";
-
+import liaisonRoutes from "./routes/liaisonRoutes.js";
 import coCurricularEventRoutes from "./routes/coCurricularEventRoutes.js";
 import coCurricularTaskRoutes from "./routes/coCurricularTaskRoutes.js";
 import coCurricularInvitationRoutes from "./routes/coCurricularInvitationRoutes.js";
@@ -21,9 +21,11 @@ import coCurricularNotificationRoutes from "./routes/coCurricularNotificationRou
 import industryRegistrationsRoute from "./routes/Industryregistrations.route.js";
 
 
+import inchargeRoutes from "./routes/applicationInchargeRoutes.js";
+import emailRoutes from "./routes/emailRoutes.js";
 
 const app = express();
-
+app.use(express.json());
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
@@ -202,6 +204,13 @@ app.use("/api/cocurricular/tasks", coCurricularTaskRoutes);
 app.use("/api/cocurricular/invitations", coCurricularInvitationRoutes);
 app.use("/api/cocurricular/notifications", coCurricularNotificationRoutes);
 app.use("/api/industry-registrations", industryRegistrationsRoute);
+
+app.use("/api/email", emailRoutes);
+
+app.use("/api/incharge", inchargeRoutes);
+
+app.use("/api/liaison", liaisonRoutes);
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {

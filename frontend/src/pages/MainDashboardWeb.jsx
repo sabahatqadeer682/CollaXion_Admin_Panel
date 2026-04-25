@@ -733,9 +733,23 @@ import {
   Clock,
   Megaphone,
   Building2,
+  ArrowUpRight,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import collaxionLogo from "../images/collaxionlogo.jpeg";
+import laisonAvatar from "../images/Laison.jpeg";
+
+// ─── Backend base + relative-time helper for real-time notifications ──────────
+const BASE_API = "http://localhost:5000";
+const relativeTime = (date) => {
+  if (!date) return "Just now";
+  const diff = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hr ago`;
+  return `${Math.floor(diff / 86400)} day(s) ago`;
+};
 
 // ─── Mock Notifications ────────────────────────────────────────────────────────
 const INITIAL_NOTIFICATIONS = [
@@ -1138,8 +1152,9 @@ const MainDashboardWeb = () => {
   const [activeCard, setActiveCard]       = useState(null);
   const [hoveredCard, setHoveredCard]     = useState(null);
   const [showNotifs, setShowNotifs]       = useState(false);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
   const notifRef                          = useRef(null);
+  const baselineRef                       = useRef({ ready: false, regs: new Map(), mous: new Map(), apps: new Map(), events: new Map() });
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -1153,6 +1168,151 @@ const MainDashboardWeb = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // ── Real-time notifications: poll backend, push notifs for new items / status changes ──
+  useEffect(() => {
+    let cancelled = false;
+    const safeJson = (url) =>
+      fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+    const poll = async () => {
+      const [regsRes, mousRes, appsRes, eventsRes] = await Promise.all([
+        safeJson(`${BASE_API}/api/industry-registrations`),
+        safeJson(`${BASE_API}/api/mous`),
+        safeJson(`${BASE_API}/api/liaison/applications`),
+        safeJson(`${BASE_API}/api/events`),
+      ]);
+      if (cancelled) return;
+
+      const regs   = regsRes?.registrations || [];
+      const mous   = Array.isArray(mousRes) ? mousRes : (mousRes?.data || []);
+      const apps   = appsRes?.data || [];
+      const events = Array.isArray(eventsRes) ? eventsRes : (eventsRes?.data || []);
+
+      const baseline = baselineRef.current;
+      const fresh = [];
+
+      // Industry Registrations — new entries
+      const regsMap = new Map(regs.map((r) => [String(r._id), r]));
+      if (baseline.ready) {
+        for (const [id, reg] of regsMap) {
+          if (!baseline.regs.has(id)) {
+            fresh.push({
+              id: `reg-${id}-${Date.now()}`,
+              type: "registration",
+              icon: Building2,
+              iconBg: "#E2EEF9",
+              iconColor: "#193648",
+              title: "New Industry Registration",
+              message: `${reg.companyName || "An industry"} submitted a registration request.`,
+              time: relativeTime(reg.timestamp || reg.createdAt),
+              read: false,
+              route: "/industry-registrations",
+            });
+          }
+        }
+      }
+      baseline.regs = regsMap;
+
+      // MOUs — new + status changes
+      const mousMap = new Map(mous.map((m) => [String(m._id), m]));
+      if (baseline.ready) {
+        for (const [id, mou] of mousMap) {
+          const prev = baseline.mous.get(id);
+          if (!prev) {
+            fresh.push({
+              id: `mou-new-${id}-${Date.now()}`,
+              type: "mou",
+              icon: FileSignature,
+              iconBg: "#E2EEF9",
+              iconColor: "#193648",
+              title: "MOU Created",
+              message: `${mou.title || "A new MOU"} has been added.`,
+              time: relativeTime(mou.createdAt),
+              read: false,
+              route: "/mou-management",
+            });
+          } else if (prev.status !== mou.status) {
+            fresh.push({
+              id: `mou-status-${id}-${Date.now()}`,
+              type: "mou",
+              icon: FileSignature,
+              iconBg: "#E2EEF9",
+              iconColor: "#193648",
+              title: "MOU Status Updated",
+              message: `${mou.title || "MOU"}: ${prev.status} → ${mou.status}.`,
+              time: "Just now",
+              read: false,
+              route: "/mou-management",
+            });
+          }
+        }
+      }
+      baseline.mous = mousMap;
+
+      // Student Applications — new entries
+      const appsMap = new Map(apps.map((a) => [String(a._id), a]));
+      if (baseline.ready) {
+        for (const [id, app] of appsMap) {
+          if (!baseline.apps.has(id)) {
+            const studentName =
+              app.studentId?.name ||
+              app.studentId?.fullName ||
+              (app.studentEmail ? app.studentEmail.split("@")[0] : null) ||
+              "A student";
+            fresh.push({
+              id: `app-${id}-${Date.now()}`,
+              type: "application",
+              icon: ClipboardList,
+              iconBg: "#E2EEF9",
+              iconColor: "#193648",
+              title: "New Student Application",
+              message: `${studentName}'s application has been forwarded for review.`,
+              time: relativeTime(app.appliedAt || app.updatedAt),
+              read: false,
+              route: "/student-applications",
+            });
+          }
+        }
+      }
+      baseline.apps = appsMap;
+
+      // Events — new entries
+      const eventsMap = new Map(events.map((e) => [String(e._id), e]));
+      if (baseline.ready) {
+        for (const [id, ev] of eventsMap) {
+          if (!baseline.events.has(id)) {
+            fresh.push({
+              id: `event-${id}-${Date.now()}`,
+              type: "event",
+              icon: Megaphone,
+              iconBg: "#E2EEF9",
+              iconColor: "#193648",
+              title: "New Event Created",
+              message: `${ev.title || "A new event"} has been added.`,
+              time: relativeTime(ev.createdAt),
+              read: false,
+              route: "/event-creation",
+            });
+          }
+        }
+      }
+      baseline.events = eventsMap;
+
+      baseline.ready = true;
+      if (fresh.length) setNotifications((prev) => [...fresh, ...prev]);
+    };
+
+    poll();
+    const id = setInterval(poll, 15000);
+    const onFocus = () => poll();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
   const markRead = (id) =>
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
@@ -1163,82 +1323,117 @@ const MainDashboardWeb = () => {
 
   const toggleSidebar = () => setCollapsed(!collapsed);
   const handleLogout  = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+    if (!window.confirm("Are you sure you want to logout?")) return;
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (_) { /* storage may be unavailable */ }
+    navigate("/login", { replace: true });
   };
 
-  // ── Card Data (Industry Registrations card added) ──────────────────────────
+  // ── Card Data (sequence follows the real workflow: onboarding → engagement → analytics → settings) ──
+  // Theme-consistent: every card uses the navy #193648 accent. Variety comes from glyphs + tags.
+  const ACCENT = "#193648";
+  const ACCENT_SOFT = "#3A70B0";
   const cardData = [
     {
-      id:    1,
-      icon:  <FileSignature size={40} />,
-      title: "MOUs",
-      desc:  "Track signed and pending Memorandums of Understanding.",
-      route: "/mou-management",
-    },
-    {
-      id:    2,
-      icon:  <MapPin size={40} />,
-      title: "Nearby Industries",
-      desc:  "View industries near your location on an interactive map.",
-      route: "/nearby-industries",
-    },
-    {
-      id:    4,
-      icon:  <CalendarPlus size={40} />,
-      title: "Advisory Meetings",
-      desc:  "Schedule and manage advisory board meetings.",
-      route: "/AdvisoryMeetings",
-    },
-    {
-      id:    5,
-      icon:  <Network size={40} />,
-      title: "Industry Activeness",
-      desc:  "Monitor active partnerships and industry participation.",
-      route: "/industry-activeness",
-    },
-    {
-      id:    7,
-      icon:  <Briefcase size={40} />,
-      title: "Industry Projects",
-      desc:  "View and manage projects offered by industries.",
-      route: "/industry-projects",
-    },
-    {
-      id:    10,
-      icon:  <ClipboardList size={40} />,
-      title: "Student Applications",
-      desc:  "Review, approve, and forward student applications to industry.",
-      route: "/student-applications",
-    },
-    {
-      id:    8,
-      icon:  <CalendarCog size={40} />,
-      title: "Event Creation",
-      desc:  "Create and manage university–industry collaborative events.",
-      route: "/event-creation",
-    },
-    {
-      id:    6,
-      icon:  <BarChart3 size={40} />,
-      title: "Ratings & Feedback",
-      desc:  "View ratings and feedback from both students and industries.",
-      route: "/ratings-feedback",
-    },
-    // ── NEW CARD ──
-    {
-      id:    11,
-      icon:  <Building2 size={40} />,
+      id: 11,
+      icon: <Building2 size={36} />,
       title: "Industry Registrations",
-      desc:  "Review and approve incoming industry registration requests.",
+      desc: "Review and approve incoming industry registration requests.",
       route: "/industry-registrations",
+      tag: "Onboarding",
+      gradient: "linear-gradient(135deg, #E2EEF9 0%, #CFE0F0 100%)",
+      accent: ACCENT,
+      glyph: "🏢",
     },
     {
-      id:    9,
-      icon:  <Settings size={40} />,
-      title: "System Settings",
-      desc:  "Configure system preferences, permissions, and access controls.",
-      route: "/system-settings",
+      id: 1,
+      icon: <FileSignature size={36} />,
+      title: "MOUs",
+      desc: "Track signed and pending Memorandums of Understanding.",
+      route: "/mou-management",
+      tag: "Agreements",
+      gradient: "linear-gradient(135deg, #EAF2FA 0%, #C9DCEE 100%)",
+      accent: ACCENT,
+      glyph: "📜",
+    },
+    {
+      id: 2,
+      icon: <MapPin size={36} />,
+      title: "Nearby Industries",
+      desc: "View industries near your location on an interactive map.",
+      route: "/nearby-industries",
+      tag: "Discovery",
+      gradient: "linear-gradient(135deg, #E2EEF9 0%, #BFD6EC 100%)",
+      accent: ACCENT,
+      glyph: "📍",
+    },
+    {
+      id: 7,
+      icon: <Briefcase size={36} />,
+      title: "Industry Projects",
+      desc: "View and manage projects offered by industries.",
+      route: "/industry-projects",
+      tag: "Opportunities",
+      gradient: "linear-gradient(135deg, #ECF3FA 0%, #C6DAEC 100%)",
+      accent: ACCENT,
+      glyph: "💼",
+    },
+    {
+      id: 10,
+      icon: <ClipboardList size={36} />,
+      title: "Student Applications",
+      desc: "Review, approve, and forward student applications to industry.",
+      route: "/student-applications",
+      tag: "Pipeline",
+      gradient: "linear-gradient(135deg, #E6EFF8 0%, #BCD3E8 100%)",
+      accent: ACCENT,
+      glyph: "🎓",
+    },
+    {
+      id: 4,
+      icon: <CalendarPlus size={36} />,
+      title: "Advisory Meetings",
+      desc: "Schedule and manage advisory board meetings.",
+      route: "/AdvisoryMeetings",
+      tag: "Schedule",
+      gradient: "linear-gradient(135deg, #E2EEF9 0%, #CCDFEE 100%)",
+      accent: ACCENT,
+      glyph: "🗓️",
+    },
+    {
+      id: 8,
+      icon: <CalendarCog size={36} />,
+      title: "Event Creation",
+      desc: "Create and manage university–industry collaborative events.",
+      route: "/event-creation",
+      tag: "Events",
+      gradient: "linear-gradient(135deg, #E9F1F9 0%, #C2D7EA 100%)",
+      accent: ACCENT,
+      glyph: "🎤",
+    },
+    {
+      id: 5,
+      icon: <Network size={36} />,
+      title: "Industry Activeness",
+      desc: "Monitor active partnerships and industry participation.",
+      route: "/industry-activeness",
+      tag: "Engagement",
+      gradient: "linear-gradient(135deg, #E2EEF9 0%, #C9DCEE 100%)",
+      accent: ACCENT,
+      glyph: "🔗",
+    },
+    {
+      id: 6,
+      icon: <BarChart3 size={36} />,
+      title: "Ratings & Feedback",
+      desc: "View ratings and feedback from both students and industries.",
+      route: "/ratings-feedback",
+      tag: "Insights",
+      gradient: "linear-gradient(135deg, #ECF3FA 0%, #BFD6EC 100%)",
+      accent: ACCENT,
+      glyph: "⭐",
     },
   ];
 
@@ -1252,9 +1447,19 @@ const MainDashboardWeb = () => {
         animate={{ width: sidebarWidth }}
         transition={{ duration: 0.4, ease: "easeInOut" }}
       >
+        {/* Decorative ambient glow inside sidebar */}
+        <motion.div
+          aria-hidden
+          style={styles.sidebarGlow}
+          animate={{ opacity: [0.45, 0.7, 0.45] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+
         <div style={styles.sidebarHeader}>
           <div style={styles.logoContainer}>
-            <img src={collaxionLogo} alt="Logo" style={styles.logoImg} />
+            <div style={styles.logoBadge}>
+              <img src={collaxionLogo} alt="Logo" style={styles.logoImg} />
+            </div>
             {!collapsed && (
               <motion.h2
                 initial={{ opacity: 0 }}
@@ -1270,33 +1475,33 @@ const MainDashboardWeb = () => {
           <motion.button
             onClick={toggleSidebar}
             style={styles.toggleBtn}
+            whileHover={{ background: "rgba(255,255,255,0.12)" }}
             whileTap={{ scale: 0.9 }}
           >
-            <Menu size={20} />
+            <Menu size={18} />
           </motion.button>
         </div>
 
         <nav style={styles.nav}>
           {[
+            ["Industry Registrations", Building2,     "/industry-registrations" ],
             ["Manage MOUs",            FileSignature, "/mou-management"          ],
             ["Nearby Industries",      MapPin,        "/nearby-industries"       ],
-            ["Internships & Projects", GraduationCap, "/industry-projects"      ],
+            ["Industry Projects",      Briefcase,     "/industry-projects"      ],
             ["Student Applications",   ClipboardList, "/student-applications"   ],
-            ["Industry Registrations", Building2,     "/industry-registrations" ],
-            ["Event Creation",         CalendarCog,   "/event-creation"         ],
             ["Advisory Meetings",      CalendarPlus,  "/AdvisoryMeetings"       ],
+            ["Event Creation",         CalendarCog,   "/event-creation"         ],
             ["Industry Engagement",    Network,       "/industry-activeness"    ],
             ["Ratings & Feedback",     BarChart3,     "/ratings-feedback"       ],
             ["System Settings",        Settings,      "/system-settings"        ],
           ].map(([label, Icon, path], i) => (
             <motion.div
               key={i}
-              whileHover={{
-                scale: 1.05,
-                background: "rgba(255,255,255,0.15)",
-              }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.05 * i, duration: 0.35 }}
+              whileHover="hover"
+              whileTap={{ scale: 0.97 }}
               style={{
                 ...styles.navItem,
                 justifyContent: collapsed ? "center" : "flex-start",
@@ -1304,34 +1509,110 @@ const MainDashboardWeb = () => {
               }}
               onClick={() => path && navigate(path)}
             >
-              <Icon size={18} style={styles.icon} />
-              {!collapsed && <span>{label}</span>}
+              {/* Hover rail */}
+              <motion.span
+                aria-hidden
+                style={styles.navRail}
+                variants={{
+                  hover: { opacity: 1, scaleY: 1 },
+                }}
+                initial={{ opacity: 0, scaleY: 0.2 }}
+                transition={{ duration: 0.25 }}
+              />
+              {/* Hover background */}
+              <motion.span
+                aria-hidden
+                style={styles.navBg}
+                variants={{
+                  hover: { opacity: 1 },
+                }}
+                initial={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+              />
+              <span style={styles.navIconWrap}><Icon size={18} style={styles.icon} /></span>
+              {!collapsed && <span style={styles.navLabel}>{label}</span>}
             </motion.div>
           ))}
         </nav>
 
-        <motion.div
-          whileHover={{ scale: 1.05, color: "#fff" }}
-          style={{
-            ...styles.logout,
-            justifyContent: collapsed ? "center" : "flex-start",
-          }}
-          onClick={handleLogout}
-        >
-          <LogOut size={16} style={styles.icon} />
-          {!collapsed && <span>Logout</span>}
-        </motion.div>
+        <div style={styles.sidebarFooter}>
+          {!collapsed && (
+            <motion.div
+              style={styles.sidebarProfile}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <img src={laisonAvatar} alt="Profile" style={styles.sidebarProfileImg} />
+              <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                <span style={styles.sidebarProfileName}>Ms. Tazzaina</span>
+                <span style={styles.sidebarProfileRole}>Liaison Incharge</span>
+              </div>
+              <span style={styles.statusDot} />
+            </motion.div>
+          )}
+          <motion.div
+            whileHover={{ scale: 1.04, color: "#fff" }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              ...styles.logout,
+              justifyContent: collapsed ? "center" : "flex-start",
+            }}
+            onClick={handleLogout}
+          >
+            <LogOut size={16} style={styles.icon} />
+            {!collapsed && <span>Logout</span>}
+          </motion.div>
+        </div>
       </motion.aside>
 
       {/* ===== Main Area ===== */}
       <main style={styles.main}>
+        {/* Ambient decorative blobs (purely visual) */}
+        <motion.div
+          aria-hidden
+          style={{ ...styles.ambientBlob, ...styles.ambientBlobA }}
+          animate={{ x: [0, 25, 0], y: [0, -20, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          style={{ ...styles.ambientBlob, ...styles.ambientBlobB }}
+          animate={{ x: [0, -30, 0], y: [0, 25, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          aria-hidden
+          style={{ ...styles.ambientBlob, ...styles.ambientBlobC }}
+          animate={{ scale: [1, 1.08, 1] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+
         <motion.div
           style={styles.topbar}
           initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 style={styles.title}>CollaXion Admin Dashboard</h1>
+          <div style={styles.titleWrap}>
+            <motion.div
+              style={styles.titleAccent}
+              initial={{ height: 0 }}
+              animate={{ height: 36 }}
+              transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+            />
+            <div>
+              <motion.span
+                style={styles.eyebrow}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <Sparkles size={12} /> Industry Liaison Incharge
+              </motion.span>
+              <h1 style={styles.title}>Industry Collaboration Hub</h1>
+            </div>
+          </div>
 
           <div style={styles.topRight}>
             {/* ── Bell ── */}
@@ -1339,12 +1620,12 @@ const MainDashboardWeb = () => {
               <motion.button
                 style={styles.bellBtn}
                 whileTap={{ scale: 0.9 }}
-                whileHover={{ background: "#EFF6FF" }}
+                whileHover={{ background: "#E2EEF9" }}
                 onClick={() => setShowNotifs((v) => !v)}
               >
                 <Bell
                   size={20}
-                  color={showNotifs ? "#1D4ED8" : "#193648"}
+                  color={showNotifs ? "#3A70B0" : "#193648"}
                 />
                 <AnimatePresence>
                   {unreadCount > 0 && (
@@ -1380,36 +1661,63 @@ const MainDashboardWeb = () => {
             </div>
 
             {/* User Greeting */}
-            <div style={styles.userBox}>
-              <motion.span
-                style={styles.wavingHand}
-                animate={{ rotate: [0, 15, -10, 15, 0] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatDelay: 2,
-                }}
-              >
-                👋
-              </motion.span>
-              <span style={styles.username}>Welcome, Ms.Tazzaina</span>
-            </div>
+            <motion.div
+              style={styles.userBox}
+              whileHover={{ y: -1, boxShadow: "0 12px 28px rgba(25,54,72,0.18)" }}
+              transition={{ duration: 0.25 }}
+            >
+              <div style={styles.avatarRing}>
+                <img src={laisonAvatar} alt="Ms. Tazzaina" style={styles.avatarImg} />
+                <span style={styles.avatarStatus} />
+              </div>
+              <div style={styles.userTextWrap}>
+                <span style={styles.username}>
+                  Ms. Tazzaina
+                  <motion.span
+                    style={styles.wavingHand}
+                    animate={{ rotate: [0, 15, -10, 15, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                  >
+                    👋
+                  </motion.span>
+                </span>
+                <span style={styles.userRole}>Industry Liaison Incharge</span>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
 
-        <p style={styles.subtitle}>
+        <motion.p
+          style={styles.subtitle}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+        >
           Monitor and manage all collaboration activities between Universities
           &amp; Industries
-        </p>
+        </motion.p>
+
+        {/* 3 × 3 grid — perfect for 9 modules, scales down gracefully on smaller screens */}
+        <style>{`
+          .cx-cards-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+          }
+          @media (min-width: 720px)  { .cx-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+          @media (min-width: 1080px) { .cx-cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        `}</style>
 
         {/* Dashboard Cards */}
         <motion.section
-          style={styles.cardsGrid}
+          className="cx-cards-grid"
           initial="hidden"
           animate="visible"
           variants={{
             hidden:   { opacity: 0 },
-            visible:  { opacity: 1, transition: { staggerChildren: 0.1 } },
+            visible:  { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.5 } },
           }}
         >
           {cardData.map((card) => {
@@ -1418,33 +1726,153 @@ const MainDashboardWeb = () => {
             return (
               <motion.div
                 key={card.id}
+                variants={{
+                  hidden:  { opacity: 0, y: 24, scale: 0.96 },
+                  visible: { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 220, damping: 22 } },
+                }}
                 onMouseEnter={() => setHoveredCard(card.id)}
                 onMouseLeave={() => setHoveredCard(null)}
                 onClick={() => {
                   setActiveCard(card.id);
                   if (card.route) navigate(card.route);
                 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ y: -6 }}
                 whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.25 }}
                 style={{
                   ...styles.card,
-                  background: isActive
-                    ? "#193648"
+                  color: isActive ? "#fff" : "#193648",
+                  boxShadow: isActive
+                    ? `0 22px 48px ${card.accent}66, 0 0 0 1px ${card.accent}40 inset`
                     : isHovered
-                    ? "#E2EEF9"
+                    ? `0 22px 44px ${card.accent}38, 0 2px 0 #fff inset`
+                    : "0 8px 24px rgba(25,54,72,0.10), 0 1px 0 rgba(255,255,255,0.6) inset",
+                  borderColor: isActive ? card.accent : isHovered ? `${card.accent}55` : "#E2EEF9",
+                  background: isActive
+                    ? `linear-gradient(160deg, ${card.accent} 0%, ${card.accent}cc 100%)`
                     : "#fff",
-                  color:      isActive ? "#fff" : "#193648",
-                  boxShadow:  isHovered
-                    ? "0 12px 30px rgba(0,0,0,0.15)"
-                    : "0 6px 15px rgba(0,0,0,0.08)",
                 }}
               >
-                <div style={{ color: isActive ? "#fff" : "#193648" }}>
+                {/* Soft module-themed background sheen */}
+                <div
+                  aria-hidden
+                  style={{
+                    ...styles.cardThemeWash,
+                    background: card.gradient,
+                    opacity: isActive ? 0 : isHovered ? 0.85 : 0.6,
+                  }}
+                />
+
+                {/* Top-right radial highlight */}
+                <div
+                  aria-hidden
+                  style={{
+                    ...styles.cardHighlight,
+                    opacity: isActive ? 0.35 : isHovered ? 0.7 : 0.45,
+                  }}
+                />
+
+                {/* Big watermark glyph in the corner */}
+                <motion.span
+                  aria-hidden
+                  style={{
+                    ...styles.cardGlyph,
+                    color: isActive ? "rgba(255,255,255,0.22)" : `${card.accent}33`,
+                  }}
+                  animate={
+                    isHovered
+                      ? { rotate: [0, 6, -3, 0], scale: 1.08 }
+                      : { rotate: 0, scale: 1 }
+                  }
+                  transition={{
+                    duration: 1.6,
+                    repeat: isHovered ? Infinity : 0,
+                    ease: "easeInOut",
+                  }}
+                >
+                  {card.glyph}
+                </motion.span>
+
+                {/* Top accent gradient bar */}
+                <motion.div
+                  style={{
+                    ...styles.cardAccent,
+                    background: isActive
+                      ? "linear-gradient(90deg, #fff, rgba(255,255,255,0.35))"
+                      : `linear-gradient(90deg, ${card.accent}, #3A70B0)`,
+                  }}
+                  initial={{ scaleX: 0.2 }}
+                  animate={{ scaleX: isHovered || isActive ? 1 : 0.5 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                />
+
+                {/* Tag chip — solid for punch */}
+                <span
+                  style={{
+                    ...styles.cardTag,
+                    background: isActive
+                      ? "rgba(255,255,255,0.22)"
+                      : card.accent,
+                    color: "#fff",
+                    borderColor: isActive
+                      ? "rgba(255,255,255,0.32)"
+                      : card.accent,
+                    boxShadow: isActive
+                      ? "none"
+                      : `0 4px 10px ${card.accent}35`,
+                  }}
+                >
+                  {card.tag}
+                </span>
+
+                {/* Icon halo — solid navy gradient with white icon */}
+                <motion.div
+                  style={{
+                    ...styles.iconHalo,
+                    background: isActive
+                      ? "rgba(255,255,255,0.22)"
+                      : `linear-gradient(135deg, ${card.accent} 0%, #3A70B0 100%)`,
+                    color: "#fff",
+                    boxShadow: isActive
+                      ? "0 0 0 1px rgba(255,255,255,0.25) inset"
+                      : `0 12px 24px ${card.accent}55, 0 0 0 1px ${card.accent}30`,
+                  }}
+                  animate={
+                    isHovered
+                      ? { y: [0, -5, 0] }
+                      : { y: 0 }
+                  }
+                  transition={{
+                    duration: 2.4,
+                    repeat: isHovered ? Infinity : 0,
+                    ease: "easeInOut",
+                  }}
+                >
                   {card.icon}
-                </div>
+                </motion.div>
+
                 <h3 style={styles.cardTitle}>{card.title}</h3>
-                <p style={styles.cardDesc}>{card.desc}</p>
+                <p style={{
+                  ...styles.cardDesc,
+                  color: isActive ? "rgba(255,255,255,0.82)" : "#5b7184",
+                }}>{card.desc}</p>
+
+                {/* Hover arrow chip */}
+                <motion.div
+                  style={{
+                    ...styles.cardArrow,
+                    background: isActive ? "rgba(255,255,255,0.22)" : `${card.accent}18`,
+                    color:      isActive ? "#fff" : card.accent,
+                  }}
+                  initial={false}
+                  animate={{
+                    opacity: isHovered || isActive ? 1 : 0,
+                    x:       isHovered || isActive ? 0 : 8,
+                  }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <ArrowUpRight size={14} />
+                </motion.div>
               </motion.div>
             );
           })}
@@ -1463,44 +1891,149 @@ const styles = {
     background: "linear-gradient(135deg, #E2EEF9 0%, #FFFFFF 100%)",
   },
   sidebar: {
-    background: "#193648",
+    background:
+      "linear-gradient(180deg, #0F2A38 0%, #193648 45%, #1F4159 100%)",
     color: "#fff",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    padding: "20px 15px",
-    boxShadow: "4px 0 20px rgba(0,0,0,0.2)",
+    padding: "20px 14px",
+    boxShadow: "4px 0 30px rgba(15,42,56,0.35)",
     transition: "all 0.3s ease",
+    position: "relative",
+    overflow: "hidden",
+  },
+  sidebarGlow: {
+    position: "absolute",
+    top: -120,
+    left: -100,
+    width: 280,
+    height: 280,
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(226,238,249,0.25) 0%, rgba(226,238,249,0) 70%)",
+    filter: "blur(20px)",
+    pointerEvents: "none",
+    zIndex: 0,
   },
   sidebarHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "30px",
+    marginBottom: 18,
+    position: "relative",
+    zIndex: 1,
   },
   logoContainer: { display: "flex", alignItems: "center", gap: "10px" },
-  logoImg:   { width: "35px", height: "35px", borderRadius: "50%" },
-  logoText:  { fontSize: "1.5rem", fontWeight: "700", color: "#fff" },
-  logoC:     { color: "#fff", fontSize: "1.7rem" },
-  logoX:     { color: "#fff" },
+  logoBadge: {
+    width: 42, height: 42,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.10)",
+    border: "1px solid rgba(255,255,255,0.18)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    boxShadow: "0 6px 16px rgba(15,42,56,0.4)",
+    flexShrink: 0,
+  },
+  logoImg:   { width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" },
+  logoText:  { fontSize: "1.45rem", fontWeight: "800", color: "#fff", margin: 0, letterSpacing: "-0.01em" },
+  logoC:     { color: "#fff", fontSize: "1.6rem" },
+  logoX:     { color: "#E2EEF9" },
   toggleBtn: {
-    background: "transparent",
-    border: "none",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.10)",
+    borderRadius: 10,
+    width: 32, height: 32,
     color: "#fff",
     cursor: "pointer",
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    transition: "background 0.2s ease",
   },
-  nav:     { display: "flex", flexDirection: "column", gap: "12px" },
+  nav:     { display: "flex", flexDirection: "column", gap: "6px", position: "relative", zIndex: 1 },
   navItem: {
+    position: "relative",
     display: "flex",
     alignItems: "center",
-    gap: "15px",
+    gap: "13px",
     cursor: "pointer",
     fontWeight: "500",
+    fontSize: "0.92rem",
     color: "#d8e4f5",
-    borderRadius: "10px",
-    transition: "all 0.3s ease",
+    borderRadius: "12px",
+    transition: "color 0.25s ease",
+    overflow: "hidden",
   },
+  navRail: {
+    position: "absolute",
+    left: 0,
+    top: "18%",
+    bottom: "18%",
+    width: 3,
+    borderRadius: 4,
+    background: "linear-gradient(180deg, #E2EEF9, #AAC3FC)",
+    boxShadow: "0 0 14px rgba(226,238,249,0.45)",
+    transformOrigin: "center",
+  },
+  navBg: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(90deg, rgba(226,238,249,0.14), rgba(226,238,249,0))",
+    borderRadius: 12,
+  },
+  navIconWrap: {
+    position: "relative",
+    zIndex: 1,
+    display: "inline-flex",
+    width: 26,
+    justifyContent: "center",
+  },
+  navLabel: { position: "relative", zIndex: 1 },
   icon: { color: "#AAC3FC" },
+  sidebarFooter: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    paddingTop: 10,
+    position: "relative",
+    zIndex: 1,
+  },
+  sidebarProfile: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 12px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.10)",
+    backdropFilter: "blur(6px)",
+  },
+  sidebarProfileImg: {
+    width: 36,
+    height: 36,
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid rgba(255,255,255,0.25)",
+    flexShrink: 0,
+  },
+  sidebarProfileName: {
+    fontSize: "0.85rem",
+    fontWeight: 700,
+    color: "#fff",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  sidebarProfileRole: {
+    fontSize: "0.68rem",
+    color: "#AAC3FC",
+    fontWeight: 500,
+  },
+  statusDot: {
+    width: 9, height: 9, borderRadius: "50%",
+    background: "#22C55E",
+    boxShadow: "0 0 0 3px rgba(34,197,94,0.25)",
+    marginLeft: "auto",
+    flexShrink: 0,
+  },
   logout: {
     display: "flex",
     alignItems: "center",
@@ -1508,28 +2041,87 @@ const styles = {
     color: "#AAC3FC",
     fontWeight: "500",
     cursor: "pointer",
-    borderTop: "1px solid rgba(255,255,255,0.2)",
-    paddingTop: "15px",
+    borderTop: "1px solid rgba(255,255,255,0.15)",
+    paddingTop: "13px",
+    transition: "color 0.2s",
   },
-  main:   { flex: 1, padding: "30px 50px", overflowY: "auto" },
+  main: {
+    flex: 1,
+    padding: "30px 50px",
+    overflowY: "auto",
+    position: "relative",
+    overflowX: "hidden",
+  },
+  ambientBlob: {
+    position: "absolute",
+    borderRadius: "50%",
+    filter: "blur(70px)",
+    opacity: 0.55,
+    pointerEvents: "none",
+    zIndex: 0,
+  },
+  ambientBlobA: {
+    width: 320, height: 320,
+    top: -120, right: -60,
+    background: "radial-gradient(circle, #CFE0F0 0%, rgba(207,224,240,0) 70%)",
+  },
+  ambientBlobB: {
+    width: 360, height: 360,
+    bottom: -140, left: 60,
+    background: "radial-gradient(circle, #E2EEF9 0%, rgba(226,238,249,0) 70%)",
+    opacity: 0.7,
+  },
+  ambientBlobC: {
+    width: 220, height: 220,
+    top: 220, left: "45%",
+    background: "radial-gradient(circle, rgba(58,112,176,0.18) 0%, rgba(58,112,176,0) 70%)",
+    opacity: 0.5,
+  },
   topbar: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    position: "relative",
+    zIndex: 50,
+  },
+  titleWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+  },
+  titleAccent: {
+    width: 4,
+    borderRadius: 4,
+    background: "linear-gradient(180deg, #193648, #3A70B0)",
+    boxShadow: "0 4px 12px rgba(25,54,72,0.2)",
+  },
+  eyebrow: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontSize: "0.72rem",
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    color: "#3A70B0",
+    background: "rgba(58,112,176,0.10)",
+    padding: "4px 10px",
+    borderRadius: 999,
+    marginBottom: 8,
   },
   topRight:    { display: "flex", alignItems: "center", gap: "14px" },
   bellWrap:    { position: "relative" },
   bellBtn: {
     position: "relative",
     background: "#fff",
-    border: "1.5px solid #E2E8F0",
+    border: "1.5px solid #E2EEF9",
     borderRadius: "12px",
     padding: "8px 10px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+    boxShadow: "0 4px 14px rgba(25,54,72,0.08)",
     transition: "background 0.2s",
   },
   badge: {
@@ -1550,31 +2142,221 @@ const styles = {
     border: "2px solid #fff",
     boxShadow: "0 2px 6px rgba(239,68,68,0.5)",
   },
-  userBox:     { display: "flex", alignItems: "center", gap: "10px" },
-  wavingHand:  { fontSize: "1.8rem" },
-  username:    { fontWeight: "500", color: "#193648", fontSize: "1.1rem" },
-  title:       { color: "#193648", fontSize: "1.8rem", fontWeight: "700" },
+  userBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "6px 14px 6px 6px",
+    background: "linear-gradient(135deg, #FFFFFF 0%, #F5F9FD 100%)",
+    border: "1.5px solid #E2EEF9",
+    borderRadius: 999,
+    boxShadow: "0 6px 20px rgba(25,54,72,0.08)",
+    cursor: "pointer",
+    transition: "box-shadow 0.25s ease, transform 0.25s ease",
+    minWidth: 240,
+  },
+  userTextWrap: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    lineHeight: 1.15,
+    gap: 3,
+  },
+  username: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontWeight: 800,
+    color: "#193648",
+    fontSize: "0.98rem",
+    whiteSpace: "nowrap",
+    letterSpacing: "-0.005em",
+  },
+  userRole: {
+    fontSize: "0.7rem",
+    color: "#7d8fa3",
+    fontWeight: 600,
+    letterSpacing: "0.02em",
+    whiteSpace: "nowrap",
+  },
+  wavingHand: { fontSize: "0.95rem", display: "inline-block" },
+  avatarRing: {
+    position: "relative",
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    padding: 2,
+    background: "linear-gradient(135deg, #193648 0%, #3A70B0 100%)",
+    flexShrink: 0,
+    boxShadow: "0 6px 14px rgba(25,54,72,0.25)",
+  },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid #fff",
+    display: "block",
+  },
+  avatarStatus: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    background: "#22C55E",
+    border: "2px solid #fff",
+  },
+  title:       { color: "#193648", fontSize: "1.85rem", fontWeight: "800", margin: 0, letterSpacing: "-0.01em" },
   subtitle: {
     color: "#3A70B0",
     fontSize: "1rem",
     marginTop: "10px",
-    marginBottom: "35px",
+    marginBottom: "26px",
+    position: "relative",
+    zIndex: 1,
   },
-  cardsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "25px",
+  sectionHead: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 18,
+    position: "relative",
+    zIndex: 1,
+  },
+  sectionHeadLeft: { display: "flex", alignItems: "center", gap: 10 },
+  sectionDot: {
+    width: 8, height: 8, borderRadius: "50%",
+    background: "linear-gradient(135deg, #193648, #3A70B0)",
+    boxShadow: "0 0 0 4px rgba(25,54,72,0.10)",
+  },
+  sectionTitle: {
+    fontSize: "0.78rem",
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "#193648",
+  },
+  sectionRule: {
+    flex: 1,
+    height: 1,
+    background: "linear-gradient(90deg, rgba(25,54,72,0.18), rgba(25,54,72,0))",
   },
   card: {
+    position: "relative",
     background: "#fff",
-    borderRadius: "18px",
-    padding: "25px",
-    textAlign: "center",
-    transition: "all 0.3s ease",
+    borderRadius: "22px",
+    padding: "28px 26px 26px",
+    border: "1px solid #EAF1F8",
+    transition: "background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
     cursor: "pointer",
+    overflow: "hidden",
+    minHeight: 230,
+    display: "flex",
+    flexDirection: "column",
   },
-  cardTitle: { marginTop: "12px", fontSize: "1.1rem", fontWeight: "600" },
-  cardDesc:  { fontSize: "0.9rem", opacity: 0.8, marginTop: "5px" },
+  cardAccent: {
+    position: "absolute",
+    top: 0, left: 0, right: 0,
+    height: 5,
+    transformOrigin: "left center",
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    zIndex: 2,
+  },
+  cardThemeWash: {
+    position: "absolute",
+    inset: 0,
+    pointerEvents: "none",
+    transition: "opacity 0.35s ease",
+    mixBlendMode: "multiply",
+  },
+  cardHighlight: {
+    position: "absolute",
+    top: -40,
+    right: -40,
+    width: 180,
+    height: 180,
+    borderRadius: "50%",
+    background:
+      "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 70%)",
+    pointerEvents: "none",
+    transition: "opacity 0.35s ease",
+  },
+  cardGlyph: {
+    position: "absolute",
+    right: -10,
+    bottom: -24,
+    fontSize: 150,
+    lineHeight: 1,
+    pointerEvents: "none",
+    transformOrigin: "center",
+    filter: "saturate(1.15)",
+  },
+  cardTag: {
+    position: "relative",
+    zIndex: 1,
+    alignSelf: "flex-start",
+    display: "inline-flex",
+    alignItems: "center",
+    fontSize: "0.65rem",
+    fontWeight: 800,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    padding: "5px 11px",
+    borderRadius: 999,
+    border: "1px solid",
+    marginBottom: 16,
+    width: "fit-content",
+    transition: "background 0.25s ease, box-shadow 0.25s ease",
+  },
+  cardSweep: {
+    position: "absolute",
+    inset: 0,
+    background:
+      "radial-gradient(circle at 100% 0%, rgba(58,112,176,0.10) 0%, rgba(58,112,176,0) 55%)",
+    pointerEvents: "none",
+  },
+  iconHalo: {
+    position: "relative",
+    zIndex: 1,
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+    transition: "background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease",
+  },
+  cardTitle: {
+    position: "relative",
+    zIndex: 1,
+    marginTop: "10px",
+    fontSize: "1.18rem",
+    fontWeight: 800,
+    letterSpacing: "-0.01em",
+  },
+  cardDesc: {
+    position: "relative",
+    zIndex: 1,
+    fontSize: "0.92rem",
+    marginTop: "6px",
+    lineHeight: 1.55,
+  },
+  cardArrow: {
+    position: "absolute",
+    top: 18,
+    right: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "background 0.25s ease",
+  },
 };
 
 export default MainDashboardWeb;
