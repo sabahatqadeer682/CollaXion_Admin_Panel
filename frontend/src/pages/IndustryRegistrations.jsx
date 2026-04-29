@@ -369,8 +369,8 @@ export default function IndustryRegistrations() {
       >
         <div style={s.headerLeft}>
           <div>
-            <h1 style={s.title}>Industry Registration Requests</h1>
-            <p style={s.subtitle}>Review and manage incoming industry registrations</p>
+            <h1 style={s.title}>Company Registration Requests</h1>
+            <p style={s.subtitle}>Review and manage incoming company registrations</p>
           </div>
         </div>
         <button style={s.refreshBtn} onClick={fetchRegistrations} disabled={loading}>

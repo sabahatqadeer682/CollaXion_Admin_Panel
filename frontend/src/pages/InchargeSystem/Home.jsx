@@ -92,7 +92,7 @@ const useTilt = (max = 7) => {
     const r = el.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width - 0.5;
     const y = (e.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(900px) rotateX(${-y * max}deg) rotateY(${x * max}deg) translateY(-10px) scale(1.01)`;
+    el.style.transform = `perspective(900px) rotateX(${-y * max}deg) rotateY(${x * max}deg) translateY(-12px) scale(1.02)`;
     el.style.setProperty("--mx", `${(x + 0.5) * 100}%`);
     el.style.setProperty("--my", `${(y + 0.5) * 100}%`);
   };
@@ -158,6 +158,42 @@ const pulse = keyframes`
 const shine = keyframes`
   0%   { background-position: -220px 0; }
   100% { background-position:  220px 0; }
+`;
+
+const letterIn = keyframes`
+  0%   { opacity: 0; transform: translateY(60px) rotateX(80deg) scale(0.6); filter: blur(8px); }
+  60%  { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: none; }
+`;
+
+const accentGradientPan = keyframes`
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+`;
+
+const caretBlink = keyframes`
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+`;
+
+const accentGlow = keyframes`
+  0%, 100% { text-shadow: 0 0 0 rgba(58,112,176,0); }
+  50%      { text-shadow: 0 0 22px rgba(58,112,176,0.45); }
+`;
+
+const eyebrowIn = keyframes`
+  0%   { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+`;
+
+const subShine = keyframes`
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+`;
+
+const subIn = keyframes`
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 `;
 
 const arrowSlide = keyframes`
@@ -424,6 +460,8 @@ const Eyebrow = styled.div`
   text-transform: uppercase;
   box-shadow: 0 6px 20px rgba(25,54,72,0.06);
   margin-bottom: 18px;
+  opacity: 0;
+  animation: ${eyebrowIn} 0.6s 0.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 `;
 
 const SparkleIcon = styled.span`
@@ -434,26 +472,57 @@ const SparkleIcon = styled.span`
 const Heading = styled.h1`
   font-size: clamp(2.2rem, 4.4vw, 3.4rem);
   font-weight: 900;
-  margin: 0 0 12px 0;
+  margin: 0 0 14px 0;
   color: #193648;
   letter-spacing: -0.025em;
-  line-height: 1.05;
+  line-height: 1.08;
+  perspective: 800px;
+`;
+
+const HeadingWord = styled.span`
+  display: inline-block;
+  white-space: nowrap;
+`;
+
+const HeadingLetter = styled.span`
+  display: inline-block;
+  opacity: 0;
+  animation: ${letterIn} 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: ${({ $delay }) => $delay || "0s"};
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
 `;
 
 const HeadingAccent = styled.span`
-  background: linear-gradient(135deg, #3A70B0 0%, #193648 100%);
-  -webkit-background-clip: text;
-          background-clip: text;
-  -webkit-text-fill-color: transparent;
-          color: transparent;
+  color: #193648;
+  display: inline-block;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+`;
+
+const HeadingCaret = styled.span`
+  display: inline-block;
+  width: 4px;
+  height: 0.85em;
+  background: #193648;
+  vertical-align: -0.10em;
+  margin-left: 8px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: ${eyebrowIn} 0.5s 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+             ${caretBlink} 1s 2.7s steps(1, end) infinite;
 `;
 
 const SubHeading = styled.p`
   font-size: 1.05rem;
-  color: #3A70B0;
+  color: #193648;
   margin: 0 0 56px 0;
   letter-spacing: 0.01em;
   font-weight: 500;
+  opacity: 0;
+  animation: ${subIn} 0.7s 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 `;
 
 const Shimmer = styled.span`
@@ -501,9 +570,11 @@ const RoleCard = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 320px;
+  gap: 14px;
+  min-height: 280px;
   will-change: transform;
   backdrop-filter: blur(6px);
+  transform-style: preserve-3d;
 
   /* Top accent bar - uses role accent if provided */
   &::before {
@@ -535,12 +606,17 @@ const RoleCard = styled.div`
   }
 
   &:hover {
-    transform: translateY(-8px);
     border-color: rgba(58,112,176,0.40);
-    box-shadow: 0 22px 44px rgba(25,54,72,0.14), 0 2px 6px rgba(25,54,72,0.06);
+    box-shadow: 0 30px 56px rgba(25,54,72,0.20), 0 4px 12px rgba(25,54,72,0.08);
   }
   &:hover::before { transform: scaleX(1); }
   &:hover::after  { opacity: 1; }
+`;
+
+const Card3DLayer = styled.div`
+  transform: translateZ(0);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  ${RoleCard}:hover & { transform: translateZ(${({ $z }) => $z || 30}px); }
 `;
 
 // Light shine sweep visible on hover
@@ -581,8 +657,8 @@ const HaloMask = styled.span`
 
 const IconHalo = styled.div`
   position: relative;
-  width: 92px;
-  height: 92px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -593,9 +669,12 @@ const IconHalo = styled.div`
 `;
 
 const Illustration = styled.img`
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 18px rgba(25,54,72,0.22);
   animation: ${float} 3.4s ease-in-out infinite;
   position: relative;
   z-index: 3;
@@ -614,7 +693,7 @@ const Tag = styled.span`
     $bg || "linear-gradient(135deg, #193648 0%, #3A70B0 100%)"};
   padding: 5px 12px;
   border-radius: 999px;
-  margin-bottom: 10px;
+  margin: 0;
   box-shadow: 0 6px 14px rgba(25,54,72,0.22);
 
   & svg { stroke-width: 2.5; }
@@ -655,7 +734,7 @@ const LiveDot = styled.span`
 const CardTitle = styled.h2`
   font-size: 1.18rem;
   color: #193648;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
   font-weight: 800;
   letter-spacing: -0.005em;
   text-align: center;
@@ -672,12 +751,11 @@ const CardDescription = styled.p`
 
 const ContinueRow = styled.div`
   margin-top: auto;
-  padding-top: 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #193648 0%, #2C5F80 100%);
   color: #fff;
   font-size: 0.78rem;
@@ -730,6 +808,7 @@ const StatsRow = styled.div`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
+  perspective: 1200px;
 
   @media (max-width: 820px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 `;
@@ -746,6 +825,11 @@ const StatTile = styled.div`
   overflow: hidden;
   animation: ${countUp} 0.7s ease both;
   animation-delay: ${({ $delay }) => $delay || "0s"};
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.4s ease, border-color 0.4s ease;
+  cursor: default;
+  will-change: transform;
 
   &::before {
     content: "";
@@ -757,7 +841,31 @@ const StatTile = styled.div`
     animation: ${shine} 4s linear infinite;
   }
 
-  &:hover { transform: translateY(-3px); transition: transform 0.3s ease; }
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at var(--mx, 50%) var(--my, 50%),
+      rgba(58,112,176,0.18) 0%,
+      rgba(58,112,176,0) 55%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  &:hover {
+    box-shadow: 0 22px 42px rgba(25,54,72,0.18);
+    border-color: rgba(58,112,176,0.35);
+  }
+  &:hover::after { opacity: 1; }
+`;
+
+const StatTileLayer = styled.div`
+  transform: translateZ(0);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  ${StatTile}:hover & { transform: translateZ(${({ $z }) => $z || 24}px); }
 `;
 
 const StatHead = styled.div`
@@ -1121,44 +1229,68 @@ const FeatureDesc = styled.p`
 `;
 
 // ── Partner categories chip strip ───────────────────────────────────────────
+const programMarqueeScroll = keyframes`
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+`;
+
 const CategoriesSection = styled.section`
   margin: 64px auto 0;
-  max-width: 1080px;
+  max-width: 1280px;
   width: 100%;
   position: relative;
   z-index: 1;
 `;
 
-const CategoryRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+const ProgramMarqueeViewport = styled.div`
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
 `;
 
-const CategoryChip = styled.span`
+const ProgramMarqueeTrack = styled.div`
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  animation: ${programMarqueeScroll} ${({ $speed }) => $speed || "32s"} linear infinite;
+  animation-direction: ${({ $reverse }) => ($reverse ? "reverse" : "normal")};
+
+  ${ProgramMarqueeViewport}:hover & { animation-play-state: paused; }
+`;
+
+const MarqueePill = styled.span`
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
+  gap: 10px;
+  padding: 12px 22px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.78);
+  background: rgba(255,255,255,0.85);
   border: 1px solid #E2EEF9;
   color: #193648;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  box-shadow: 0 6px 18px rgba(25,54,72,0.05);
-  backdrop-filter: blur(6px);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 18px rgba(25,54,72,0.06);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s ease, border-color 0.3s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    border-color: rgba(58,112,176,0.55);
-    box-shadow: 0 12px 26px rgba(25,54,72,0.12);
+    transform: scale(1.08);
+    border-color: #3A70B0;
+    box-shadow: 0 12px 26px rgba(25,54,72,0.16);
   }
+`;
 
-  & svg { stroke-width: 2; color: #3A70B0; }
+const MarqueePillStrong = styled(MarqueePill)`
+  background: linear-gradient(135deg, #193648 0%, #3A70B0 100%);
+  color: #fff;
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 10px 22px rgba(25,54,72,0.30);
 `;
 
 const CategoryDot = styled.span`
@@ -1442,25 +1574,51 @@ const FooterDot = styled.span`
   animation: ${drift3} 4s ease-in-out infinite;
 `;
 
-// ── Animated stat tile with count-up ─────────────────────────────────────────
+// ── Animated stat tile with count-up + 3D mouse-tilt ────────────────────────
 const AnimatedStat = ({ Icon, value, suffix, label, delay }) => {
-  const [n, ref] = useCountUp(value);
+  const [n, countRef] = useCountUp(value);
+  const tileRef = useRef(null);
+  // Merge refs (count-up needs the same DOM node for IntersectionObserver)
+  const setRefs = (el) => {
+    tileRef.current = el;
+    if (typeof countRef === "function") countRef(el);
+    else if (countRef && "current" in countRef) countRef.current = el;
+  };
+  const onMouseMove = (e) => {
+    const el = tileRef.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width  - 0.5;
+    const py = (e.clientY - r.top)  / r.height - 0.5;
+    el.style.transform = `perspective(900px) rotateX(${py * -10}deg) rotateY(${px * 10}deg) translateY(-4px) scale(1.02)`;
+    el.style.setProperty("--mx", `${(px + 0.5) * 100}%`);
+    el.style.setProperty("--my", `${(py + 0.5) * 100}%`);
+  };
+  const onMouseLeave = () => {
+    const el = tileRef.current; if (!el) return;
+    el.style.transform = "";
+    el.style.setProperty("--mx", "50%");
+    el.style.setProperty("--my", "50%");
+  };
   return (
-    <StatTile ref={ref} $delay={delay}>
-      <StatHead>
-        <StatIconBox><Icon size={16} /></StatIconBox>
-        <StatLabel style={{ marginTop: 0 }}>{label}</StatLabel>
-      </StatHead>
-      <StatNumber>
-        {n.toLocaleString()}<StatPlus>{suffix}</StatPlus>
-      </StatNumber>
+    <StatTile ref={setRefs} $delay={delay} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
+      <StatTileLayer $z={36}>
+        <StatHead>
+          <StatIconBox><Icon size={16} /></StatIconBox>
+          <StatLabel style={{ marginTop: 0 }}>{label}</StatLabel>
+        </StatHead>
+      </StatTileLayer>
+      <StatTileLayer $z={20}>
+        <StatNumber>
+          {n.toLocaleString()}<StatPlus>{suffix}</StatPlus>
+        </StatNumber>
+      </StatTileLayer>
     </StatTile>
   );
 };
 
 // ── Tilted role card (mouse-tracked 3D) ──────────────────────────────────────
 const TiltRoleCard = ({ role, $delay, onClick }) => {
-  const tilt = useTilt(6);
+  const tilt = useTilt(14);
   return (
     <RoleCard
       ref={tilt.ref}
@@ -1472,34 +1630,42 @@ const TiltRoleCard = ({ role, $delay, onClick }) => {
       $glow={role.glow}
     >
       <Sweep />
-      <div style={{ position: "relative", marginBottom: 14 }}>
+      <Card3DLayer $z={70} style={{ position: "relative" }}>
         <HaloRing />
         <HaloMask />
         <IconHalo>
           <Illustration src={role.img} alt={role.title} />
         </IconHalo>
-      </div>
-      <Tag $bg={role.tagBg}>
-        {role.Icon && <role.Icon size={11} />}
-        {role.tag}
-      </Tag>
-      <CardTitle>{role.title}</CardTitle>
-      <CardDescription>{role.description}</CardDescription>
+      </Card3DLayer>
+      <Card3DLayer $z={42}>
+        <Tag $bg={role.tagBg}>
+          {role.Icon && <role.Icon size={11} />}
+          {role.tag}
+        </Tag>
+      </Card3DLayer>
+      <Card3DLayer $z={32} style={{ width: "100%" }}>
+        <CardTitle>{role.title}</CardTitle>
+        <CardDescription>{role.description}</CardDescription>
+      </Card3DLayer>
       {role.bullets && (
-        <CardBullets>
-          {role.bullets.map((b, i) => (
-            <Bullet key={i}>
-              <b.Icon size={14} />
-              {b.t}
-            </Bullet>
-          ))}
-        </CardBullets>
+        <Card3DLayer $z={20} style={{ width: "100%" }}>
+          <CardBullets>
+            {role.bullets.map((b, i) => (
+              <Bullet key={i}>
+                <b.Icon size={14} />
+                {b.t}
+              </Bullet>
+            ))}
+          </CardBullets>
+        </Card3DLayer>
       )}
-      <ContinueRow>
-        <LiveDot />
-        <span>Continue</span>
-        <ArrowRight size={14} />
-      </ContinueRow>
+      <Card3DLayer $z={48}>
+        <ContinueRow>
+          <LiveDot />
+          <span>Continue</span>
+          <ArrowRight size={14} />
+        </ContinueRow>
+      </Card3DLayer>
     </RoleCard>
   );
 };
@@ -1514,50 +1680,35 @@ const Home = () => {
     {
       title: "Industry Liaison Incharge",
       tag:   "Partnerships",
-      description: "Manage partnerships, MOUs, and strategic collaborations with industry partners.",
+      description: "Partnerships, MOUs & industry collaborations.",
       path: "/login",
-      img: "/gifs/handshake.gif",
+      img: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=600&q=80",
       Icon: Handshake,
       tagBg: "linear-gradient(135deg, #193648 0%, #3A70B0 100%)",
       accent: "linear-gradient(90deg, #193648, #3A70B0, #193648)",
       glow: "radial-gradient(circle, rgba(58,112,176,0.28) 0%, rgba(58,112,176,0) 70%)",
-      bullets: [
-        { Icon: Building2,     t: "Verified partner directory" },
-        { Icon: FileSignature, t: "MOU drafting & e-stamping" },
-        { Icon: BellRing,      t: "Liaison notifications" },
-      ],
     },
     {
       title: "Internship Incharge",
       tag:   "Placements",
-      description: "Oversee internships, applications, and career-readiness programs efficiently.",
+      description: "Internships, applications & placements.",
       path: "/internship-login",
-      img: "/gifs/evaluate.gif",
+      img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=600&q=80",
       Icon: Briefcase,
       tagBg: "linear-gradient(135deg, #2C5F80 0%, #3A70B0 100%)",
       accent: "linear-gradient(90deg, #2C5F80, #3A70B0, #2C5F80)",
       glow: "radial-gradient(circle, rgba(44,95,128,0.28) 0%, rgba(44,95,128,0) 70%)",
-      bullets: [
-        { Icon: Briefcase,     t: "Job postings & applications" },
-        { Icon: GraduationCap, t: "Faculty evaluations" },
-        { Icon: TrendingUp,    t: "Placement analytics" },
-      ],
     },
     {
       title: "Co-Curricular Incharge",
       tag:   "Engagement",
-      description: "Coordinate student events, activities, and on-campus engagement opportunities.",
+      description: "Events, activities & student engagement.",
       path: "/co-curricular-login",
-      img: "/gifs/calendar.gif",
+      img: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=600&q=80",
       Icon: CalendarDays,
       tagBg: "linear-gradient(135deg, #3A70B0 0%, #7AA9D6 100%)",
       accent: "linear-gradient(90deg, #3A70B0, #7AA9D6, #3A70B0)",
       glow: "radial-gradient(circle, rgba(122,169,214,0.32) 0%, rgba(122,169,214,0) 70%)",
-      bullets: [
-        { Icon: CalendarDays, t: "Event scheduling & RSVPs" },
-        { Icon: Users,        t: "Student participation" },
-        { Icon: Award,        t: "Post-event analytics" },
-      ],
     },
   ];
 
@@ -1590,8 +1741,38 @@ const Home = () => {
         <Eyebrow>
           <SparkleIcon>✦</SparkleIcon> Choose Your Workspace
         </Eyebrow>
-        <Heading>
-          Welcome to <HeadingAccent>CollaXion</HeadingAccent>
+        <Heading aria-label="Welcome to CollaXion">
+          {(() => {
+            const before = "Welcome";
+            const conn   = "to";
+            const accent = "CollaXion";
+            let i = 0;
+            const delay = (n) => `${0.35 + n * 0.05}s`;
+            return (
+              <>
+                <HeadingWord>
+                  {Array.from(before).map((ch, k) => (
+                    <HeadingLetter key={`a${k}`} $delay={delay(i++)}>{ch}</HeadingLetter>
+                  ))}
+                </HeadingWord>
+                {" "}
+                <HeadingWord>
+                  {Array.from(conn).map((ch, k) => (
+                    <HeadingLetter key={`b${k}`} $delay={delay(i++)}>{ch}</HeadingLetter>
+                  ))}
+                </HeadingWord>
+                {" "}
+                <HeadingAccent>
+                  <HeadingWord>
+                    {Array.from(accent).map((ch, k) => (
+                      <HeadingLetter key={`c${k}`} $delay={delay(i++)}>{ch}</HeadingLetter>
+                    ))}
+                  </HeadingWord>
+                </HeadingAccent>
+                <HeadingCaret aria-hidden />
+              </>
+            );
+          })()}
         </Heading>
         <SubHeading>
           <Shimmer>Select your role</Shimmer> to continue to your workspace
@@ -1658,35 +1839,61 @@ const Home = () => {
 
         <CategoriesSection>
           <SectionHeader>
-            <SectionEyebrow>Faculty of Computing · departments &amp; programs</SectionEyebrow>
+            <SectionEyebrow>Faculty of Computing · Programs</SectionEyebrow>
             <SectionTitle>
-              Every FoC program, <HeadingAccent>one connected workspace</HeadingAccent>
+              One workspace for <HeadingAccent>every program</HeadingAccent>
             </SectionTitle>
-            <SectionSubtitle>
-              CollaXion links each program inside Riphah&apos;s Faculty of Computing with verified industry partners - so liaison, internships, and engagement teams move together, semester after semester.
-            </SectionSubtitle>
           </SectionHeader>
-          <CategoryRow>
-            {[
+          {(() => {
+            const programs = [
               "Computer Science",
               "Software Engineering",
               "Artificial Intelligence",
               "Data Science",
               "Cyber Security",
               "Information Technology",
-              "Computing - MS / MPhil",
-              "Computing - PhD",
+              "MS / MPhil Computing",
+              "PhD Computing",
               "Final-Year Projects",
               "Industry Liaison Office",
-            ].map((c, i) => (
-              <CategoryChip key={i}>
-                <CategoryDot />
-                {c}
-              </CategoryChip>
-            ))}
-          </CategoryRow>
+            ];
+            // Duplicate so the loop can scroll seamlessly (translateX -50% returns to start).
+            const doubled = [...programs, ...programs];
+            return (
+              <>
+                <ProgramMarqueeViewport>
+                  <ProgramMarqueeTrack $speed="42s">
+                    {doubled.map((p, i) => {
+                      const Pill = i % 3 === 1 ? MarqueePillStrong : MarqueePill;
+                      return (
+                        <Pill key={`a${i}`}>
+                          <CategoryDot />
+                          {p}
+                        </Pill>
+                      );
+                    })}
+                  </ProgramMarqueeTrack>
+                </ProgramMarqueeViewport>
+                <ProgramMarqueeViewport>
+                  <ProgramMarqueeTrack $speed="50s" $reverse>
+                    {doubled.map((p, i) => {
+                      const Pill = i % 4 === 2 ? MarqueePillStrong : MarqueePill;
+                      return (
+                        <Pill key={`b${i}`}>
+                          <CategoryDot />
+                          {p}
+                        </Pill>
+                      );
+                    })}
+                  </ProgramMarqueeTrack>
+                </ProgramMarqueeViewport>
+              </>
+            );
+          })()}
         </CategoriesSection>
 
+        {false && (
+        <>
         <HowSection>
           <SectionHeader>
             <SectionEyebrow>How CollaXion Works at the Faculty of Computing</SectionEyebrow>
@@ -1832,6 +2039,8 @@ const Home = () => {
             ))}
           </StoryGrid>
         </FeaturedSection>
+        </>
+        )}
 
         <CtaBanner ref={ctaGlow.ref} onMouseMove={ctaGlow.onMouseMove}>
           <CtaTitle>Ready to connect FoC &amp; industry?</CtaTitle>

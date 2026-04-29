@@ -3034,8 +3034,90 @@ export default function CoCurricularDashboard() {
 
               {/* CHARTS ROW */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 22, marginBottom: 22 }}>
-                <div style={{
+              {/* ===== Cocu panel polish — open layout, no boxes ===== */}
+              <style>{`
+                @keyframes cocuPanelIn {
+                  0%   { opacity: 0; transform: translateY(14px); }
+                  100% { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes cocuRuleDraw {
+                  0%   { transform: scaleX(0); transform-origin: left; opacity: 0; }
+                  100% { transform: scaleX(1); transform-origin: left; opacity: 1; }
+                }
+                @keyframes cocuIconHover {
+                  0%, 100% { transform: translateY(0)    rotate(0deg); }
+                  50%      { transform: translateY(-3px) rotate(-4deg); }
+                }
+                /* Strip the boxy look entirely — open editorial layout */
+                .cocuPanel {
+                  position: relative;
+                  background: transparent !important;
+                  border: none !important;
+                  border-radius: 0 !important;
+                  box-shadow: none !important;
+                  padding: 28px 4px 18px 4px !important;
+                  opacity: 0;
+                  animation: cocuPanelIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                  overflow: visible !important;
+                  transition: background 0.35s ease, border-radius 0.35s ease;
+                }
+                /* Top accent rule — thin gradient line that draws in */
+                .cocuPanel::before {
+                  content: "";
+                  position: absolute;
+                  top: 0; left: 0;
+                  width: 56px; height: 3px;
+                  border-radius: 999px;
+                  background: linear-gradient(90deg, var(--accent, #3A70B0) 0%, rgba(170,195,252,0.55) 100%);
+                  animation: cocuRuleDraw 0.7s 0.15s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+                }
+                /* Shimmer sweep on hover */
+                @keyframes cocuShimmerSweep {
+                  0%   { transform: translateX(-110%); }
+                  100% { transform: translateX(110%); }
+                }
+                .cocuPanel::after {
+                  content: "";
+                  position: absolute; top: 0; bottom: 0; left: 0; width: 35%;
+                  background: linear-gradient(120deg, transparent 0%, rgba(170,195,252,0.20) 50%, transparent 100%);
+                  transform: translateX(-110%);
+                  pointer-events: none; z-index: 1;
+                }
+                .cocuPanel:hover::after {
+                  animation: cocuShimmerSweep 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                }
+                .cocuPanel { transform-style: preserve-3d; will-change: transform; }
+                .cocuPanel > * { position: relative; z-index: 2; transform-style: preserve-3d; }
+                /* Heading icon: round halo using accent, no box */
+                .cocuPanel .cocuHeadIcon {
+                  background: linear-gradient(135deg, var(--accent, #3A70B0) 0%, #7AA9D6 140%) !important;
+                  border-radius: 50% !important;
+                  box-shadow: 0 0 0 6px rgba(170,195,252,0.18), 0 8px 18px rgba(25,54,72,0.18) !important;
+                  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+                }
+                .cocuPanel:hover .cocuHeadIcon {
+                  animation: cocuIconHover 1.4s ease-in-out infinite;
+                  box-shadow: 0 0 0 9px rgba(170,195,252,0.22), 0 12px 22px rgba(25,54,72,0.24) !important;
+                }
+                /* Subtle hover halo — no border, no shadow box */
+                .cocuPanel:hover {
+                  background: radial-gradient(ellipse at top left, rgba(170,195,252,0.10), transparent 60%) !important;
+                  border-radius: 12px !important;
+                }
+              `}</style>
+                <div
+                  className="cocuPanel"
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width  - 0.5;
+                    const py = (e.clientY - r.top)  / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(1200px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-3px)`;
+                  }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0)"; }}
+                  style={{
                   position: "relative",
+                  "--accent": "#193648",
+                  animationDelay: "0.05s",
                   background: "linear-gradient(180deg, #ffffff, #fbfdff)",
                   border: "1px solid #E2EEF9", borderRadius: 18,
                   padding: "24px 28px",
@@ -3101,8 +3183,19 @@ export default function CoCurricularDashboard() {
                   <SimpleLineChart data={weeklyProgress} width={620} height={240} />
                 </div>
 
-                <div style={{
+                <div
+                  className="cocuPanel"
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width  - 0.5;
+                    const py = (e.clientY - r.top)  / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(1200px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-3px)`;
+                  }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0)"; }}
+                  style={{
                   position: "relative",
+                  "--accent": "#3A70B0",
+                  animationDelay: "0.15s",
                   background: "linear-gradient(180deg, #ffffff, #fbfdff)",
                   border: "1px solid #E2EEF9", borderRadius: 18,
                   padding: "24px 28px",
@@ -3162,8 +3255,19 @@ export default function CoCurricularDashboard() {
 
               {/* RECENT EVENTS + ALERTS */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 22 }}>
-                <div style={{
+                <div
+                  className="cocuPanel"
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width  - 0.5;
+                    const py = (e.clientY - r.top)  / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(1200px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-3px)`;
+                  }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0)"; }}
+                  style={{
                   position: "relative",
+                  "--accent": "#7AA9D6",
+                  animationDelay: "0.25s",
                   background: "linear-gradient(180deg, #ffffff, #fbfdff)",
                   border: "1px solid #E2EEF9", borderRadius: 18,
                   padding: "24px 28px",
@@ -3296,8 +3400,19 @@ export default function CoCurricularDashboard() {
                   </div>
                 </div>
 
-                <div style={{
+                <div
+                  className="cocuPanel"
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width  - 0.5;
+                    const py = (e.clientY - r.top)  / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(1200px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-3px)`;
+                  }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0)"; }}
+                  style={{
                   position: "relative",
+                  "--accent": "#be123c",
+                  animationDelay: "0.35s",
                   background: "linear-gradient(180deg, #ffffff, #fbfdff)",
                   border: "1px solid #E2EEF9", borderRadius: 18,
                   padding: "24px 28px",
@@ -3392,8 +3507,19 @@ export default function CoCurricularDashboard() {
               {/* QUICK ACTIONS + RECENT ACTIVITY */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 22, marginTop: 22 }}>
                 {/* Quick Actions */}
-                <div style={{
+                <div
+                  className="cocuPanel"
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width  - 0.5;
+                    const py = (e.clientY - r.top)  / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(1200px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-3px)`;
+                  }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0)"; }}
+                  style={{
                   position: "relative",
+                  "--accent": "#15803d",
+                  animationDelay: "0.45s",
                   background: "linear-gradient(180deg, #ffffff, #fbfdff)",
                   border: "1px solid #E2EEF9", borderRadius: 18,
                   padding: "24px 28px",
@@ -3453,8 +3579,19 @@ export default function CoCurricularDashboard() {
                 </div>
 
                 {/* Recent Activity */}
-                <div style={{
+                <div
+                  className="cocuPanel"
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const px = (e.clientX - r.left) / r.width  - 0.5;
+                    const py = (e.clientY - r.top)  / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(1200px) rotateX(${py * -5}deg) rotateY(${px * 5}deg) translateY(-3px)`;
+                  }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = "perspective(1200px) rotateX(0deg) rotateY(0deg) translateY(0)"; }}
+                  style={{
                   position: "relative",
+                  "--accent": "#c2410c",
+                  animationDelay: "0.55s",
                   background: "linear-gradient(180deg, #ffffff, #fbfdff)",
                   border: "1px solid #E2EEF9", borderRadius: 18,
                   padding: "24px 28px",
