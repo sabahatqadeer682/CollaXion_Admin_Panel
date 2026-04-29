@@ -658,7 +658,7 @@
 //     color: "#AAC3FC", fontWeight: "500", cursor: "pointer",
 //     borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "15px",
 //   },
-//   main: { flex: 1, padding: "30px 50px", overflowY: "auto" },
+//   main: { padding: "30px 50px" },
 //   topbar: {
 //     display: "flex", justifyContent: "space-between", alignItems: "center",
 //   },
@@ -735,7 +735,9 @@ import {
   Building2,
   ArrowUpRight,
   Sparkles,
+  Camera, RefreshCw, ChevronDown, ArrowRight, Mail,
 } from "lucide-react";
+import LiaisonFooter from "../components/LiaisonFooter";
 import { useNavigate } from "react-router-dom";
 import collaxionLogo from "../images/collaxionlogo.jpeg";
 import laisonAvatar from "../images/Laison.jpeg";
@@ -1154,8 +1156,117 @@ const MainDashboardWeb = () => {
   const [showNotifs, setShowNotifs]       = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [toast, setToast]                 = useState(null);
+  const [profile, setProfile]             = useState({
+    name: "Ms. Tazzaina",
+    email: "tazzaina@riphah.edu.pk",
+    role: "Industry Liaison Incharge",
+    dp: "",
+  });
+  const [profileOpen, setProfileOpen]     = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [now, setNow]                     = useState(new Date());
+  const [counts, setCounts]               = useState({
+    mous: 0, applications: 0, industries: 0, meetings: 0,
+  });
   const notifRef                          = useRef(null);
+  const profileRef                        = useRef(null);
+  const dpInputRef                        = useRef(null);
   const baselineRef                       = useRef({ ready: false, apps: new Map(), events: new Map(), liaison: new Set() });
+
+  // Live clock
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Click outside profile
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  // Backend-backed profile
+  useEffect(() => { fetchProfile(); }, []);
+
+  // Fetch real dashboard counts (MOUs / Applications / Industries / Meetings)
+  useEffect(() => {
+    let cancelled = false;
+    const safeJson = (url) =>
+      fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const lenOf = (x) =>
+      Array.isArray(x)                     ? x.length
+      : Array.isArray(x?.data)             ? x.data.length
+      : Array.isArray(x?.items)            ? x.items.length
+      : Array.isArray(x?.registrations)    ? x.registrations.length
+      : Array.isArray(x?.results)          ? x.results.length
+      : 0;
+    const tick = async () => {
+      const [mous, apps, inds, mtgs] = await Promise.all([
+        safeJson(`${BASE_API}/api/mous`),
+        safeJson(`${BASE_API}/api/liaison/applications`),
+        safeJson(`${BASE_API}/api/industry-registrations`),
+        safeJson(`${BASE_API}/api/meeting-minutes`),
+      ]);
+      if (cancelled) return;
+      setCounts({
+        mous:         lenOf(mous),
+        applications: lenOf(apps),
+        industries:   lenOf(inds),
+        meetings:     lenOf(mtgs),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
+  const fetchProfile = async () => {
+    try {
+      const r = await fetch(`${BASE_API}/api/liaison/profile`);
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data && typeof data === "object") {
+        setProfile((prev) => ({
+          ...prev,
+          ...(data.name  ? { name:  data.name }  : {}),
+          ...(data.email ? { email: data.email } : {}),
+          ...(data.role  ? { role:  data.role }  : {}),
+          ...(data.dp    ? { dp:    data.dp }    : {}),
+        }));
+      }
+    } catch { /* silent */ }
+  };
+  const saveProfile = async (patch) => {
+    setProfileSaving(true);
+    try {
+      const r = await fetch(`${BASE_API}/api/liaison/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) return null;
+      const saved = await r.json();
+      setProfile((prev) => ({ ...prev, ...saved }));
+      return saved;
+    } catch { return null; }
+    finally { setProfileSaving(false); }
+  };
+  const handleDpChange = (file) => {
+    if (!file || !file.type?.startsWith("image/")) return;
+    if (file.size > 6 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result;
+      if (typeof dataUrl !== "string") return;
+      setProfile((prev) => ({ ...prev, dp: dataUrl }));
+      await saveProfile({ dp: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -1229,7 +1340,7 @@ const MainDashboardWeb = () => {
         .filter((n) => !baseline.liaison.has(n.backendId))
         .map((n) => n.backendId);
 
-      // Student Applications — new entries (client-side diff)
+      // Student Applications - new entries (client-side diff)
       const appsMap = new Map(apps.map((a) => [String(a._id), a]));
       if (!firstRun) {
         for (const [id, app] of appsMap) {
@@ -1256,7 +1367,7 @@ const MainDashboardWeb = () => {
       }
       baseline.apps = appsMap;
 
-      // Events — new entries (client-side diff)
+      // Events - new entries (client-side diff)
       const eventsMap = new Map(events.map((e) => [String(e._id), e]));
       if (!firstRun) {
         for (const [id, ev] of eventsMap) {
@@ -1349,7 +1460,7 @@ const MainDashboardWeb = () => {
       localStorage.clear();
       sessionStorage.clear();
     } catch (_) { /* storage may be unavailable */ }
-    navigate("/login", { replace: true });
+    navigate("/role-select", { replace: true });
   };
 
   // ── Card Data (sequence follows the real workflow: onboarding → engagement → analytics → settings) ──
@@ -1461,7 +1572,793 @@ const MainDashboardWeb = () => {
   const sidebarWidth = collapsed ? "80px" : "250px";
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, display: "block", height: "auto", minHeight: "100vh", overflowX: "hidden" }}>
+      <style>{`
+        @keyframes liaisonKenBurns {
+          0%   { transform: scale(1.08) translate3d(0, 0, 0); }
+          50%  { transform: scale(1.18) translate3d(-1.5%, -1%, 0); }
+          100% { transform: scale(1.08) translate3d(0, 0, 0); }
+        }
+        @keyframes liaisonShimmer {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        @keyframes liaisonPing {
+          0%   { transform: scale(0.6); opacity: 0.85; }
+          80%  { transform: scale(2);   opacity: 0; }
+          100% { transform: scale(2);   opacity: 0; }
+        }
+        @keyframes liaisonGradientFlow {
+          0%   { background-position: 0% center; }
+          100% { background-position: 200% center; }
+        }
+        /* Crossfading slideshow — each layer cycles 0→visible→0 across the full duration */
+        @keyframes liaisonSlideshow {
+          0%   { opacity: 0; }
+          6%   { opacity: 1; }
+          25%  { opacity: 1; }
+          31%  { opacity: 0; }
+          100% { opacity: 0; }
+        }
+      `}</style>
+
+      {/* ===== TOP NAVBAR ===== */}
+      <nav style={{
+        position: "sticky", top: 0, zIndex: 50,
+        background: "linear-gradient(135deg, rgba(15,42,56,0.92) 0%, rgba(25,54,72,0.92) 50%, rgba(31,65,89,0.92) 100%)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        boxShadow: "0 8px 28px rgba(15,42,56,0.28)",
+        width: "100%", maxWidth: "100%",
+        display: "flex", alignItems: "center", gap: 14,
+        padding: "10px 24px",
+        flexWrap: "wrap",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        boxSizing: "border-box",
+      }}>
+        <span aria-hidden style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, height: 2,
+          background: "linear-gradient(90deg, transparent 0%, rgba(122,169,214,0.6) 30%, rgba(170,195,252,0.7) 50%, rgba(122,169,214,0.6) 70%, transparent 100%)",
+          opacity: 0.7, pointerEvents: "none",
+        }} />
+
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+          <div style={{
+            width: 42, height: 42, borderRadius: 12,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04))",
+            border: "1px solid rgba(255,255,255,0.22)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 6px 18px rgba(15,42,56,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
+          }}>
+            <img src={collaxionLogo} alt="CollaXion" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.2)" }} />
+          </div>
+          <div>
+            <div style={{
+              fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em", lineHeight: 1.1,
+              background: "linear-gradient(90deg, #ffffff 0%, #E2EEF9 50%, #AAC3FC 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>CollaXion</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 4 }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%", background: "#22C55E",
+                boxShadow: "0 0 0 3px rgba(34,197,94,0.25), 0 0 8px rgba(34,197,94,0.6)",
+              }} />
+              <span style={{ fontSize: 9, color: "rgba(226,238,249,0.78)", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                Industry Liaison Incharge
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs - top nav screens (all 9 modules) */}
+        <div style={{ display: "flex", gap: 3, alignItems: "center", flex: "1 1 auto", minWidth: 0, justifyContent: "center", flexWrap: "wrap" }}>
+          {[
+            { label: "Industries",    Icon: Building2,     path: "/industry-registrations" },
+            { label: "MOUs",          Icon: FileSignature, path: "/mou-management" },
+            { label: "Nearby",        Icon: MapPin,        path: "/nearby-industries" },
+            { label: "Projects",      Icon: Briefcase,     path: "/industry-projects" },
+            { label: "Applications",  Icon: ClipboardList, path: "/student-applications" },
+            { label: "Meetings",      Icon: CalendarPlus,  path: "/AdvisoryMeetings" },
+            { label: "Events",        Icon: CalendarCog,   path: "/event-creation" },
+            { label: "Engagement",    Icon: Network,       path: "/industry-activeness" },
+            { label: "Feedback",      Icon: BarChart3,     path: "/ratings-feedback" },
+          ].map((it) => (
+            <button
+              key={it.path}
+              title={it.label}
+              onClick={() => navigate(it.path)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "7px 10px", borderRadius: 10,
+                background: "transparent",
+                border: "1px solid transparent",
+                color: "rgba(226,238,249,0.70)",
+                fontSize: 12, fontWeight: 600,
+                cursor: "pointer", transition: "all 0.22s cubic-bezier(0.22, 1, 0.36, 1)",
+                whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(226,238,249,0.70)"; e.currentTarget.style.transform = ""; }}
+            >
+              <it.Icon size={13} />
+              <span>{it.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Right cluster */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          {/* Settings shortcut */}
+          <button onClick={() => navigate("/system-settings")} title="System Settings" style={{
+            width: 38, height: 38, borderRadius: 10,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            color: "#fff", cursor: "pointer",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            transition: "background 0.18s ease, transform 0.4s ease",
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.16)"; e.currentTarget.style.transform = "rotate(90deg)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = ""; }}
+          >
+            <Settings size={16} />
+          </button>
+
+          {/* Bell */}
+          <div style={{ position: "relative" }} ref={notifRef}>
+            <button onClick={() => setShowNotifs((s) => !s)} title="Notifications" style={{
+              position: "relative",
+              width: 38, height: 38, borderRadius: 10,
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "#fff", cursor: "pointer",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+            }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.16)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+            >
+              <Bell size={16} />
+              {unreadCount > 0 && (
+                <span style={{
+                  position: "absolute", top: -3, right: -3,
+                  background: "#ef4444", color: "#fff",
+                  fontSize: 9, minWidth: 16, height: 16, padding: "0 4px",
+                  borderRadius: 999,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 800, border: "2px solid #193648",
+                }}>{Math.min(99, unreadCount)}</span>
+              )}
+            </button>
+          </div>
+
+          {/* Profile pill */}
+          <div style={{ position: "relative" }} ref={profileRef}>
+            <button
+              onClick={() => setProfileOpen((s) => !s)}
+              title={`${profile.name} · ${profile.role}`}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "4px 10px 4px 4px", borderRadius: 999,
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.14)",
+                color: "#fff", cursor: "pointer", flexShrink: 0,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.14)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+            >
+              <span style={{
+                position: "relative", width: 30, height: 30, borderRadius: "50%",
+                background: "linear-gradient(135deg, #193648, #3A70B0)", padding: 2,
+                flexShrink: 0,
+              }}>
+                <img
+                  src={profile.dp || laisonAvatar}
+                  alt={profile.name}
+                  onError={(e) => { if (e.currentTarget.src !== laisonAvatar) e.currentTarget.src = laisonAvatar; }}
+                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid #fff", display: "block" }}
+                />
+                <span style={{
+                  position: "absolute", bottom: -1, right: -1,
+                  width: 9, height: 9, borderRadius: "50%",
+                  background: "#22C55E", border: "2px solid #193648",
+                }} />
+              </span>
+              <ChevronDown size={13} style={{ transform: profileOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.18s ease" }} />
+            </button>
+            <AnimatePresence>
+              {profileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                  style={{
+                    position: "absolute", right: 0, top: 50, width: 280,
+                    background: "#fff", color: "#193648",
+                    border: "1px solid #E2EEF9", borderRadius: 14,
+                    boxShadow: "0 24px 60px rgba(15,23,42,0.20)",
+                    padding: 14, zIndex: 1200,
+                  }}
+                >
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 10,
+                    padding: "8px 6px 14px", borderBottom: "1px dashed #E2EEF9", marginBottom: 10,
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => dpInputRef.current?.click()}
+                      title="Click to change photo"
+                      disabled={profileSaving}
+                      style={{
+                        position: "relative",
+                        width: 50, height: 50, borderRadius: "50%",
+                        background: "linear-gradient(135deg, #193648, #3A70B0)", padding: 2,
+                        flexShrink: 0, border: "none",
+                        cursor: profileSaving ? "wait" : "pointer", overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        src={profile.dp || laisonAvatar}
+                        alt={profile.name}
+                        onError={(e) => { if (e.currentTarget.src !== laisonAvatar) e.currentTarget.src = laisonAvatar; }}
+                        style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid #fff", display: "block" }}
+                      />
+                      <span aria-hidden className="liaisonDpHover" style={{
+                        position: "absolute", inset: 2, borderRadius: "50%",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        background: "rgba(15,42,56,0.55)", color: "#fff",
+                        opacity: 0, transition: "opacity 0.18s ease", pointerEvents: "none",
+                      }}>
+                        <Camera size={14} />
+                      </span>
+                      {profileSaving && (
+                        <span aria-hidden style={{
+                          position: "absolute", inset: 2, borderRadius: "50%",
+                          background: "rgba(15,42,56,0.55)", color: "#fff",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          <RefreshCw size={14} />
+                        </span>
+                      )}
+                    </button>
+                    <input
+                      ref={dpInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => { handleDpChange(e.target.files?.[0]); e.target.value = ""; }}
+                    />
+                    <style>{`
+                      button[title="Click to change photo"]:hover .liaisonDpHover { opacity: 1; }
+                    `}</style>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{profile.name}</div>
+                      <div style={{ fontSize: 11, color: "#94a3b8" }}>{profile.role}</div>
+                      <button
+                        type="button"
+                        onClick={() => dpInputRef.current?.click()}
+                        disabled={profileSaving}
+                        style={{
+                          marginTop: 5, padding: "3px 9px", borderRadius: 999,
+                          background: "#f8fbff", border: "1px solid #E2EEF9",
+                          color: "#3A70B0", fontSize: 10, fontWeight: 800, letterSpacing: "0.04em",
+                          cursor: profileSaving ? "wait" : "pointer",
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                        }}
+                      >
+                        <Camera size={10} /> {profileSaving ? "Saving…" : "Change photo"}
+                      </button>
+                    </div>
+                  </div>
+                  <button onClick={() => navigate("/system-settings")} style={{
+                    display: "flex", alignItems: "center", gap: 9, width: "100%",
+                    padding: "9px 12px", borderRadius: 10,
+                    background: "#f8fbff", border: "1px solid #E2EEF9", color: "#193648",
+                    fontWeight: 700, fontSize: 12.5, cursor: "pointer", marginBottom: 8,
+                  }}>
+                    <Settings size={13} color="#3A70B0" /> System Settings
+                  </button>
+                  <button onClick={handleLogout} style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%",
+                    padding: "9px 12px",
+                    background: "rgba(239,68,68,0.08)", color: "#be123c",
+                    border: "1px solid rgba(239,68,68,0.20)",
+                    borderRadius: 10, fontWeight: 700, fontSize: 12.5, cursor: "pointer",
+                  }}>
+                    <LogOut size={14} /> Sign Out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </nav>
+
+      {/* ===== CINEMATIC HERO BANNER ===== */}
+      {(() => {
+        const hour = now.getHours();
+        const greeting = hour < 5 ? "Good night" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
+        const titles = /^(prof\.?|dr\.?|mr\.?|mrs\.?|ms\.?|miss|engr\.?|eng\.?|sir|madam)$/i;
+        const allParts = (profile.name || "").trim().split(/\s+/).filter(Boolean);
+        const titlePart = allParts.find(p => titles.test(p)) || "";
+        const namePart  = allParts.find(p => !titles.test(p)) || "";
+        const firstName = (titlePart ? `${titlePart} ${namePart}` : namePart).trim() || profile.name || "there";
+
+        return (
+          <div style={{
+            position: "relative",
+            margin: 0,
+            height: "calc(100vh - 60px)",
+            minHeight: 560,
+            color: "#fff",
+            overflow: "hidden",
+            isolation: "isolate",
+          }}>
+            {/* Animated slideshow — 4 industry/collaboration images crossfade with Ken-Burns zoom */}
+            {[
+              "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=2400&q=85", // boardroom / partnership
+              "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=2400&q=85", // students / collaboration
+              "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2400&q=85", // team meeting
+              "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=2400&q=85", // modern workspace
+            ].map((src, i) => (
+              <div
+                key={src}
+                aria-hidden
+                style={{
+                  position: "absolute", inset: 0,
+                  backgroundImage: `url(${src})`,
+                  backgroundSize: "cover", backgroundPosition: "center",
+                  filter: "saturate(0.85) contrast(1.05) hue-rotate(-8deg)",
+                  animation: `liaisonSlideshow 28s ease-in-out ${i * 7}s infinite, liaisonKenBurns 24s ease-in-out ${i * 7}s infinite`,
+                  opacity: 0,
+                  zIndex: 0,
+                  willChange: "opacity, transform",
+                }}
+              />
+            ))}
+            <div aria-hidden style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(135deg, rgba(15,42,56,0.95) 0%, rgba(25,54,72,0.88) 35%, rgba(44,95,128,0.72) 70%, rgba(15,42,56,0.85) 100%)",
+              zIndex: 1,
+            }} />
+            <div aria-hidden style={{
+              position: "absolute", inset: 0,
+              background: "radial-gradient(70% 90% at 20% 50%, rgba(15,42,56,0.75) 0%, rgba(15,42,56,0) 70%)",
+              zIndex: 1,
+            }} />
+            <div aria-hidden style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(180deg, rgba(15,42,56,0.45) 0%, rgba(15,42,56,0) 25%, rgba(15,42,56,0) 60%, rgba(15,42,56,0.65) 100%)",
+              zIndex: 1,
+            }} />
+            <div aria-hidden style={{
+              position: "absolute", top: "12%", right: "8%",
+              width: 220, height: 220, borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(122,169,214,0.35) 0%, rgba(122,169,214,0) 70%)",
+              filter: "blur(30px)", zIndex: 1,
+              animation: "liaisonKenBurns 18s ease-in-out infinite reverse",
+            }} />
+            <div aria-hidden style={{
+              position: "absolute", bottom: "-10%", left: "30%",
+              width: 280, height: 280, borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(58,112,176,0.32) 0%, rgba(58,112,176,0) 70%)",
+              filter: "blur(40px)", zIndex: 1,
+            }} />
+            <div aria-hidden style={{
+              position: "absolute", top: 0, bottom: 0, left: 0, width: "30%",
+              background: "linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%)",
+              animation: "liaisonShimmer 7s linear infinite",
+              zIndex: 2, pointerEvents: "none",
+            }} />
+
+            <div style={{
+              position: "relative", zIndex: 3,
+              height: "100%",
+              padding: "32px 48px 28px",
+              display: "flex", flexDirection: "column",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.22)",
+                  backdropFilter: "blur(10px)", padding: "6px 14px", borderRadius: 999,
+                  fontSize: 10.5, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase",
+                  color: "#E2EEF9",
+                }}>
+                  <span style={{ position: "relative", display: "inline-flex", width: 7, height: 7 }}>
+                    <span aria-hidden style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#22C55E", animation: "liaisonPing 1.6s cubic-bezier(0,0,0.2,1) infinite" }} />
+                    <span style={{ position: "relative", width: 7, height: 7, borderRadius: "50%", background: "#22C55E" }} />
+                  </span>
+                  Liaison Operations · Live
+                </div>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 10,
+                  background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(10px)", padding: "8px 14px", borderRadius: 12,
+                }}>
+                  <Clock size={14} style={{ color: "#AAC3FC" }} />
+                  <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
+                    <span style={{ fontSize: 14, fontWeight: 800 }}>{now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span style={{ fontSize: 9.5, color: "rgba(226,238,249,0.7)", letterSpacing: "0.10em", textTransform: "uppercase", marginTop: 2 }}>
+                      {now.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 760 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(226,238,249,0.75)", marginBottom: 8 }}
+                >
+                  {greeting} · Faculty of Computing
+                </motion.div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    margin: 0, fontSize: 44, fontWeight: 900, lineHeight: 1.05,
+                    letterSpacing: "-0.025em",
+                    fontFamily: "'Sora', 'Inter', sans-serif",
+                    textShadow: "0 4px 20px rgba(0,0,0,0.35)",
+                  }}
+                >
+                  Hello, {firstName}.
+                  <br />
+                  <span style={{
+                    background: "linear-gradient(90deg, #E2EEF9 0%, #AAC3FC 25%, #7AA9D6 50%, #3A70B0 75%, #AAC3FC 100%)",
+                    backgroundSize: "200% auto",
+                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    animation: "liaisonGradientFlow 6s linear infinite",
+                    display: "inline-block",
+                  }}>
+                    Where Collaboration Meets Innovation.
+                  </span>
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15, duration: 0.7 }}
+                  style={{ marginTop: 14, marginBottom: 0, fontSize: 14.5, color: "rgba(226,238,249,0.85)", lineHeight: 1.6, maxWidth: 600, textShadow: "0 2px 10px rgba(0,0,0,0.25)" }}
+                >
+                  Curate industry partnerships, sign MOUs, forward applications, and orchestrate every collaboration - all from one elegant workspace.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.25, duration: 0.6 }}
+                  style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}
+                >
+                  <button onClick={() => navigate("/mou-management")} style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    background: "#fff", color: "#193648",
+                    border: "none", borderRadius: 12, padding: "12px 22px",
+                    fontWeight: 800, fontSize: 13.5, cursor: "pointer",
+                    boxShadow: "0 14px 30px rgba(0,0,0,0.30)",
+                    transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                  }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 18px 36px rgba(0,0,0,0.36)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 14px 30px rgba(0,0,0,0.30)"; }}
+                  >
+                    <FileSignature size={14} /> Manage MOUs <ArrowRight size={13} />
+                  </button>
+                  <button onClick={() => navigate("/student-applications")} style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    background: "rgba(255,255,255,0.10)", color: "#fff",
+                    border: "1px solid rgba(255,255,255,0.30)",
+                    borderRadius: 12, padding: "12px 22px",
+                    fontWeight: 700, fontSize: 13.5, cursor: "pointer",
+                    backdropFilter: "blur(10px)",
+                    transition: "background 0.18s ease",
+                  }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.10)")}
+                  >
+                    <ClipboardList size={14} /> Review Applications
+                  </button>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.35, duration: 0.7 }}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 170px), 1fr))",
+                    gap: 14, marginTop: 28, maxWidth: 920,
+                  }}
+                >
+                  {[
+                    { Icon: FileSignature, label: "MOUs",         value: counts.mous,         sub: "signed & in-progress",    accent: "#AAC3FC" },
+                    { Icon: ClipboardList, label: "Applications", value: counts.applications, sub: "students in pipeline",    accent: "#7AA9D6" },
+                    { Icon: Building2,     label: "Industry Registration Requests", value: counts.industries, sub: "pending review", accent: "#86efac" },
+                    { Icon: CalendarPlus,  label: "Meetings",     value: counts.meetings,     sub: "advisory meetings",       accent: "#fcd34d" },
+                  ].map((s, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                      whileHover={{ y: -3 }}
+                      style={{
+                        position: "relative",
+                        padding: "16px 18px", borderRadius: 14,
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)",
+                        border: "1px solid rgba(255,255,255,0.16)",
+                        backdropFilter: "blur(14px)",
+                        boxShadow: "0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.10)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <span aria-hidden style={{
+                        position: "absolute", top: -30, right: -30,
+                        width: 90, height: 90, borderRadius: "50%",
+                        background: `radial-gradient(circle, ${s.accent}40 0%, ${s.accent}00 70%)`,
+                        filter: "blur(8px)", pointerEvents: "none",
+                      }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                        <span style={{
+                          width: 32, height: 32, borderRadius: 10,
+                          background: `linear-gradient(135deg, ${s.accent}33, ${s.accent}11)`,
+                          border: `1px solid ${s.accent}55`,
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          color: s.accent,
+                          boxShadow: `0 0 14px ${s.accent}33`,
+                        }}>
+                          <s.Icon size={15} />
+                        </span>
+                        <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(226,238,249,0.7)" }}>{s.label}</span>
+                      </div>
+                      <div style={{
+                        fontSize: 32, fontWeight: 900, color: "#fff",
+                        fontFamily: "'Sora', 'Inter', sans-serif",
+                        fontVariantNumeric: "tabular-nums", letterSpacing: "-0.025em",
+                        lineHeight: 1, marginBottom: 6,
+                      }}>{s.value}</div>
+                      <div style={{ fontSize: 11, color: "rgba(226,238,249,0.72)", fontWeight: 600 }}>{s.sub}</div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ===== ANALYTICS / GRAPHS SECTION ===== */}
+      {(() => {
+        const indCount = notifications.filter((n) => n.type === "industry-registration").length;
+        const mouCount = notifications.filter((n) => String(n.type || "").includes("mou")).length;
+        const appCount = notifications.filter((n) => n.type === "application").length;
+        const evtCount = notifications.filter((n) => n.type === "event").length;
+        const trend = [3, 5, 4, 7, 6, 8, 5];
+        const trendMax = Math.max(...trend, 1);
+        const dist = [
+          { label: "Industries",   value: indCount || 4, color: "#3A70B0" },
+          { label: "MOUs",         value: mouCount || 6, color: "#193648" },
+          { label: "Applications", value: appCount || 9, color: "#86efac" },
+          { label: "Events",       value: evtCount || 3, color: "#fcd34d" },
+        ];
+        const distTotal = dist.reduce((s, d) => s + d.value, 0) || 1;
+        let cumulative = 0;
+        const radius = 70, cx = 90, cy = 90, sw = 18;
+        const C = 2 * Math.PI * radius;
+
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+        return (
+          <section style={{
+            position: "relative",
+            padding: "28px 32px 16px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+            gap: 22,
+          }}>
+            {/* Trend line chart */}
+            <div style={{
+              position: "relative",
+              background: "linear-gradient(180deg, #ffffff, #fbfdff)",
+              border: "1px solid #E2EEF9", borderRadius: 18,
+              padding: "22px 26px",
+              boxShadow: "0 6px 22px rgba(25,54,72,0.07)",
+              overflow: "hidden",
+            }}>
+              <span aria-hidden style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                background: "linear-gradient(90deg, #193648, #3A70B0, #7AA9D6)",
+              }} />
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 11,
+                  background: "linear-gradient(135deg, #193648, #3A70B0)",
+                  color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 6px 14px rgba(25,54,72,0.25)",
+                }}>
+                  <BarChart3 size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: "#193648", letterSpacing: "-0.01em" }}>Weekly Activity</div>
+                  <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Liaison events captured each day</div>
+                </div>
+              </div>
+              <svg viewBox="0 0 700 220" width="100%" style={{ display: "block" }}>
+                <defs>
+                  <linearGradient id="liaisonArea" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#3A70B0" stopOpacity="0.45" />
+                    <stop offset="100%" stopColor="#3A70B0" stopOpacity="0" />
+                  </linearGradient>
+                  <linearGradient id="liaisonLine" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%"  stopColor="#193648" />
+                    <stop offset="100%" stopColor="#7AA9D6" />
+                  </linearGradient>
+                </defs>
+                {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
+                  <line key={i} x1={48} x2={680} y1={20 + p * 160} y2={20 + p * 160}
+                    stroke="#E2EEF9" strokeWidth="1" strokeDasharray={i === 4 ? "" : "3 4"} />
+                ))}
+                {(() => {
+                  const pts = trend.map((v, i) => ({
+                    x: 48 + (i * (632 / 6)),
+                    y: 180 - (v / trendMax) * 160,
+                  }));
+                  let d = `M ${pts[0].x} ${pts[0].y}`;
+                  for (let i = 0; i < pts.length - 1; i++) {
+                    const p0 = pts[i - 1] || pts[i];
+                    const p1 = pts[i];
+                    const p2 = pts[i + 1];
+                    const p3 = pts[i + 2] || p2;
+                    const tension = 0.18;
+                    const c1x = p1.x + (p2.x - p0.x) * tension;
+                    const c1y = p1.y + (p2.y - p0.y) * tension;
+                    const c2x = p2.x - (p3.x - p1.x) * tension;
+                    const c2y = p2.y - (p3.y - p1.y) * tension;
+                    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2.x} ${p2.y}`;
+                  }
+                  const area = `${d} L ${pts[pts.length - 1].x} 180 L ${pts[0].x} 180 Z`;
+                  return (<>
+                    <path d={area} fill="url(#liaisonArea)" />
+                    <path d={d} fill="none" stroke="url(#liaisonLine)" strokeWidth="2.5" strokeLinecap="round" />
+                    {pts.map((p, i) => (
+                      <g key={i}>
+                        <circle cx={p.x} cy={p.y} r="9" fill="#3A70B0" opacity="0.12" />
+                        <circle cx={p.x} cy={p.y} r="4.5" fill="#fff" stroke="#3A70B0" strokeWidth="2" />
+                        <text x={p.x} y={p.y - 12} textAnchor="middle" style={{ fontSize: 11, fontWeight: 800, fill: "#193648" }}>{trend[i]}</text>
+                        <text x={p.x} y={208} textAnchor="middle" style={{ fontSize: 11, fontWeight: 700, fill: "#64748b" }}>{days[i]}</text>
+                      </g>
+                    ))}
+                  </>);
+                })()}
+              </svg>
+            </div>
+
+            {/* Distribution donut */}
+            <div style={{
+              position: "relative",
+              background: "linear-gradient(180deg, #ffffff, #fbfdff)",
+              border: "1px solid #E2EEF9", borderRadius: 18,
+              padding: "22px 26px",
+              boxShadow: "0 6px 22px rgba(25,54,72,0.07)",
+              overflow: "hidden",
+            }}>
+              <span aria-hidden style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                background: "linear-gradient(90deg, #3A70B0, #7AA9D6, #193648)",
+              }} />
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 11,
+                  background: "linear-gradient(135deg, #193648, #3A70B0)",
+                  color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 6px 14px rgba(25,54,72,0.25)",
+                }}>
+                  <Network size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: "#193648", letterSpacing: "-0.01em" }}>Activity Mix</div>
+                  <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Distribution across categories</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+                <svg width="180" height="180" viewBox="0 0 180 180">
+                  <circle cx={cx} cy={cy} r={radius} fill="none" stroke="#eef2ff" strokeWidth={sw} />
+                  {dist.map((d, i) => {
+                    const frac = d.value / distTotal;
+                    const dash = frac * C;
+                    const offset = (cumulative / distTotal) * C;
+                    cumulative += d.value;
+                    return (
+                      <circle
+                        key={i}
+                        cx={cx} cy={cy} r={radius}
+                        fill="none" stroke={d.color} strokeWidth={sw}
+                        strokeDasharray={`${dash} ${C - dash}`}
+                        strokeDashoffset={-offset}
+                        transform={`rotate(-90 ${cx} ${cy})`}
+                        strokeLinecap="butt"
+                      />
+                    );
+                  })}
+                  <text x={cx} y={cy - 4} textAnchor="middle" style={{ fontSize: 24, fontWeight: 900, fill: "#193648", fontFamily: "'Sora', sans-serif" }}>{distTotal}</text>
+                  <text x={cx} y={cy + 14} textAnchor="middle" style={{ fontSize: 10, fontWeight: 700, fill: "#94a3b8", letterSpacing: "0.10em" }}>TOTAL</text>
+                </svg>
+                <div style={{ flex: 1, minWidth: 160, display: "flex", flexDirection: "column", gap: 7 }}>
+                  {dist.map((d) => (
+                    <div key={d.label} style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                      padding: "7px 10px", borderRadius: 9,
+                      background: "#f8fbff", border: "1px solid #eef2ff",
+                    }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ width: 9, height: 9, borderRadius: "50%", background: d.color, boxShadow: `0 0 0 3px ${d.color}22` }} />
+                        <span style={{ fontSize: 12.5, color: "#0f172a", fontWeight: 700 }}>{d.label}</span>
+                      </span>
+                      <span style={{ fontSize: 13, color: "#193648", fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Bars chart */}
+            <div style={{
+              position: "relative",
+              background: "linear-gradient(180deg, #ffffff, #fbfdff)",
+              border: "1px solid #E2EEF9", borderRadius: 18,
+              padding: "22px 26px",
+              boxShadow: "0 6px 22px rgba(25,54,72,0.07)",
+              overflow: "hidden",
+            }}>
+              <span aria-hidden style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                background: "linear-gradient(90deg, #86efac, #3A70B0, #193648)",
+              }} />
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 11,
+                  background: "linear-gradient(135deg, #193648, #3A70B0)",
+                  color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 6px 14px rgba(25,54,72,0.25)",
+                }}>
+                  <ArrowUpRight size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 16, color: "#193648", letterSpacing: "-0.01em" }}>Module Pulse</div>
+                  <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Activity per workspace area</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {dist.map((d) => {
+                  const pct = Math.round((d.value / Math.max(...dist.map((x) => x.value))) * 100);
+                  return (
+                    <div key={d.label}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, color: "#193648", fontWeight: 700 }}>{d.label}</span>
+                        <span style={{ fontSize: 12.5, color: d.color, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{d.value}</span>
+                      </div>
+                      <div style={{ height: 8, borderRadius: 99, background: "#eef2ff", overflow: "hidden" }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                          style={{
+                            height: "100%",
+                            background: `linear-gradient(90deg, ${d.color}cc, ${d.color})`,
+                            borderRadius: 99,
+                            boxShadow: `0 0 8px ${d.color}55`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* ===== Real-time Toast (top-right) ===== */}
       <AnimatePresence>
         {toast && (() => {
@@ -1497,11 +2394,11 @@ const MainDashboardWeb = () => {
         })()}
       </AnimatePresence>
 
-      {/* ===== Sidebar ===== */}
+      {/* ===== Sidebar (legacy - hidden in favour of top navbar) ===== */}
       <motion.aside
-        style={{ ...styles.sidebar, width: sidebarWidth }}
-        animate={{ width: sidebarWidth }}
-        transition={{ duration: 0.4, ease: "easeInOut" }}
+        style={{ ...styles.sidebar, width: 0, display: "none", pointerEvents: "none" }}
+        animate={{ width: 0 }}
+        transition={{ duration: 0 }}
       >
         {/* Decorative ambient glow inside sidebar */}
         <motion.div
@@ -1644,296 +2541,218 @@ const MainDashboardWeb = () => {
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        <motion.div
-          style={styles.topbar}
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div style={styles.titleWrap}>
-            <motion.div
-              style={styles.titleAccent}
-              initial={{ height: 0 }}
-              animate={{ height: 36 }}
-              transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
-            />
-            <div>
-              <motion.span
-                style={styles.eyebrow}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                <Sparkles size={12} /> Industry Liaison Incharge
-              </motion.span>
-              <h1 style={styles.title}>Industry Collaboration Hub</h1>
-            </div>
-          </div>
 
-          <div style={styles.topRight}>
-            {/* ── Bell ── */}
-            <div ref={notifRef} style={styles.bellWrap}>
-              <motion.button
-                style={styles.bellBtn}
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ background: "#E2EEF9" }}
-                onClick={() => setShowNotifs((v) => !v)}
-              >
-                <Bell
-                  size={20}
-                  color={showNotifs ? "#3A70B0" : "#193648"}
-                />
-                <AnimatePresence>
-                  {unreadCount > 0 && (
-                    <motion.span
-                      style={styles.badge}
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 20,
-                      }}
-                    >
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-
-              <AnimatePresence>
-                {showNotifs && (
-                  <NotificationPanel
-                    notifications={notifications}
-                    onMarkRead={markRead}
-                    onMarkAll={markAll}
-                    onClear={clearAll}
-                    onNavigate={(route) => navigate(route)}
-                    onClose={() => setShowNotifs(false)}
-                  />
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* User Greeting */}
-            <motion.div
-              style={styles.userBox}
-              whileHover={{ y: -1, boxShadow: "0 12px 28px rgba(25,54,72,0.18)" }}
-              transition={{ duration: 0.25 }}
-            >
-              <div style={styles.avatarRing}>
-                <img src={laisonAvatar} alt="Ms. Tazzaina" style={styles.avatarImg} />
-                <span style={styles.avatarStatus} />
-              </div>
-              <div style={styles.userTextWrap}>
-                <span style={styles.username}>
-                  Ms. Tazzaina
-                  <motion.span
-                    style={styles.wavingHand}
-                    animate={{ rotate: [0, 15, -10, 15, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
-                  >
-                    👋
-                  </motion.span>
-                </span>
-                <span style={styles.userRole}>Industry Liaison Incharge</span>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        <motion.p
-          style={styles.subtitle}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-        >
-          Monitor and manage all collaboration activities between Universities
-          &amp; Industries
-        </motion.p>
-
-        {/* 3 × 3 grid — perfect for 9 modules, scales down gracefully on smaller screens */}
+        {/* ─── About The University ────────────────────────────────────── */}
         <style>{`
-          .cx-cards-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            position: relative;
-            z-index: 1;
+          @keyframes cxKenBurns {
+            0%   { transform: scale(1.05) translate(0, 0); }
+            50%  { transform: scale(1.12) translate(-12px, -8px); }
+            100% { transform: scale(1.05) translate(0, 0); }
           }
-          @media (min-width: 720px)  { .cx-cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-          @media (min-width: 1080px) { .cx-cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+          @keyframes cxShimmer {
+            0%   { background-position: -200% 0; }
+            100% { background-position:  200% 0; }
+          }
+          .cx-uni-grid {
+            display: grid; grid-template-columns: 1fr; gap: 18px;
+            position: relative; z-index: 1;
+          }
+          @media (min-width: 900px)  { .cx-uni-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+          .cx-uni-card {
+            position: relative; overflow: hidden;
+            background: #fff; border: 1px solid #E2EEF9; border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(25,54,72,0.08);
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+          }
+          .cx-uni-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 22px 44px rgba(25,54,72,0.18);
+          }
+          .cx-uni-img {
+            position: relative; width: 100%; height: 168px; overflow: hidden;
+          }
+          .cx-uni-img img {
+            width: 100%; height: 100%; object-fit: cover;
+            animation: cxKenBurns 14s ease-in-out infinite;
+          }
+          .cx-uni-img::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(25,54,72,0.0) 40%, rgba(25,54,72,0.55) 100%);
+          }
+          .cx-uni-tag {
+            position: absolute; bottom: 12px; left: 12px; z-index: 2;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 11px; border-radius: 999px;
+            font-size: 10px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+            color: #fff; background: rgba(25,54,72,0.55);
+            border: 1px solid rgba(255,255,255,0.30);
+            backdrop-filter: blur(8px);
+          }
+          .cx-uni-readmore {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 12px; padding: 7px 12px; border-radius: 999px;
+            background: linear-gradient(90deg, #193648, #3A70B0);
+            background-size: 220% 100%;
+            color: #fff; font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em;
+            border: none; cursor: pointer; font-family: 'Poppins', sans-serif;
+            box-shadow: 0 8px 18px rgba(25,54,72,0.28);
+            transition: background-position 0.4s ease;
+          }
+          .cx-uni-readmore:hover { background-position: 100% 0; }
+          .cx-uni-list-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px; border-radius: 10px;
+            color: #193648; cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+            font-size: 12.5px; font-weight: 600;
+            border: 1px solid transparent;
+          }
+          .cx-uni-list-item:hover {
+            background: #E2EEF9; border-color: #AAC3FC; transform: translateX(4px);
+          }
+          .cx-uni-chev {
+            color: #3A70B0; font-size: 14px; line-height: 1; flex-shrink: 0;
+          }
+          .cx-uni-banner {
+            position: relative; overflow: hidden; border-radius: 22px;
+            min-height: 220px;
+            background:
+              linear-gradient(135deg, rgba(25,54,72,0.92), rgba(58,112,176,0.78)),
+              url("https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1600&q=70") center/cover no-repeat;
+            color: #fff; padding: 32px 30px; margin-bottom: 22px;
+            border: 1px solid rgba(255,255,255,0.10);
+            box-shadow: 0 18px 40px rgba(25,54,72,0.30);
+          }
+          .cx-uni-banner::before {
+            content: ""; position: absolute; inset: 0; pointer-events: none;
+            background:
+              radial-gradient(circle at 18% 28%, rgba(170,195,252,0.35), transparent 45%),
+              radial-gradient(circle at 82% 72%, rgba(122,169,214,0.30), transparent 50%);
+          }
+          .cx-uni-banner::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+            background: linear-gradient(90deg, #193648, #3A70B0, #7AA9D6, #AAC3FC, #3A70B0, #193648);
+            background-size: 220% 100%;
+            animation: cxShimmer 6s linear infinite;
+          }
         `}</style>
 
-        {/* Dashboard Cards */}
-        <motion.section
-          className="cx-cards-grid"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden:   { opacity: 0 },
-            visible:  { opacity: 1, transition: { staggerChildren: 0.07, delayChildren: 0.5 } },
-          }}
-        >
-          {cardData.map((card) => {
-            const isHovered = hoveredCard === card.id;
-            const isActive  = activeCard  === card.id;
-            return (
-              <motion.div
-                key={card.id}
-                variants={{
-                  hidden:  { opacity: 0, y: 24, scale: 0.96 },
-                  visible: { opacity: 1, y: 0,  scale: 1, transition: { type: "spring", stiffness: 220, damping: 22 } },
-                }}
-                onMouseEnter={() => setHoveredCard(card.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-                onClick={() => {
-                  setActiveCard(card.id);
-                  if (card.route) navigate(card.route);
-                }}
-                whileHover={{ y: -6 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.25 }}
-                style={{
-                  ...styles.card,
-                  color: isActive ? "#fff" : "#193648",
-                  boxShadow: isActive
-                    ? `0 22px 48px ${card.accent}66, 0 0 0 1px ${card.accent}40 inset`
-                    : isHovered
-                    ? `0 22px 44px ${card.accent}38, 0 2px 0 #fff inset`
-                    : "0 8px 24px rgba(25,54,72,0.10), 0 1px 0 rgba(255,255,255,0.6) inset",
-                  borderColor: isActive ? card.accent : isHovered ? `${card.accent}55` : "#E2EEF9",
-                  background: isActive
-                    ? `linear-gradient(160deg, ${card.accent} 0%, ${card.accent}cc 100%)`
-                    : "#fff",
-                }}
-              >
-                {/* Soft module-themed background sheen */}
-                <div
-                  aria-hidden
-                  style={{
-                    ...styles.cardThemeWash,
-                    background: card.gradient,
-                    opacity: isActive ? 0 : isHovered ? 0.85 : 0.6,
-                  }}
-                />
+        <section style={{ marginTop: 36 }}>
+          {/* Section header */}
+          <div style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            margin: "0 0 18px", gap: 14, flexWrap: "wrap",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: "linear-gradient(135deg, #193648, #3A70B0)",
+                color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 22, boxShadow: "0 8px 18px rgba(25,54,72,0.28)",
+              }}>🤝</div>
+              <div>
+                <h2 style={{
+                  margin: 0, fontSize: 20, fontWeight: 800, color: "#193648",
+                  letterSpacing: "-0.015em", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+                }}>
+                  About CollaXion
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase",
+                    color: "#3A70B0", background: "#eff6ff", border: "1px solid #cfe0f0",
+                    padding: "3px 10px", borderRadius: 999,
+                  }}>Platform</span>
+                </h2>
+                <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#94a3b8" }}>
+                  The collaboration backbone for Riphah Software Engineering - connecting industry, faculty and students.
+                </p>
+              </div>
+            </div>
+          </div>
 
-                {/* Top-right radial highlight */}
-                <div
-                  aria-hidden
-                  style={{
-                    ...styles.cardHighlight,
-                    opacity: isActive ? 0.35 : isHovered ? 0.7 : 0.45,
-                  }}
-                />
+          {/* Cinematic banner */}
+          <div className="cx-uni-banner">
+            <div style={{ position: "relative", maxWidth: 720, zIndex: 1 }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "5px 12px", borderRadius: 999,
+                fontSize: 10, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase",
+                background: "rgba(255,255,255,0.16)", color: "#fff",
+                border: "1px solid rgba(255,255,255,0.28)", backdropFilter: "blur(8px)",
+              }}>
+                Riphah International University
+              </span>
+              <h3 style={{
+                margin: "12px 0 8px", fontSize: 28, fontWeight: 800, letterSpacing: "-0.01em",
+                lineHeight: 1.18,
+              }}>
+                Where Collaboration Meets Innovation
+              </h3>
+              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: "rgba(255,255,255,0.88)" }}>
+                CollaXion empowers the <strong>Industry Liaison Incharge</strong> with a centralized workspace to
+                efficiently manage and strengthen university–industry collaborations. From onboarding industry
+                partners and managing <strong>MOUs</strong> to facilitating <strong>student internships</strong>, advisory meetings,
+                and collaborative events - everything is handled through one unified platform.
+              </p>
+            </div>
+          </div>
 
-                {/* Big watermark glyph in the corner */}
-                <motion.span
-                  aria-hidden
-                  style={{
-                    ...styles.cardGlyph,
-                    color: isActive ? "rgba(255,255,255,0.22)" : `${card.accent}33`,
-                  }}
-                  animate={
-                    isHovered
-                      ? { rotate: [0, 6, -3, 0], scale: 1.08 }
-                      : { rotate: 0, scale: 1 }
-                  }
-                  transition={{
-                    duration: 1.6,
-                    repeat: isHovered ? Infinity : 0,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {card.glyph}
-                </motion.span>
+          {/* 3 spotlight cards */}
+          <div className="cx-uni-grid">
+            {[
+              {
+                tag: "Industry Partnerships",
+                title: "Manage and strengthen industry collaborations",
+                body: "As an Industry Liaison Incharge, you can review and approve industry registrations, oversee MOU signings, and maintain a trusted network of industry partners - ensuring quality and credibility in every collaboration.",
+                img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=70",
+              },
+              {
+                tag: "Student Opportunities",
+                title: "Bridge students with real-world experience",
+                body: "Coordinate with industry partners to provide students with internships, final-year projects, and placement opportunities. Monitor student applications and ensure the right talent connects with the right industry.",
+                img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=70",
+              },
+              {
+                tag: "Coordination Hub",
+                title: "Streamline communication and engagement",
+                body: "Plan and manage advisory board meetings, organize industry events, and track partner engagement - all from a single, organized dashboard designed for effective liaison management.",
+                img: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=1200&q=70",
+              },
+            ].map((c, i) => {
+              const routes = ["/industry-registrations", "/student-applications", "/AdvisoryMeetings"];
+              return (
+              <article key={c.tag} className="cx-uni-card">
+                <div className="cx-uni-img">
+                  <img src={c.img} alt={c.tag} loading="lazy" />
+                  <span className="cx-uni-tag">{c.tag}</span>
+                </div>
+                <div style={{ padding: "16px 18px 18px" }}>
+                  <h4 style={{
+                    margin: 0, fontSize: 15, fontWeight: 800, color: "#193648",
+                    letterSpacing: "-0.005em", lineHeight: 1.3,
+                  }}>
+                    {c.title}
+                  </h4>
+                  <p style={{
+                    margin: "8px 0 0", fontSize: 12.5, color: "#5b7184", lineHeight: 1.6,
+                  }}>
+                    {c.body}
+                  </p>
+                  <button
+                    className="cx-uni-readmore"
+                    onClick={() => navigate(routes[i])}
+                  >
+                    Open Module
+                    <ArrowUpRight size={13} />
+                  </button>
+                </div>
+              </article>
+              );
+            })}
+          </div>
 
-                {/* Top accent gradient bar */}
-                <motion.div
-                  style={{
-                    ...styles.cardAccent,
-                    background: isActive
-                      ? "linear-gradient(90deg, #fff, rgba(255,255,255,0.35))"
-                      : `linear-gradient(90deg, ${card.accent}, #3A70B0)`,
-                  }}
-                  initial={{ scaleX: 0.2 }}
-                  animate={{ scaleX: isHovered || isActive ? 1 : 0.5 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                />
-
-                {/* Tag chip — solid for punch */}
-                <span
-                  style={{
-                    ...styles.cardTag,
-                    background: isActive
-                      ? "rgba(255,255,255,0.22)"
-                      : card.accent,
-                    color: "#fff",
-                    borderColor: isActive
-                      ? "rgba(255,255,255,0.32)"
-                      : card.accent,
-                    boxShadow: isActive
-                      ? "none"
-                      : `0 4px 10px ${card.accent}35`,
-                  }}
-                >
-                  {card.tag}
-                </span>
-
-                {/* Icon halo — solid navy gradient with white icon */}
-                <motion.div
-                  style={{
-                    ...styles.iconHalo,
-                    background: isActive
-                      ? "rgba(255,255,255,0.22)"
-                      : `linear-gradient(135deg, ${card.accent} 0%, #3A70B0 100%)`,
-                    color: "#fff",
-                    boxShadow: isActive
-                      ? "0 0 0 1px rgba(255,255,255,0.25) inset"
-                      : `0 12px 24px ${card.accent}55, 0 0 0 1px ${card.accent}30`,
-                  }}
-                  animate={
-                    isHovered
-                      ? { y: [0, -5, 0] }
-                      : { y: 0 }
-                  }
-                  transition={{
-                    duration: 2.4,
-                    repeat: isHovered ? Infinity : 0,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {card.icon}
-                </motion.div>
-
-                <h3 style={styles.cardTitle}>{card.title}</h3>
-                <p style={{
-                  ...styles.cardDesc,
-                  color: isActive ? "rgba(255,255,255,0.82)" : "#5b7184",
-                }}>{card.desc}</p>
-
-                {/* Hover arrow chip */}
-                <motion.div
-                  style={{
-                    ...styles.cardArrow,
-                    background: isActive ? "rgba(255,255,255,0.22)" : `${card.accent}18`,
-                    color:      isActive ? "#fff" : card.accent,
-                  }}
-                  initial={false}
-                  animate={{
-                    opacity: isHovered || isActive ? 1 : 0,
-                    x:       isHovered || isActive ? 0 : 8,
-                  }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <ArrowUpRight size={14} />
-                </motion.div>
-              </motion.div>
-            );
-          })}
-        </motion.section>
+        </section>
       </main>
+      <LiaisonFooter />
     </div>
   );
 };
@@ -2102,9 +2921,7 @@ const styles = {
     transition: "color 0.2s",
   },
   main: {
-    flex: 1,
     padding: "30px 50px",
-    overflowY: "auto",
     position: "relative",
     overflowX: "hidden",
   },

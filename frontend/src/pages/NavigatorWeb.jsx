@@ -20,6 +20,7 @@ import InternshipDashboard from "./InchargeSystem/InternshipDashboard";
 import CoCurricularDashboard from "./InchargeSystem/CoCurricularDashboard";
 import CoCurricularLogin from "./InchargeSystem/CoCurricularLogin";
 import IndustryRegistrations from "./IndustryRegistrations";
+import Home from "./InchargeSystem/Home";
 
 const NavigatorWeb = () => {
   return (
@@ -43,6 +44,7 @@ const NavigatorWeb = () => {
         <Route path="/co-curricular-login" element={<CoCurricularLogin />} />
         <Route path="/co-curricular-dashboard" element={<CoCurricularDashboard />} />
 <Route path="/industry-registrations" element={<IndustryRegistrations />} />
+        <Route path="/role-select" element={<Home />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

@@ -1,6 +1,8 @@
 // src/pages/IndustryProjects.jsx
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 import {
   Briefcase, Users, Trash2, Eye, Calendar, Clock,
   CheckCircle, XCircle, Building2, Tag, BarChart2,
@@ -26,9 +28,10 @@ const TYPE_C = {
   Research:   { bg:"#d1fae5", text:"#065f46", border:"#6ee7b7" },
 };
 const STATUS_C = {
-  Ongoing:   { bg:"#fffbeb", text:"#b45309", border:"#fde68a", bar:"#f59e0b" },
-  Completed: { bg:"#ecfdf5", text:"#065f46", border:"#a7f3d0", bar:"#10b981" },
-  Upcoming:  { bg:"#eff6ff", text:"#1e40af", border:"#bfdbfe", bar:"#3b82f6" },
+  Ongoing:   { bg:"#eff6ff", text:"#193648", border:"#cfe0f0", bar:"#193648" },
+  Completed: { bg:"#ecfdf5", text:"#065f46", border:"#a7f3d0", bar:"#16a34a" },
+  Upcoming:  { bg:"#fffbeb", text:"#b45309", border:"#fde68a", bar:"#f59e0b" },
+  Pending:   { bg:"#fffbeb", text:"#b45309", border:"#fde68a", bar:"#f59e0b" },
 };
 const AV = [
   {bg:"#dbeafe",text:"#1d4ed8"},{bg:"#ede9fe",text:"#6d28d9"},
@@ -155,26 +158,30 @@ const AnalyticsBar = ({posts}) => {
   const pinned = posts.filter(p=>p.pinned).length;
 
   const stats=[
-    {icon:<Briefcase size={17}/>,  label:"Total Posts",      value:total,    accent:"#3A70B0",  bg:"#EEF5FF"},
-    {icon:<Activity  size={17}/>,  label:"Ongoing",          value:ongoing,  accent:"#f59e0b",  bg:"#fffbeb"},
-    {icon:<CheckCircle size={17}/>,label:"Completed",        value:done,     accent:"#10b981",  bg:"#ecfdf5"},
-    {icon:<Users     size={17}/>,  label:"Total Applicants", value:apps,     accent:"#8b5cf6",  bg:"#ede9fe"},
-    {icon:<Award     size={17}/>,  label:"Selected",         value:sel,      accent:"#be185d",  bg:"#fce7f3"},
-    {icon:<Pin       size={17}/>,  label:"Pinned",           value:pinned,   accent:"#193648",  bg:"#E2EEF9"},
+    { label: "Total Posts",      value: total,    color: "#193648", halo: "rgba(25,54,72,0.15)" },
+    { label: "Ongoing",          value: ongoing,  color: "#3A70B0", halo: "rgba(58,112,176,0.18)" },
+    { label: "Completed",        value: done,     color: "#16a34a", halo: "rgba(22,163,74,0.20)" },
+    { label: "Total Applicants", value: apps,     color: "#3A70B0", halo: "rgba(58,112,176,0.18)" },
+    { label: "Selected",         value: sel,      color: "#16a34a", halo: "rgba(22,163,74,0.20)" },
+    { label: "Pinned",           value: pinned,   color: "#F59E0B", halo: "rgba(245,158,11,0.20)" },
   ];
   return (
-    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:14,marginBottom:28}}>
+    <div style={{display:"flex", gap:8, marginBottom:24, flexWrap:"wrap"}}>
       {stats.map((s,i)=>(
-        <motion.div key={i} initial={{opacity:0,y:18}} animate={{opacity:1,y:0}} transition={{delay:i*0.07}}
-          style={{background:s.bg,borderRadius:14,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,border:`1.5px solid ${s.accent}22`,boxShadow:`0 2px 10px ${s.accent}10`}}>
-          <div style={{width:36,height:36,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:"#fff",color:s.accent,flexShrink:0,boxShadow:`0 2px 8px ${s.accent}20`}}>
-            {s.icon}
-          </div>
-          <div>
-            <div style={{fontSize:"1.35rem",fontWeight:800,color:s.accent,lineHeight:1}}>{s.value}</div>
-            <div style={{fontSize:"0.72rem",color:B.textMuted,marginTop:3,fontWeight:500}}>{s.label}</div>
-          </div>
-        </motion.div>
+        <div key={i} style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "7px 12px", borderRadius: 8,
+          background: "#fff", border: "1px solid #E2EEF9",
+          boxShadow: "0 1px 3px rgba(25,54,72,0.06)",
+        }}>
+          <span style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: s.color,
+            boxShadow: `0 0 0 3px ${s.halo}`,
+          }} />
+          <span style={{ fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>{s.label}</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
+        </div>
       ))}
     </div>
   );
@@ -256,7 +263,7 @@ const NoteModal = ({post,onSave,onClose}) => {
         initial={{scale:0.88,y:30}} animate={{scale:1,y:0}} transition={{type:"spring",stiffness:300,damping:26}}
         onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-          <StickyNote size={18} color={B.blue}/><span style={{fontWeight:700,color:B.textDark,fontSize:"0.95rem"}}>Note — {post.title}</span>
+          <StickyNote size={18} color={B.blue}/><span style={{fontWeight:700,color:B.textDark,fontSize:"0.95rem"}}>Note - {post.title}</span>
         </div>
         <textarea value={val} onChange={e=>setVal(e.target.value)} rows={5}
           placeholder="Add an internal note about this post..."
@@ -592,26 +599,73 @@ const IndustryProjects = () => {
   },[posts,search,typeF,statusF,sortBy]);
 
   return (
+    <>
+    <LiaisonNavbar />
     <div style={{padding:"36px 52px",background:B.pageBg,minHeight:"100vh",fontFamily:"'Poppins',sans-serif"}}>
 
-      {/* Page Header */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:28,flexWrap:"wrap",gap:14}}>
-        <div>
-          <h1 style={{fontSize:"1.75rem",fontWeight:800,color:B.textDark,margin:0}}>Industry Projects & Internships</h1>
-          <p style={{color:B.textMid,fontSize:"0.9rem",marginTop:6}}>Manage collaborations, track milestones, and oversee student participation</p>
+      {/* Page Header - premium */}
+      <motion.div
+        initial={{opacity:0, y:8}} animate={{opacity:1, y:0}} transition={{duration:0.4}}
+        style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24,flexWrap:"wrap",gap:14}}
+      >
+        <div style={{display:"flex", alignItems:"center", gap:14, minWidth:0}}>
+          <div style={{
+            width:44, height:44, borderRadius:12,
+            background:"#193648", color:"#fff", flexShrink:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            boxShadow:"0 8px 18px rgba(25,54,72,0.28)",
+          }}>
+            <Briefcase size={20}/>
+          </div>
+          <div style={{minWidth:0}}>
+            <h1 style={{
+              margin:0, fontSize:22, fontWeight:800, color:"#193648",
+              letterSpacing:"-0.02em", fontFamily:"'Sora', 'Inter', sans-serif",
+              display:"flex", alignItems:"center", gap:10, flexWrap:"wrap",
+            }}>
+              Industry Projects &amp; Internships
+              <span style={{
+                fontSize:10, fontWeight:800, letterSpacing:"0.12em", textTransform:"uppercase",
+                color:"#3A70B0", background:"#eff6ff", border:"1px solid #cfe0f0",
+                padding:"3px 10px", borderRadius:999,
+              }}>Live</span>
+            </h1>
+            <p style={{margin:"4px 0 0", fontSize:12.5, color:"#94a3b8"}}>
+              Manage collaborations, track milestones, and oversee student participation.
+            </p>
+          </div>
         </div>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <motion.button whileTap={{scale:0.95}} onClick={()=>setShowAnalytics(v=>!v)}
-            style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",borderRadius:10,border:`1.5px solid ${B.border}`,background:"#fff",color:B.textMid,fontWeight:600,fontSize:"0.83rem",cursor:"pointer"}}>
-            <BarChart2 size={15}/> {showAnalytics?"Hide":"Show"} Analytics
+            style={{
+              display:"inline-flex", alignItems:"center", gap:7,
+              padding:"9px 14px", borderRadius:10,
+              background:"#fff", border:"1px solid #E2EEF9", color:"#193648",
+              fontSize:12.5, fontWeight:700, cursor:"pointer",
+              boxShadow:"0 4px 12px rgba(25,54,72,0.06)",
+              transition:"background 0.18s ease, border-color 0.18s ease, transform 0.18s ease",
+            }}
+              onMouseEnter={(e)=>{ e.currentTarget.style.background="#eff6ff"; e.currentTarget.style.borderColor="#3A70B0"; e.currentTarget.style.transform="translateY(-1px)"; }}
+              onMouseLeave={(e)=>{ e.currentTarget.style.background="#fff"; e.currentTarget.style.borderColor="#E2EEF9"; e.currentTarget.style.transform=""; }}
+          >
+            <BarChart2 size={13}/> {showAnalytics?"Hide":"Show"} Analytics
           </motion.button>
           <motion.button whileTap={{scale:0.95}} onClick={exportCSV}
-            style={{display:"flex",alignItems:"center",gap:7,padding:"9px 16px",borderRadius:10,border:`1.5px solid ${B.border}`,background:"#fff",color:B.textMid,fontWeight:600,fontSize:"0.83rem",cursor:"pointer"}}>
-            <Download size={15}/> Export CSV
+            style={{
+              display:"inline-flex", alignItems:"center", gap:7,
+              padding:"9px 16px", borderRadius:10,
+              background:"#193648", color:"#fff", border:"none",
+              fontSize:12.5, fontWeight:800, cursor:"pointer",
+              boxShadow:"0 8px 18px rgba(25,54,72,0.25)",
+              transition:"transform 0.18s ease, box-shadow 0.18s ease",
+            }}
+              onMouseEnter={(e)=>{ e.currentTarget.style.transform="translateY(-1px)"; e.currentTarget.style.boxShadow="0 12px 24px rgba(25,54,72,0.32)"; }}
+              onMouseLeave={(e)=>{ e.currentTarget.style.transform=""; e.currentTarget.style.boxShadow="0 8px 18px rgba(25,54,72,0.25)"; }}
+          >
+            <Download size={13}/> Export CSV
           </motion.button>
-
         </div>
-      </div>
+      </motion.div>
 
       {/* Analytics */}
       <AnimatePresence>
@@ -623,39 +677,74 @@ const IndustryProjects = () => {
       </AnimatePresence>
 
       {/* Mini chart + filter bar */}
-      <div style={{display:"flex",gap:20,marginBottom:26,alignItems:"flex-start",flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:20,marginBottom:26,alignItems:"stretch",flexWrap:"wrap"}}>
         {/* Donut */}
-        <div style={{background:"#fff",borderRadius:16,padding:"16px 20px",border:`1.5px solid ${B.border}`,boxShadow:"0 2px 12px rgba(25,54,72,0.06)",flexShrink:0}}>
-          <div style={{fontSize:"0.72rem",fontWeight:700,color:B.textFaint,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:14}}>Status Breakdown</div>
+        <div style={{
+          position:"relative",
+          background:"linear-gradient(180deg, #ffffff, #fbfdff)",
+          borderRadius:16, padding:"18px 22px",
+          border:"1px solid #E2EEF9",
+          boxShadow:"0 6px 22px rgba(25,54,72,0.07)",
+          flexShrink:0, overflow:"hidden",
+        }}>
+          <span aria-hidden style={{
+            position:"absolute", top:0, left:0, right:0, height:3,
+            background:"linear-gradient(90deg, #193648, #3A70B0, #7AA9D6)",
+          }} />
+          <div style={{fontSize:10.5, fontWeight:800, color:"#3A70B0", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:14}}>
+            Status Breakdown
+          </div>
           <DonutChart posts={posts}/>
         </div>
 
         {/* Filters */}
-        <div style={{flex:1,display:"flex",flexDirection:"column",gap:10,minWidth:260}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,background:"#fff",borderRadius:12,padding:"9px 14px",border:`1.5px solid ${B.border}`,boxShadow:"0 1px 4px rgba(25,54,72,0.04)"}}>
-            <Search size={15} color={B.textFaint}/>
-            <input style={{border:"none",outline:"none",fontSize:"0.88rem",background:"transparent",width:"100%",color:B.textDark}} placeholder="Search title, industry, domain, tag..." value={search} onChange={e=>setSearch(e.target.value)}/>
+        <div style={{flex:1, display:"flex", flexDirection:"column", gap:10, minWidth:260}}>
+          <div style={{
+            display:"flex", alignItems:"center", gap:9,
+            background:"#fff", borderRadius:12, padding:"10px 14px",
+            border:"1px solid #E2EEF9",
+            boxShadow:"0 4px 14px rgba(25,54,72,0.06)",
+            transition:"border-color 0.18s ease, box-shadow 0.18s ease",
+          }}
+            onFocusCapture={(e)=>{ e.currentTarget.style.borderColor="#3A70B0"; e.currentTarget.style.boxShadow="0 4px 14px rgba(58,112,176,0.18)"; }}
+            onBlurCapture={(e)=>{ e.currentTarget.style.borderColor="#E2EEF9"; e.currentTarget.style.boxShadow="0 4px 14px rgba(25,54,72,0.06)"; }}
+          >
+            <Search size={15} color="#94a3b8"/>
+            <input style={{border:"none", outline:"none", fontSize:"0.9rem", background:"transparent", width:"100%", color:"#193648"}} placeholder="Search title, industry, domain, tag..." value={search} onChange={e=>setSearch(e.target.value)}/>
           </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            {["All","Project","Internship","Workshop","Research"].map(t=>(
-              <button key={t} onClick={()=>setTypeF(t)}
-                style={{padding:"6px 14px",borderRadius:8,border:`1.5px solid ${typeF===t?B.navy:B.border}`,background:typeF===t?B.navy:"#fff",color:typeF===t?"#fff":B.textMuted,fontSize:"0.8rem",fontWeight:600,cursor:"pointer"}}>
-                {t}
-              </button>
-            ))}
+
+          <div style={{display:"flex", gap:6, flexWrap:"wrap"}}>
+            {["All","Project","Internship","Workshop","Research"].map(t=>{
+              const active = typeF===t;
+              return (
+                <button key={t} onClick={()=>setTypeF(t)}
+                  style={{
+                    padding:"6px 13px", borderRadius:8,
+                    border:`1px solid ${active?"#193648":"#E2EEF9"}`,
+                    background:active?"#193648":"#fff",
+                    color:active?"#fff":"#64748b",
+                    fontSize:"0.78rem", fontWeight:700, cursor:"pointer",
+                    transition:"background 0.18s ease, border-color 0.18s ease, color 0.18s ease",
+                  }}
+                    onMouseEnter={(e)=>{ if(!active){ e.currentTarget.style.background="#f8fbff"; e.currentTarget.style.borderColor="#3A70B0"; } }}
+                    onMouseLeave={(e)=>{ if(!active){ e.currentTarget.style.background="#fff"; e.currentTarget.style.borderColor="#E2EEF9"; } }}
+                >
+                  {t}
+                </button>
+              );
+            })}
           </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-            <span style={{fontSize:"0.75rem",color:B.textFaint,fontWeight:600}}>Status:</span>
-            {["All","Ongoing","Upcoming","Completed"].map(s=>(
-              <button key={s} onClick={()=>setStatusF(s)}
-                style={{padding:"5px 12px",borderRadius:8,border:`1.5px solid ${statusF===s?B.blue:B.border}`,background:statusF===s?"#EEF5FF":"#fff",color:statusF===s?B.blue:B.textMuted,fontSize:"0.78rem",fontWeight:600,cursor:"pointer"}}>
-                {s}
-              </button>
-            ))}
-            <span style={{fontSize:"0.75px",color:"transparent",flex:1}}/>
-            <span style={{fontSize:"0.75rem",color:B.textFaint,fontWeight:600}}>Sort:</span>
+
+          <div style={{display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", justifyContent:"flex-end"}}>
+            <span style={{fontSize:"0.72rem", color:"#94a3b8", fontWeight:800, letterSpacing:"0.08em", textTransform:"uppercase"}}>Sort:</span>
             <select value={sortBy} onChange={e=>setSortBy(e.target.value)}
-              style={{padding:"5px 10px",borderRadius:8,border:`1.5px solid ${B.border}`,background:"#fff",color:B.textDark,fontSize:"0.78rem",outline:"none",cursor:"pointer"}}>
+              style={{
+                padding:"6px 10px", borderRadius:8,
+                border:"1px solid #E2EEF9",
+                background:"#fff", color:"#193648",
+                fontSize:"0.76rem", fontWeight:600,
+                outline:"none", cursor:"pointer",
+              }}>
               <option value="pinned">Pinned First</option>
               <option value="deadline">Deadline</option>
               <option value="applicants">Most Applicants</option>
@@ -666,17 +755,34 @@ const IndustryProjects = () => {
       </div>
 
       {/* Results count */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
-        <span style={{fontSize:"0.82rem",color:B.textMuted,fontWeight:500}}>
-          Showing <strong style={{color:B.textDark}}>{filtered.length}</strong> of <strong style={{color:B.textDark}}>{posts.length}</strong> posts
+      <div style={{
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        marginBottom:18, padding:"10px 14px",
+        background:"#f8fbff", borderRadius:10, border:"1px solid #eef2ff",
+      }}>
+        <span style={{fontSize:"0.82rem", color:"#64748b", fontWeight:600, display:"inline-flex", alignItems:"center", gap:7}}>
+          <span style={{width:6, height:6, borderRadius:"50%", background:"#22C55E", boxShadow:"0 0 0 3px rgba(34,197,94,0.20)"}} />
+          Showing <strong style={{color:"#193648", fontVariantNumeric:"tabular-nums"}}>{filtered.length}</strong>
+          <span style={{color:"#cbd5e1"}}>of</span>
+          <strong style={{color:"#193648", fontVariantNumeric:"tabular-nums"}}>{posts.length}</strong> posts
         </span>
-        <div style={{display:"flex",gap:6}}>
-          {["grid","list"].map(v=>(
-            <button key={v} onClick={()=>setView(v)}
-              style={{padding:"5px 11px",borderRadius:8,border:`1.5px solid ${view===v?B.blue:B.border}`,background:view===v?"#EEF5FF":"#fff",color:view===v?B.blue:B.textMuted,fontSize:"0.78rem",fontWeight:600,cursor:"pointer",textTransform:"capitalize"}}>
-              {v}
-            </button>
-          ))}
+        <div style={{display:"flex", gap:4, padding:3, borderRadius:9, background:"#fff", border:"1px solid #E2EEF9"}}>
+          {["grid","list"].map(v=>{
+            const active = view===v;
+            return (
+              <button key={v} onClick={()=>setView(v)}
+                style={{
+                  padding:"5px 12px", borderRadius:7, border:"none",
+                  background:active?"#193648":"transparent",
+                  color:active?"#fff":"#64748b",
+                  fontSize:"0.76rem", fontWeight:700, cursor:"pointer",
+                  textTransform:"capitalize",
+                  transition:"background 0.18s ease, color 0.18s ease",
+                }}>
+                {v}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -722,6 +828,8 @@ const IndustryProjects = () => {
         )}
       </AnimatePresence>
     </div>
+    <LiaisonFooter />
+    </>
   );
 };
 

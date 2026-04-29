@@ -502,7 +502,13 @@
 
 import express from "express";
 import mongoose from "mongoose";
+import InternshipNotification from "../models/InternshipNotification.js";
 const router = express.Router();
+
+const notify = async (title, message, type = "info") => {
+  try { await InternshipNotification.create({ title, message, type, seen: false }); }
+  catch (e) { console.warn("Internship notification failed:", e.message); }
+};
 
 // ── Application Schema ─────────────────────────────────────────────────
 const applicationSchema = new mongoose.Schema(
@@ -718,6 +724,14 @@ router.patch("/applications/:id/approve", async (req, res) => {
     updated.status = normaliseStatus(updated.status);
     updated.studentId = resolveStudent(updated.studentId, updated.studentEmail);
 
+    const studentName = updated.studentId?.fullName || updated.studentName || "Student";
+    const internshipTitle = updated.internshipId?.title || "internship";
+    await notify(
+      "Application accepted",
+      `${studentName}'s application for "${internshipTitle}" was approved and forwarded to Industry Liaison.`,
+      "success"
+    );
+
     return res.json({ success: true, message: "Application accepted and sent to Industry Liaison", data: updated });
   } catch (err) {
     console.error("PATCH approve error:", err);
@@ -751,6 +765,10 @@ router.patch("/applications/:id/reject", async (req, res) => {
     };
 
     await application.save();
+
+    const studentName = application.studentName || "Student";
+    await notify("Application rejected", `${studentName}'s application was rejected.`, "warning");
+
     return res.json({ success: true, message: "Application rejected" });
   } catch (err) {
     console.error("PATCH reject error:", err);

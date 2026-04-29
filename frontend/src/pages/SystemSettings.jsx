@@ -1,14 +1,16 @@
 // src/pages/SystemSettings.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Bell, ShieldCheck, Database, CloudUpload, Zap,
   Save, Key, CheckCircle, AlertTriangle, Monitor, Globe,
   Clock, Camera, Eye, EyeOff, RefreshCw, Download,
   Upload, Shield, Activity, Layers, ChevronRight, ArrowLeft,
-  Cpu, Mail, Moon, Sun, Sliders, AlertCircle,
+  Cpu, Mail, Moon, Sun, Sliders, AlertCircle, Settings as SettingsIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 
 // ─── Brand palette ───────────────────────────────────────────────────────────
 // Primary navy  : #193648
@@ -24,11 +26,13 @@ const C = {
   navyLight: "#1e4060",
   blue:      "#3A70B0",
   blueMid:   "#2d5a8e",
+  blueSoft:  "#7AA9D6",
   blueLight: "#AAC3FC",
+  tint:      "#E2EEF9",
   pageBg:    "linear-gradient(135deg, #E2EEF9 0%, #FFFFFF 100%)",
   cardBg:    "#FFFFFF",
-  border:    "#D4E3F5",
-  borderMid: "#b8d0ea",
+  border:    "#E2EEF9",
+  borderMid: "#AAC3FC",
   textDark:  "#193648",
   textMid:   "#3A70B0",
   textMuted: "#5a7e9a",
@@ -54,6 +58,8 @@ const FontStyle = () => (
     ::-webkit-scrollbar-thumb { background: #AAC3FC; border-radius: 10px; }
   `}</style>
 );
+
+const BASE_API = "http://localhost:5000";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const ADMIN = {
@@ -183,7 +189,7 @@ const PrefRow = ({ icon: Icon, title, desc, checked, onChange, accent = C.blue }
   <div style={{
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "13px 16px", borderRadius: 12, marginBottom: 10,
-    background: checked ? "#EEF5FF" : "#f8fbff",
+    background: checked ? "#E2EEF9" : "#f8fbff",
     border: `1.5px solid ${checked ? C.blueLight : C.border}`,
     transition: "all 0.25s",
   }}>
@@ -191,7 +197,7 @@ const PrefRow = ({ icon: Icon, title, desc, checked, onChange, accent = C.blue }
       <div style={{
         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: checked ? "#dbeafe" : "#EDF4FF",
+        background: checked ? "#AAC3FC" : "#E2EEF9",
         border: `1.5px solid ${checked ? C.blueLight : C.border}`,
       }}>
         <Icon size={16} color={checked ? C.blue : C.textFaint} />
@@ -236,7 +242,7 @@ const NavItem = ({ icon: Icon, label, sub, active, onClick, warn }) => (
     <div style={{
       width: 34, height: 34, borderRadius: 10, flexShrink: 0,
       display: "flex", alignItems: "center", justifyContent: "center",
-      background: active ? "rgba(255,255,255,0.15)" : "#EEF5FF",
+      background: active ? "rgba(255,255,255,0.15)" : "#E2EEF9",
     }}>
       <Icon size={16} color={active ? "#fff" : C.blue} />
     </div>
@@ -256,6 +262,7 @@ const SystemSettings = () => {
   const [settings, setSettings]     = useState({ ...initSettings });
   const [adminPw, setAdminPw]       = useState(ADMIN.password);
   const [imgPreview, setImgPreview] = useState(null);
+  const [photoSaving, setPhotoSaving] = useState(false);
   const [pwForm, setPwForm]         = useState({ current: "", newP: "", confirm: "" });
   const [showPw, setShowPw]         = useState({ c: false, n: false, cf: false });
   const [toast, setToast]           = useState(null);
@@ -267,8 +274,77 @@ const SystemSettings = () => {
   const tInteg = (k) => { setSettings(s => ({ ...s, integrations: { ...s.integrations, [k]: !s.integrations[k] } })); flash(`${k} ${settings.integrations[k] ? "disconnected" : "connected"}`); };
   const t2FA   = () => { setSettings(s => ({ ...s, security: { ...s.security, twoFA: !s.security.twoFA } })); flash(settings.security.twoFA ? "2FA disabled" : "2FA enabled"); };
 
-  const onImg       = (e) => { const f = e.target.files?.[0]; if (!f) return; setImgPreview(URL.createObjectURL(f)); flash("Photo updated"); };
-  const saveProfile = (e) => { e.preventDefault(); setSettings(s => ({ ...s, profile: { ...s.profile, ...pForm } })); flash("Profile saved"); };
+  // Load liaison profile (name/email/role/dp) from backend on mount.
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch(`${BASE_API}/api/liaison/profile`);
+        if (!r.ok) return;
+        const p = await r.json();
+        if (p && typeof p === "object") {
+          setPForm((prev) => ({
+            ...prev,
+            ...(p.name  ? { displayName: p.name }  : {}),
+            ...(p.email ? { email:       p.email } : {}),
+            ...(p.role  ? { role:        p.role }  : {}),
+          }));
+          if (typeof p.dp === "string" && p.dp) setImgPreview(p.dp);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  // PATCH a partial profile change to the backend and broadcast it so other
+  // mounted components (e.g. LiaisonNavbar) refresh their copy.
+  const patchProfile = async (patch) => {
+    try {
+      const r = await fetch(`${BASE_API}/api/liaison/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) {
+        const txt = await r.text().catch(() => "");
+        flash(txt?.includes("too large") ? "Photo too large (max 6MB)" : "Save failed", "err");
+        return null;
+      }
+      const saved = await r.json();
+      try { window.dispatchEvent(new CustomEvent("liaison-profile-updated", { detail: saved })); } catch {}
+      return saved;
+    } catch {
+      flash("Network error", "err");
+      return null;
+    }
+  };
+
+  const onImg = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type?.startsWith("image/")) { flash("Please choose an image", "err"); return; }
+    if (f.size > 6 * 1024 * 1024)      { flash("Photo too large (max 6MB)", "err"); return; }
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target?.result;
+      if (typeof dataUrl !== "string") return;
+      setImgPreview(dataUrl);
+      setPhotoSaving(true);
+      const saved = await patchProfile({ dp: dataUrl });
+      setPhotoSaving(false);
+      if (saved) flash("Photo updated");
+    };
+    reader.readAsDataURL(f);
+  };
+
+  const saveProfile = async (e) => {
+    e.preventDefault();
+    setSettings(s => ({ ...s, profile: { ...s.profile, ...pForm } }));
+    const saved = await patchProfile({
+      name:  pForm.displayName,
+      email: pForm.email,
+      role:  pForm.role,
+    });
+    if (saved) flash("Profile saved");
+  };
   const changePw    = (e) => {
     e.preventDefault();
     if (pwForm.current !== adminPw)      { flash("Wrong current password", "err"); return; }
@@ -302,6 +378,7 @@ const SystemSettings = () => {
   return (
     <>
       <FontStyle />
+      <LiaisonNavbar />
       <div style={{ fontFamily: "'Poppins', sans-serif", background: C.pageBg, minHeight: "100vh" }}>
 
         {/* Toast */}
@@ -328,100 +405,153 @@ const SystemSettings = () => {
           )}
         </AnimatePresence>
 
-        <div style={{ display: "flex", height: "100vh" }}>
+        <main style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 36px 56px" }}>
 
-          {/* ── Sidebar ── */}
-          <aside style={{
-            width: 265, flexShrink: 0,
-            background: C.navy,
-            display: "flex", flexDirection: "column",
-            padding: "24px 16px", gap: 0, overflowY: "auto",
-            boxShadow: "4px 0 24px rgba(25,54,72,0.18)",
+          {/* Premium header - matches MOU style */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            gap: 16, marginBottom: 22, flexWrap: "wrap",
           }}>
-            {/* Logo */}
-            <div style={{ marginBottom: 26, paddingLeft: 6 }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>
-                Colla<span style={{ color: C.blueLight }}>X</span>ion
-              </div>
-              <div style={{ fontSize: "0.7rem", color: C.blueLight, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 2 }}>
-                System Settings
-              </div>
-            </div>
-
-            {/* Profile mini */}
-            <div style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 14, padding: "13px 14px",
-              marginBottom: 20, display: "flex", alignItems: "center", gap: 12,
-            }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 0 }}>
               <div style={{
-                width: 42, height: 42, borderRadius: 12, flexShrink: 0, overflow: "hidden",
-                border: `2px solid ${C.blueLight}66`,
+                width: 56, height: 56, borderRadius: 16, flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(255,255,255,0.1)",
+                background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,
+                boxShadow: "0 10px 28px rgba(25,54,72,0.28)",
+                border: "1px solid rgba(255,255,255,0.18)",
               }}>
-                {imgPreview
-                  ? <img src={imgPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : <User size={20} color={C.blueLight} />
-                }
+                <SettingsIcon size={26} color="#fff" />
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "0.86rem", fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {pForm.displayName}
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing: "0.14em",
+                    textTransform: "uppercase", color: C.blue,
+                    background: "#E2EEF9", border: `1px solid ${C.blueLight}`,
+                    padding: "3px 9px", borderRadius: 999,
+                  }}>
+                    Workspace
+                  </span>
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 5,
+                    fontSize: 10, fontWeight: 800, letterSpacing: "0.14em",
+                    textTransform: "uppercase", color: C.success,
+                    background: C.successBg, border: "1px solid #bfe5d1",
+                    padding: "3px 9px", borderRadius: 999,
+                  }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.success }} />
+                    Live
+                  </span>
                 </div>
-                <div style={{ fontSize: "0.72rem", color: C.blueLight, marginTop: 2 }}>{pForm.role}</div>
+                <h1 style={{ fontSize: "1.7rem", fontWeight: 800, color: C.textDark, margin: 0, letterSpacing: "-0.01em" }}>
+                  System Settings
+                </h1>
+                <p style={{ fontSize: "0.86rem", color: C.textMid, margin: "4px 0 0 0", fontWeight: 500 }}>
+                  Manage your profile, preferences, security and integrations
+                </p>
               </div>
             </div>
 
-            {/* Nav items */}
-            <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
-              {navItems.map(item => (
-                <NavItem
-                  key={item.key}
-                  icon={item.icon}
-                  label={item.label}
-                  sub={item.sub}
-                  warn={item.warn}
-                  active={section === item.key}
-                  onClick={() => setSection(item.key)}
-                />
-              ))}
-            </nav>
-
-            {/* Back */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/maindashboard")}
-              style={{
-                display: "flex", alignItems: "center", gap: 8, width: "100%",
-                marginTop: 16, padding: "10px 14px", borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.15)", background: "transparent",
-                color: C.blueLight, fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
-                fontFamily: "'Poppins', sans-serif",
-              }}
-            >
-              <ArrowLeft size={14} /> Back to Dashboard
-            </motion.button>
-          </aside>
-
-          {/* ── Main Content ── */}
-          <main style={{ flex: 1, overflowY: "auto", padding: "36px 48px" }}>
-
-            {/* Topbar */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
-              <div>
-                <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: C.textDark, margin: 0 }}>
-                  {navItems.find(n => n.key === section)?.label}
-                </h1>
-                <p style={{ fontSize: "0.88rem", color: C.textMid, margin: "6px 0 0 0" }}>
-                  {navItems.find(n => n.key === section)?.sub}
-                </p>
-              </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <Btn variant="ghost" onClick={() => navigate("/maindashboard")}>
+                <ArrowLeft size={14} /> Dashboard
+              </Btn>
               <Btn onClick={() => flash("All settings saved")}>
                 <Save size={14} /> Save All
               </Btn>
             </div>
+          </div>
+
+          {/* Compact pill counts - quick status overview */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 22 }}>
+            {[
+              { label: "Sections",  value: navItems.length, accent: C.blue,  bg: "#E2EEF9", brd: C.blueLight },
+              { label: "2FA",       value: settings.security.twoFA ? "On" : "Off", accent: settings.security.twoFA ? C.success : C.warn, bg: settings.security.twoFA ? C.successBg : C.warnBg, brd: settings.security.twoFA ? "#bfe5d1" : "#fde68a" },
+              { label: "Notifications", value: settings.preferences.notifications ? "On" : "Off", accent: settings.preferences.notifications ? C.success : C.error, bg: settings.preferences.notifications ? C.successBg : C.errorBg, brd: settings.preferences.notifications ? "#bfe5d1" : "#fecaca" },
+              { label: "Integrations", value: Object.values(settings.integrations).filter(Boolean).length, accent: C.navy, bg: "#E2EEF9", brd: C.blueLight },
+              { label: "Theme",     value: settings.preferences.theme === "dark" ? "Dark" : "Light", accent: C.blue, bg: "#E2EEF9", brd: C.blueLight },
+              { label: "Language",  value: settings.preferences.language, accent: C.navy, bg: "#E2EEF9", brd: C.blueLight },
+            ].map((p) => (
+              <div key={p.label} style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "8px 14px", borderRadius: 8,
+                background: "#fff", border: "1px solid #E2EEF9",
+                boxShadow: "0 2px 6px rgba(25,54,72,0.04)",
+                fontFamily: "'Poppins', sans-serif",
+              }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 800, color: p.accent,
+                  background: p.bg, border: `1px solid ${p.brd}`,
+                  padding: "2px 9px", borderRadius: 999, minWidth: 28,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {p.value}
+                </span>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, color: C.textMuted,
+                  letterSpacing: "0.04em", textTransform: "uppercase",
+                }}>
+                  {p.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Horizontal tab strip - replaces sidebar drawer */}
+          <div style={{
+            display: "flex", gap: 8, flexWrap: "wrap",
+            background: "#fff",
+            border: "1px solid #E2EEF9", borderRadius: 14,
+            padding: 8, marginBottom: 24,
+            boxShadow: "0 4px 14px rgba(25,54,72,0.06)",
+          }}>
+            {navItems.map((item) => {
+              const active = section === item.key;
+              const Icon = item.icon;
+              return (
+                <motion.button
+                  key={item.key}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setSection(item.key)}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 9,
+                    padding: "10px 16px", borderRadius: 10,
+                    border: active ? "1px solid #122838" : "1px solid #E2EEF9",
+                    background: active
+                      ? `linear-gradient(135deg, ${C.navy}, ${C.navyLight})`
+                      : "#f8fbff",
+                    color: active ? "#fff" : C.textMid,
+                    fontSize: 12.5, fontWeight: 700, letterSpacing: "0.01em",
+                    cursor: "pointer", fontFamily: "'Poppins', sans-serif",
+                    boxShadow: active ? "0 6px 18px rgba(25,54,72,0.22)" : "none",
+                    transition: "all 0.2s",
+                    position: "relative",
+                  }}
+                >
+                  <Icon size={14} color={active ? "#fff" : C.blue} />
+                  {item.label}
+                  {item.warn && !active && (
+                    <span style={{
+                      width: 7, height: 7, borderRadius: "50%",
+                      background: "#f59e0b",
+                      boxShadow: "0 0 6px #f59e0b80",
+                    }} />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Section subheader - context for the current tab */}
+          <div style={{ marginBottom: 18 }}>
+            <h2 style={{ fontSize: "1.15rem", fontWeight: 700, color: C.textDark, margin: 0, letterSpacing: "-0.005em" }}>
+              {navItems.find(n => n.key === section)?.label}
+            </h2>
+            <p style={{ fontSize: "0.82rem", color: C.textMuted, margin: "4px 0 0 0" }}>
+              {navItems.find(n => n.key === section)?.sub}
+            </p>
+          </div>
 
             <AnimatePresence mode="wait">
               <motion.div
@@ -502,7 +632,7 @@ const SystemSettings = () => {
                             width: 104, height: 104, borderRadius: 24, overflow: "hidden",
                             border: `3px solid ${C.blueLight}`,
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            background: "#EEF5FF",
+                            background: "#E2EEF9",
                             boxShadow: "0 6px 24px rgba(58,112,176,0.18)",
                           }}>
                             {imgPreview
@@ -516,9 +646,23 @@ const SystemSettings = () => {
                             <div style={{ fontSize: "0.74rem", color: C.textMuted, marginTop: 3 }}>{pForm.email}</div>
                           </div>
                           <input ref={fileRef} type="file" accept="image/*" onChange={onImg} style={{ display: "none" }} />
-                          <Btn onClick={() => fileRef.current?.click()} style={{ width: "100%", justifyContent: "center" }}>
-                            <Camera size={14} /> Upload Photo
+                          <Btn onClick={() => !photoSaving && fileRef.current?.click()} style={{ width: "100%", justifyContent: "center", opacity: photoSaving ? 0.7 : 1, cursor: photoSaving ? "wait" : "pointer" }}>
+                            <Camera size={14} /> {photoSaving ? "Saving…" : "Upload Photo"}
                           </Btn>
+                          {imgPreview && (
+                            <Btn
+                              variant="ghost"
+                              onClick={async () => {
+                                setPhotoSaving(true);
+                                const saved = await patchProfile({ dp: "" });
+                                setPhotoSaving(false);
+                                if (saved) { setImgPreview(null); flash("Photo removed"); }
+                              }}
+                              style={{ width: "100%", justifyContent: "center" }}
+                            >
+                              <RefreshCw size={13} /> Remove Photo
+                            </Btn>
+                          )}
                         </div>
                       </Card>
 
@@ -592,14 +736,14 @@ const SystemSettings = () => {
                         <div style={{
                           display: "flex", alignItems: "center", justifyContent: "space-between",
                           padding: "16px 18px", borderRadius: 14, marginBottom: 12,
-                          background: settings.security.twoFA ? "#EEF5FF" : C.warnBg,
+                          background: settings.security.twoFA ? "#E2EEF9" : C.warnBg,
                           border: `1.5px solid ${settings.security.twoFA ? C.blueLight : "#fde68a"}`,
                         }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                             <div style={{
                               width: 42, height: 42, borderRadius: 12, flexShrink: 0,
                               display: "flex", alignItems: "center", justifyContent: "center",
-                              background: settings.security.twoFA ? "#DBEAFE" : "#fef3c7",
+                              background: settings.security.twoFA ? "#AAC3FC" : "#fef3c7",
                             }}>
                               <Shield size={20} color={settings.security.twoFA ? C.blue : "#d97706"} />
                             </div>
@@ -644,13 +788,13 @@ const SystemSettings = () => {
                           <motion.div key={h.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
                             style={{
                               display: "flex", alignItems: "center", gap: 14, padding: "13px 16px", borderRadius: 12,
-                              background: h.status === "failed" ? C.errorBg : "#EEF5FF",
+                              background: h.status === "failed" ? C.errorBg : "#E2EEF9",
                               border: `1.5px solid ${h.status === "failed" ? "#fecaca" : C.blueLight}`,
                             }}>
                             <div style={{
                               width: 36, height: 36, borderRadius: 10, flexShrink: 0,
                               display: "flex", alignItems: "center", justifyContent: "center",
-                              background: h.status === "failed" ? "#fee2e2" : "#DBEAFE",
+                              background: h.status === "failed" ? "#fee2e2" : "#AAC3FC",
                             }}>
                               {h.status === "failed"
                                 ? <AlertTriangle size={16} color="#dc2626" />
@@ -665,7 +809,7 @@ const SystemSettings = () => {
                               <StatusChip
                                 label={h.status}
                                 color={h.status === "failed" ? "#dc2626" : C.blue}
-                                bg={h.status === "failed" ? "#fee2e2" : "#DBEAFE"}
+                                bg={h.status === "failed" ? "#fee2e2" : "#AAC3FC"}
                               />
                             </div>
                           </motion.div>
@@ -733,7 +877,7 @@ const SystemSettings = () => {
                       return (
                         <motion.div key={key} whileHover={{ y: -3 }}
                           style={{
-                            background: on ? "#EEF5FF" : C.cardBg,
+                            background: on ? "#E2EEF9" : C.cardBg,
                             border: `1.5px solid ${on ? C.blueLight : C.border}`,
                             borderRadius: 18, padding: "22px 24px",
                             boxShadow: on ? "0 6px 20px rgba(58,112,176,0.12)" : "0 4px 16px rgba(25,54,72,0.06)",
@@ -748,7 +892,7 @@ const SystemSettings = () => {
                                   <StatusChip
                                     label={on ? "Connected" : "Disconnected"}
                                     color={on ? C.blue : C.textFaint}
-                                    bg={on ? "#DBEAFE" : "#f1f5f9"}
+                                    bg={on ? "#AAC3FC" : "#f1f5f9"}
                                   />
                                 </div>
                               </div>
@@ -797,14 +941,14 @@ const SystemSettings = () => {
                           { name: "API Server",    latency: "42ms", ok: true  },
                           { name: "Database",      latency: "18ms", ok: true  },
                           { name: "File Storage",  latency: "61ms", ok: true  },
-                          { name: "Email Service", latency: "—",    ok: false },
+                          { name: "Email Service", latency: "-",    ok: false },
                           { name: "Auth Service",  latency: "29ms", ok: true  },
                         ].map((svc, i) => (
                           <motion.div key={i} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
                             style={{
                               display: "flex", alignItems: "center", justifyContent: "space-between",
                               padding: "12px 16px", borderRadius: 12,
-                              background: svc.ok ? "#EEF5FF" : C.warnBg,
+                              background: svc.ok ? "#E2EEF9" : C.warnBg,
                               border: `1.5px solid ${svc.ok ? C.blueLight : "#fde68a"}`,
                             }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -820,15 +964,15 @@ const SystemSettings = () => {
                               <StatusChip
                                 label={svc.ok ? "Operational" : "Degraded"}
                                 color={svc.ok ? C.blue : "#d97706"}
-                                bg={svc.ok ? "#DBEAFE" : "#fef3c7"}
+                                bg={svc.ok ? "#AAC3FC" : "#fef3c7"}
                               />
                             </div>
                           </motion.div>
                         ))}
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "#EEF5FF", border: `1px solid ${C.blueLight}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, padding: "10px 14px", borderRadius: 10, background: "#E2EEF9", border: `1px solid ${C.blueLight}` }}>
                         <Activity size={13} color={C.blue} />
-                        <span style={{ fontSize: "0.75rem", color: C.textMid }}>4 of 5 services operational — Last checked: just now</span>
+                        <span style={{ fontSize: "0.75rem", color: C.textMid }}>4 of 5 services operational - Last checked: just now</span>
                       </div>
                     </Card>
                   </div>
@@ -836,9 +980,9 @@ const SystemSettings = () => {
 
               </motion.div>
             </AnimatePresence>
-          </main>
-        </div>
+        </main>
       </div>
+      <LiaisonFooter />
     </>
   );
 };

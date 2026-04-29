@@ -18,6 +18,10 @@ import coCurricularEventRoutes from "./routes/coCurricularEventRoutes.js";
 import coCurricularTaskRoutes from "./routes/coCurricularTaskRoutes.js";
 import coCurricularInvitationRoutes from "./routes/coCurricularInvitationRoutes.js";
 import coCurricularNotificationRoutes from "./routes/coCurricularNotificationRoutes.js";
+import coCurricularProfileRoutes from "./routes/coCurricularProfileRoutes.js";
+import internshipProfileRoutes from "./routes/internshipProfileRoutes.js";
+import internshipNotificationRoutes from "./routes/internshipNotificationRoutes.js";
+import liaisonProfileRoutes from "./routes/liaisonProfileRoutes.js";
 import industryRegistrationsRoute from "./routes/Industryregistrations.route.js";
 import liaisonNotificationRoutes from "./routes/liaisonNotificationRoutes.js";
 
@@ -26,11 +30,10 @@ import inchargeRoutes from "./routes/applicationInchargeRoutes.js";
 import emailRoutes from "./routes/emailRoutes.js";
 
 const app = express();
-app.use(express.json());
 // Middleware
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(express.json({ limit: "12mb" }));
+app.use(express.urlencoded({ limit: "12mb", extended: true }));
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
   next();
@@ -204,6 +207,10 @@ app.use("/api/cocurricular/events", coCurricularEventRoutes);
 app.use("/api/cocurricular/tasks", coCurricularTaskRoutes);
 app.use("/api/cocurricular/invitations", coCurricularInvitationRoutes);
 app.use("/api/cocurricular/notifications", coCurricularNotificationRoutes);
+app.use("/api/cocurricular/profile", coCurricularProfileRoutes);
+app.use("/api/incharge/profile", internshipProfileRoutes);
+app.use("/api/incharge/notifications", internshipNotificationRoutes);
+app.use("/api/liaison/profile", liaisonProfileRoutes);
 app.use("/api/industry-registrations", industryRegistrationsRoute);
 app.use("/api/liaison-notifications", liaisonNotificationRoutes);
 

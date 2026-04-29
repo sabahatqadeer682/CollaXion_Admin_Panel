@@ -1,15 +1,34 @@
 import express from "express";
 import CoCurricularInvitation from "../models/CoCurricularInvitation.js";
+import CoCurricularNotification from "../models/CoCurricularNotification.js";
 import asyncHandler from "express-async-handler";
 import nodemailer from "nodemailer";
 
 const router = express.Router();
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-});
+const notify = async (title, message, type = "info") => {
+  try {
+    await CoCurricularNotification.create({ title, message, type, seen: false });
+  } catch (e) { console.warn("Notification create failed:", e.message); }
+};
+
+// Lazily-built email transporter — defer reading env vars until a request actually
+// fires, otherwise the routes module loads before dotenv.config() runs and the
+// credentials end up undefined ("Missing credentials for PLAIN").
+let _transporter = null;
+const getTransporter = () => {
+  if (_transporter) return _transporter;
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
+  if (!user || !pass) {
+    throw new Error("EMAIL_USER / EMAIL_PASS are missing from backend/.env — set them and restart the server");
+  }
+  _transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+  return _transporter;
+};
 
 // GET all invitations
 router.get("/", asyncHandler(async (req, res) => {
@@ -32,6 +51,8 @@ router.post("/", asyncHandler(async (req, res) => {
     recipientType: recipientType || "Industry",
     message, status: "Pending"
   });
+
+  await notify("Invitation created", `Invitation drafted for ${invitation.recipientName} (${invitation.recipientEmail}).`, "info");
 
   res.status(201).json(invitation);
 }));
@@ -72,8 +93,9 @@ router.post("/:id/send", asyncHandler(async (req, res) => {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    await getTransporter().sendMail({
+      from: `"CollaXion · Co-Curricular Office" <${process.env.EMAIL_USER}>`,
+      replyTo: process.env.EMAIL_USER,
       to: invitation.recipientEmail,
       subject,
       html
@@ -82,6 +104,12 @@ router.post("/:id/send", asyncHandler(async (req, res) => {
     invitation.status = "Sent";
     invitation.sentAt = new Date();
     await invitation.save();
+
+    await notify(
+      "Invitation sent",
+      `Invitation for "${event.name}" emailed to ${invitation.recipientName} (${invitation.recipientEmail}).`,
+      "success"
+    );
 
     res.json({ message: "Invitation sent successfully", invitation });
   } catch (error) {

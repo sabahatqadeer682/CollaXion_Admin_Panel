@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 import summitImg from "../images/event5.jpg";
 import aiWorkshopImg from "../images/event1.png";
 import visitImg from "../images/event2.jpg";
@@ -172,45 +174,79 @@ const EventCreation = () => {
   const badgeColor = () => "#193648";
 
   return (
+    <>
+    <LiaisonNavbar />
     <div style={styles.page}>
-      {/* HERO */}
-      <div style={styles.hero}>
-        <div style={styles.heroLeft}>
-          <h1 style={styles.heroTitle}>CollaXion Events Hub</h1>
-          <p style={styles.heroSub}>
-            Manage university–industry events: create, preview, and filter by type — all in one elegant view.
-          </p>
-          <div style={styles.statsRow}>
-            <div style={styles.statCard}>
-              <div style={styles.statNumber}>{totalCount}</div>
-              <div style={styles.statLabel}>Total events</div>
-            </div>
-            <div style={styles.statCard}>
-              <div style={styles.statNumber}>{upcomingCount}</div>
-              <div style={styles.statLabel}>Upcoming</div>
-            </div>
-            <div style={styles.statCard}>
-              <div style={styles.statNumber}>
-                {nextEvent ? nextEvent.date : "—"}
-              </div>
-              <div style={styles.statLabel}>Next event</div>
-            </div>
+      {/* HERO - premium */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+        gap: 16, flexWrap: "wrap",
+        margin: "20px 0 18px", padding: "0 4px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: 12,
+            background: "#193648", color: "#fff", flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 8px 18px rgba(25,54,72,0.28)",
+          }}>
+            <PlusCircle size={20} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{
+              margin: 0, fontSize: 22, fontWeight: 800, color: "#193648",
+              letterSpacing: "-0.02em", fontFamily: "'Sora', 'Inter', sans-serif",
+              display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+            }}>
+              CollaXion Events Hub
+              <span style={{
+                fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase",
+                color: "#3A70B0", background: "#eff6ff", border: "1px solid #cfe0f0",
+                padding: "3px 10px", borderRadius: 999,
+              }}>Live</span>
+            </h1>
+            <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#94a3b8" }}>
+              Manage university–industry events: create, preview, and filter by type.
+            </p>
           </div>
         </div>
-        <div style={styles.heroRight}>
-          <div style={styles.heroPanel}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <PlusCircle size={22} color="#fff" />
-              <div>
-                <div style={styles.panelTitle}>Create an event</div>
-                <div style={styles.panelSub}>Add poster, details & publish</div>
-              </div>
-            </div>
-            <button style={styles.createBtn} onClick={() => setShowModal(true)}>
-              Create Event
-            </button>
+        <button onClick={() => setShowModal(true)} style={{
+          display: "inline-flex", alignItems: "center", gap: 7,
+          padding: "10px 18px", borderRadius: 10, border: "none",
+          background: "#193648", color: "#fff",
+          fontSize: 12.5, fontWeight: 800, cursor: "pointer",
+          boxShadow: "0 8px 18px rgba(25,54,72,0.25)",
+          transition: "transform 0.18s ease, box-shadow 0.18s ease",
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(25,54,72,0.32)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 8px 18px rgba(25,54,72,0.25)"; }}
+        >
+          <PlusCircle size={14} /> Create Event
+        </button>
+      </div>
+
+      {/* COMPACT COUNT PILLS */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+        {[
+          { label: "Total Events", value: totalCount,                                color: "#193648", halo: "rgba(25,54,72,0.15)" },
+          { label: "Upcoming",     value: upcomingCount,                             color: "#3A70B0", halo: "rgba(58,112,176,0.18)" },
+          { label: "Next Event",   value: nextEvent ? nextEvent.date : "-",          color: "#16a34a", halo: "rgba(22,163,74,0.20)" },
+        ].map((s, i) => (
+          <div key={i} style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "7px 12px", borderRadius: 8,
+            background: "#fff", border: "1px solid #E2EEF9",
+            boxShadow: "0 1px 3px rgba(25,54,72,0.06)",
+          }}>
+            <span style={{
+              width: 7, height: 7, borderRadius: "50%",
+              background: s.color,
+              boxShadow: `0 0 0 3px ${s.halo}`,
+            }} />
+            <span style={{ fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>{s.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
           </div>
-        </div>
+        ))}
       </div>
 
       {/* TABS + SEARCH */}
@@ -328,13 +364,57 @@ const EventCreation = () => {
               </button>
             </div>
             <form style={styles.form} onSubmit={createEvent}>
+              {/* ── Suggestion datalists ── */}
+              <datalist id="ec-title-list">
+                <option value="AI & ML Bootcamp 2026" />
+                <option value="Industry-Academia Tech Summit" />
+                <option value="Cloud Computing Workshop" />
+                <option value="Cybersecurity Awareness Week" />
+                <option value="Data Science Hackathon" />
+                <option value="FYP Industry Showcase" />
+                <option value="Software Engineering Career Fair" />
+                <option value="Blockchain & Web3 Seminar" />
+                <option value="DevOps & CI/CD Masterclass" />
+                <option value="UI/UX Design Sprint" />
+                <option value="Robotics & IoT Demo Day" />
+                <option value="Internship Orientation Webinar" />
+                <option value="Industry Mentor Connect" />
+                <option value="Annual Advisory Board Meet" />
+                <option value="Startup Pitch Competition" />
+              </datalist>
+              <datalist id="ec-location-list">
+                <option value="FoC Auditorium, Riphah International University" />
+                <option value="Block C - Seminar Hall, FoC" />
+                <option value="Riphah Main Campus, Conference Room" />
+                <option value="Online - Microsoft Teams" />
+                <option value="Online - Zoom" />
+                <option value="Innovation Lab, FoC" />
+                <option value="National Incubation Center (NIC), Islamabad" />
+                <option value="Industry Partner HQ - TechNova" />
+                <option value="Industry Partner HQ - IndusTech" />
+                <option value="Riphah Library Hall" />
+              </datalist>
+              <datalist id="ec-attendees-list">
+                <option value="Faculty of Computing - All students" />
+                <option value="BSCS · Final Year" />
+                <option value="BSSE · Final Year" />
+                <option value="BSIT · Final Year" />
+                <option value="MS Computing Cohort" />
+                <option value="Industry partners + FoC faculty" />
+                <option value="Advisory Board members" />
+                <option value="Faculty + selected students" />
+                <option value="Open to all" />
+              </datalist>
+
               <div style={styles.formRow}>
                 <input
                   name="title"
                   value={form.title}
                   onChange={onChange}
-                  placeholder="Event title"
+                  placeholder="Event title - start typing for suggestions"
                   style={styles.input}
+                  list="ec-title-list"
+                  autoComplete="off"
                   required
                 />
                 <select name="type" value={form.type} onChange={onChange} style={styles.select}>
@@ -351,8 +431,24 @@ const EventCreation = () => {
                 <input name="time" value={form.time} onChange={onChange} type="time" style={styles.input} />
               </div>
               <div style={styles.formRow}>
-                <input name="location" value={form.location} onChange={onChange} placeholder="Location" style={styles.input} />
-                <input name="attendees" value={form.attendees} onChange={onChange} placeholder="Attendees" style={styles.input} />
+                <input
+                  name="location"
+                  value={form.location}
+                  onChange={onChange}
+                  placeholder="Location - pick a venue or type"
+                  style={styles.input}
+                  list="ec-location-list"
+                  autoComplete="off"
+                />
+                <input
+                  name="attendees"
+                  value={form.attendees}
+                  onChange={onChange}
+                  placeholder="Attendees - pick or type"
+                  style={styles.input}
+                  list="ec-attendees-list"
+                  autoComplete="off"
+                />
               </div>
               <textarea
                 name="description"
@@ -361,6 +457,34 @@ const EventCreation = () => {
                 placeholder="Short description..."
                 style={styles.textarea}
               />
+              {/* Description quick chips */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: -2 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.10em", textTransform: "uppercase", color: "#94a3b8", marginRight: 4, alignSelf: "center" }}>
+                  Templates:
+                </span>
+                {[
+                  { label: "Hands-on", text: "Hands-on session covering fundamentals to advanced concepts. Open Q&A with industry mentors and certificates of participation for attendees." },
+                  { label: "Industry Talk", text: "Talk by an industry leader followed by an interactive panel discussion on emerging trends, career pathways, and university–industry collaboration." },
+                  { label: "Hackathon", text: "24-hour innovation challenge - students form teams, solve a real industry problem, and pitch to a panel of judges. Prizes and internship offers up for grabs." },
+                  { label: "Networking", text: "Curated networking session connecting students with industry partners, advisory board members, and alumni. Light refreshments served." },
+                ].map((t) => (
+                  <button
+                    type="button"
+                    key={t.label}
+                    onClick={() => setForm((p) => ({ ...p, description: t.text }))}
+                    style={{
+                      padding: "5px 11px", borderRadius: 999,
+                      background: "#f8fbff", border: "1px solid #E2EEF9", color: "#193648",
+                      fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+                      transition: "background 0.18s ease, border-color 0.18s ease",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#E2EEF9"; e.currentTarget.style.borderColor = "#3A70B0"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "#f8fbff"; e.currentTarget.style.borderColor = "#E2EEF9"; }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
               <div style={styles.formRow}>
                 <label style={styles.uploadLabel}>
                   <Image size={16} /> <span style={{ marginLeft: 8 }}>Upload poster</span>
@@ -377,6 +501,99 @@ const EventCreation = () => {
                   )}
                 </div>
               </div>
+
+              {/* ── Suggested posters gallery ── */}
+              <div>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.10em", textTransform: "uppercase", color: "#3A70B0", marginBottom: 8 }}>
+                  ✨ Suggested posters · pick one related to your event
+                </div>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(96px, 1fr))",
+                  gap: 8,
+                }}>
+                  {(() => {
+                    const t = (form.type || "Workshop");
+                    const POOL = {
+                      Workshop: [
+                        aiWorkshopImg,
+                        "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1573164713619-24c711fe7878?auto=format&fit=crop&w=800&q=80",
+                      ],
+                      Seminar: [
+                        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1559223607-a43c990c692c?auto=format&fit=crop&w=800&q=80",
+                      ],
+                      Webinar: [
+                        webinarImg,
+                        "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?auto=format&fit=crop&w=800&q=80",
+                      ],
+                      "Industry Visit": [
+                        visitImg,
+                        "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80",
+                      ],
+                      Competition: [
+                        hackathonImg,
+                        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=800&q=80",
+                      ],
+                      Conference: [
+                        summitImg,
+                        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80",
+                        "https://images.unsplash.com/photo-1530099486328-e021101a494a?auto=format&fit=crop&w=800&q=80",
+                      ],
+                    };
+                    const list = POOL[t] || POOL.Workshop;
+                    return list.map((src, i) => {
+                      const selected = posterPreview === src;
+                      return (
+                        <button
+                          type="button"
+                          key={i}
+                          onClick={() => { setPosterPreview(src); setPosterBase64(src); }}
+                          title="Use this poster"
+                          style={{
+                            position: "relative",
+                            width: "100%", height: 78,
+                            borderRadius: 10,
+                            border: selected ? "2px solid #193648" : "1px solid #E2EEF9",
+                            background: `url(${src}) center/cover no-repeat #f8fbff`,
+                            cursor: "pointer", padding: 0,
+                            boxShadow: selected ? "0 6px 16px rgba(25,54,72,0.28)" : "0 2px 6px rgba(25,54,72,0.06)",
+                            transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+                            overflow: "hidden",
+                          }}
+                          onMouseEnter={(e) => { if (!selected) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 18px rgba(25,54,72,0.18)"; } }}
+                          onMouseLeave={(e) => { if (!selected) { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 6px rgba(25,54,72,0.06)"; } }}
+                        >
+                          {selected && (
+                            <span style={{
+                              position: "absolute", top: 4, right: 4,
+                              width: 22, height: 22, borderRadius: "50%",
+                              background: "#193648", color: "#fff",
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              fontSize: 12, fontWeight: 800,
+                              boxShadow: "0 2px 8px rgba(25,54,72,0.40)",
+                            }}>✓</span>
+                          )}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+                <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 6 }}>
+                  Suggestions update based on selected event type. You can also upload a custom poster above.
+                </div>
+              </div>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
                 <button type="button" onClick={() => setShowModal(false)} style={styles.ghostBtn}>
                   Cancel
@@ -390,6 +607,8 @@ const EventCreation = () => {
         </div>
       )}
     </div>
+    <LiaisonFooter />
+    </>
   );
 };
 

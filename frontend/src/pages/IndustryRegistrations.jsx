@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 import {
   ArrowLeft,
   Building2,
@@ -53,7 +55,7 @@ We're delighted to inform you that your registration has been successfully *appr
 *About CollaXion*
 CollaXion is a unified platform that bridges universities and industries, enabling seamless collaboration on internships, projects, research initiatives, and talent acquisition.
 
-*Get Started — Download the App*
+*Get Started - Download the App*
 ${APP_DOWNLOAD_LINK}
 
  *Your Login Credentials*
@@ -208,7 +210,7 @@ const DetailModal = ({ reg, onClose, onApprove, onReject, updating }) => {
               <button
                 style={{ ...ms.btn, ...ms.whatsappBtn }}
                 onClick={() => sendWhatsAppConfirmation(reg)}
-                title="Open WhatsApp with a prefilled welcome message — just press Send"
+                title="Open WhatsApp with a prefilled welcome message - just press Send"
               >
                 <MessageCircle size={16} />
                 Send WhatsApp Confirmation
@@ -355,6 +357,8 @@ export default function IndustryRegistrations() {
   };
 
   return (
+    <>
+    <LiaisonNavbar />
     <div style={s.page}>
       {/* ── Header ── */}
       <motion.div
@@ -364,9 +368,6 @@ export default function IndustryRegistrations() {
         transition={{ duration: 0.5 }}
       >
         <div style={s.headerLeft}>
-          <button style={s.backBtn} onClick={() => navigate(-1)}>
-            <ArrowLeft size={18} /> Back
-          </button>
           <div>
             <h1 style={s.title}>Industry Registration Requests</h1>
             <p style={s.subtitle}>Review and manage incoming industry registrations</p>
@@ -386,14 +387,24 @@ export default function IndustryRegistrations() {
         transition={{ delay: 0.1 }}
       >
         {[
-          { label: "Total",    value: counts.All,      color: "#193648", bg: "#E2EEF9" },
-          { label: "Pending",  value: counts.Pending,  color: "#92400E", bg: "#FEF3C7" },
-          { label: "Approved", value: counts.Approved, color: "#065F46", bg: "#D1FAE5" },
-          { label: "Rejected", value: counts.Rejected, color: "#DC2626", bg: "#FEE2E2" },
+          { label: "Total",    value: counts.All,      color: "#193648", border: "#cfe0f0" },
+          { label: "Pending",  value: counts.Pending,  color: "#3A70B0", border: "#cfe0f0" },
+          { label: "Approved", value: counts.Approved, color: "#2C5F80", border: "#cfe0f0" },
+          { label: "Rejected", value: counts.Rejected, color: "#7AA9D6", border: "#cfe0f0" },
         ].map((stat) => (
-          <div key={stat.label} style={{ ...s.statCard, background: stat.bg }}>
+          <div key={stat.label} style={{
+            ...s.statCard,
+            background: "linear-gradient(180deg, #ffffff, #f8fbff)",
+            border: `1px solid ${stat.border}`,
+            boxShadow: "0 4px 14px rgba(25,54,72,0.06)",
+          }}>
+            <span aria-hidden style={{
+              position: "absolute", top: 0, bottom: 0, left: 0, width: 4,
+              background: `linear-gradient(180deg, ${stat.color}, ${stat.color}66)`,
+              borderRadius: "10px 0 0 10px",
+            }} />
             <span style={{ ...s.statNum, color: stat.color }}>{stat.value}</span>
-            <span style={{ ...s.statLabel, color: stat.color }}>{stat.label}</span>
+            <span style={{ ...s.statLabel, color: "#193648" }}>{stat.label}</span>
           </div>
         ))}
       </motion.div>
@@ -549,6 +560,8 @@ export default function IndustryRegistrations() {
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
+    <LiaisonFooter />
+    </>
   );
 }
 
@@ -585,8 +598,10 @@ const s = {
     display: "flex", gap: "14px", marginBottom: "24px",
   },
   statCard: {
-    flex: 1, borderRadius: "14px", padding: "16px 20px",
+    position: "relative",
+    flex: 1, borderRadius: "14px", padding: "16px 20px 16px 24px",
     display: "flex", flexDirection: "column", gap: "4px",
+    overflow: "hidden",
   },
   statNum:   { fontSize: "1.8rem", fontWeight: "800" },
   statLabel: { fontSize: "0.78rem", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" },

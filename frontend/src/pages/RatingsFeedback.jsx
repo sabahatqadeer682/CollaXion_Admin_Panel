@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Star,
@@ -89,15 +91,17 @@ const RatingsFeedback = () => {
     activeTab === "students" ? avgStudentRating : avgIndustryRating;
 
   return (
+    <>
+    <LiaisonNavbar />
     <div style={styles.page}>
       <div style={styles.glowCircle1}></div>
       <div style={styles.glowCircle2}></div>
 
       <motion.h1
         style={styles.title}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
       >
         ⭐ Ratings & Feedback
       </motion.h1>
@@ -108,7 +112,7 @@ const RatingsFeedback = () => {
 
       {/* Tabs */}
       <div style={styles.tabsContainer}>
-        <motion.div
+        <div
           style={{
             ...styles.tab,
             background: activeTab === "students" ? "#193648" : "rgba(255,255,255,0.8)",
@@ -116,14 +120,13 @@ const RatingsFeedback = () => {
             boxShadow:
               activeTab === "students" ? "0 0 15px rgba(25,54,72,0.4)" : "none",
           }}
-          whileTap={{ scale: 0.97 }}
           onClick={() => setActiveTab("students")}
         >
           <Users size={18} style={{ marginRight: 8 }} />
           Ratings by Students
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div
           style={{
             ...styles.tab,
             background: activeTab === "industry" ? "#193648" : "rgba(255,255,255,0.8)",
@@ -131,19 +134,19 @@ const RatingsFeedback = () => {
             boxShadow:
               activeTab === "industry" ? "0 0 15px rgba(25,54,72,0.4)" : "none",
           }}
-          whileTap={{ scale: 0.97 }}
           onClick={() => setActiveTab("industry")}
         >
           <Briefcase size={18} style={{ marginRight: 8 }} />
           Ratings by Industry
-        </motion.div>
+        </div>
       </div>
 
       {/* Summary */}
       <motion.div
         style={styles.summaryBox}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.05 }}
       >
         <h2 style={styles.avgLabel}>
           {activeTab === "students"
@@ -164,7 +167,7 @@ const RatingsFeedback = () => {
                   animate={{
                     width: `${Math.random() * 80 + 10}%`,
                   }}
-                  transition={{ duration: 0.8, delay: i * 0.1 }}
+                  transition={{ duration: 0.6, delay: i * 0.05 }}
                 ></motion.div>
               </div>
             </div>
@@ -177,10 +180,10 @@ const RatingsFeedback = () => {
         <motion.div
           key={activeTab}
           style={styles.grid}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
         >
           {feedbackData.map((item) => {
             const feedback =
@@ -199,14 +202,7 @@ const RatingsFeedback = () => {
               activeTab === "students" ? Building2 : UserCircle2;
 
             return (
-              <motion.div
-                key={item.id}
-                style={styles.card}
-                whileHover={{
-                  scale: 1.02,
-                  boxShadow: "0 12px 35px rgba(25,54,72,0.25)",
-                }}
-              >
+              <div key={item.id} style={styles.card}>
                 <div style={styles.cardHeader}>
                   <div style={styles.profile}>
                     <Icon size={36} color="#193648" />
@@ -239,19 +235,21 @@ const RatingsFeedback = () => {
                       ? "Good"
                       : "Average"}
                   </span>
-                  <motion.div whileTap={{ scale: 0.9 }} style={styles.likeButton}>
+                  <div style={styles.likeButton}>
                     <ThumbsUp size={16} color="#3A70B0" />
                     <span style={{ fontSize: "0.85rem", color: "#3A70B0" }}>
                       Helpful
                     </span>
-                  </motion.div>
+                  </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </motion.div>
       </AnimatePresence>
     </div>
+    <LiaisonFooter />
+    </>
   );
 };
 
@@ -311,10 +309,10 @@ const styles = {
   tab: {
     flex: "0 1 220px",
     textAlign: "center",
-    padding: "10px 0", // reduced height
+    padding: "10px 0",
     borderRadius: "10px",
     fontWeight: "600",
-    fontSize: "0.95rem", // slightly smaller font
+    fontSize: "0.95rem",
     cursor: "pointer",
     border: "2px solid #193648",
     display: "flex",
@@ -332,6 +330,8 @@ const styles = {
     textAlign: "center",
     marginBottom: "40px",
     backdropFilter: "blur(10px)",
+    position: "relative",
+    zIndex: 2,
   },
   avgLabel: {
     color: "#193648",
@@ -378,13 +378,14 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
     gap: "25px",
+    position: "relative",
+    zIndex: 2,
   },
   card: {
     background: "#fff",
     borderRadius: "18px",
     padding: "25px",
     boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
-    transition: "all 0.3s ease",
     position: "relative",
   },
   cardHeader: {

@@ -1,8 +1,15 @@
 import express from "express";
 import CoCurricularEvent from "../models/CoCurricularEvent.js";
+import CoCurricularNotification from "../models/CoCurricularNotification.js";
 import asyncHandler from "express-async-handler";
 
 const router = express.Router();
+
+const notify = async (title, message, type = "info") => {
+  try {
+    await CoCurricularNotification.create({ title, message, type, seen: false });
+  } catch (e) { console.warn("Notification create failed:", e.message); }
+};
 
 // GET all events
 router.get("/", asyncHandler(async (req, res) => {
@@ -40,6 +47,12 @@ router.post("/", asyncHandler(async (req, res) => {
     description, poster, status: "upcoming"
   });
 
+  await notify(
+    "New event created",
+    `"${event.name}" scheduled on ${new Date(event.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} at ${event.venue}.`,
+    "success"
+  );
+
   res.status(201).json(event);
 }));
 
@@ -52,6 +65,7 @@ router.put("/:id", asyncHandler(async (req, res) => {
 
   Object.assign(event, req.body);
   const updatedEvent = await event.save();
+  await notify("Event updated", `"${updatedEvent.name}" details were updated.`, "info");
   res.json(updatedEvent);
 }));
 
@@ -61,7 +75,9 @@ router.delete("/:id", asyncHandler(async (req, res) => {
   if (!event) {
     return res.status(404).json({ message: "Event not found" });
   }
+  const eventName = event.name;
   await event.deleteOne();
+  await notify("Event deleted", `"${eventName}" was removed from the calendar.`, "warning");
   res.json({ message: "Event deleted successfully" });
 }));
 

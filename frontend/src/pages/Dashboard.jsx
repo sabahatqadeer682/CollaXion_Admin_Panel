@@ -1,4 +1,4 @@
-// src/pages/Dashboard.jsx — CollaXion splash / loading screen
+// src/pages/Dashboard.jsx - CollaXion splash / loading screen
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,7 +13,7 @@ const TAGLINES = [
   "Connecting universities & industries…",
   "Preparing your collaboration workspace…",
   "Loading the latest opportunities…",
-  "Almost there — let's get to work.",
+  "Almost there - let's get to work.",
 ];
 
 const FLOAT_CARDS = [
@@ -61,37 +61,6 @@ const Dashboard = () => {
         animate={{ scale: [1, 1.15, 1] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
-
-      {/* ── Floating decorative image cards ────────────────────────────── */}
-      <div style={s.floatLayer}>
-        {FLOAT_CARDS.map((c, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              top: c.top,
-              left: c.left,
-              transform: `translate(-50%, -50%) rotate(${c.r}deg)`,
-              width: c.size,
-              pointerEvents: "none",
-            }}
-          >
-            <motion.div
-              style={s.floatCard}
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
-              transition={{
-                opacity: { duration: 0.6, delay: c.delay },
-                scale:   { type: "spring", stiffness: 200, damping: 18, delay: c.delay },
-                y:       { duration: 4 + i * 0.4, repeat: Infinity, ease: "easeInOut", delay: c.delay + 0.4 },
-              }}
-            >
-              <img src={c.src} alt={c.label} style={s.floatImg} />
-              <div style={s.floatLabel}>{c.label}</div>
-            </motion.div>
-          </div>
-        ))}
-      </div>
 
       {/* ── Center stage ──────────────────────────────────────────────── */}
       <div style={s.center}>

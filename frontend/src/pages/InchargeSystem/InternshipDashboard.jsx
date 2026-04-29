@@ -585,7 +585,7 @@
 //                             <div style={{ fontWeight: 800, fontSize: 16, color: '#0f172a' }}>{app.name}</div>
 //                             <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>{app.studentId} • {app.dept}</div>
 //                             <div style={{ fontSize: 14, marginTop: 6, color: '#475569' }}>
-//                               <strong>{internships.find(i => i.id === app.internshipId)?.title || '—'}</strong>
+//                               <strong>{internships.find(i => i.id === app.internshipId)?.title || '-'}</strong>
 //                             </div>
 //                           </div>
 //                         </div>
@@ -1285,7 +1285,7 @@
 
 // // ─── HELPERS ─────────────────────────────────────────────────────────────
 // const fmt = (iso) =>
-//   iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+//   iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
 // const initials = (name = "") =>
 //   name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -1409,7 +1409,7 @@
 //       setStats(appJson.stats || {});
 //       setInternships(intJson.data || []);
 //     } catch (err) {
-//       addToast("Backend unavailable — using demo data", "warn");
+//       addToast("Backend unavailable - using demo data", "warn");
 //       setApplications(DEMO_APPS);
 //       setInternships(DEMO_INTERNSHIPS);
 //       setStats({
@@ -2119,7 +2119,7 @@
 //       }}>{initials(name)}</div>
 //       <div style={{ flex: 1, minWidth: 0 }}>
 //         <div style={{ fontWeight: 700, fontSize: 13.5, color: "#0f172a" }}>{name}</div>
-//         <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>{intern?.title || "—"}</div>
+//         <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>{intern?.title || "-"}</div>
 //       </div>
 //       {app.matchScore != null && (
 //         <div style={{ fontSize: 12, fontWeight: 700, color: app.matchScore >= 70 ? "#15803d" : "#b45309" }}>
@@ -2274,7 +2274,7 @@
 //           }}>{initials(name)}</div>
 //           <div>
 //             <div style={{ fontWeight: 800, fontSize: 15, color: "#0f172a", fontFamily: "'Sora', sans-serif" }}>{name}</div>
-//             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{intern?.title || "—"}</div>
+//             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{intern?.title || "-"}</div>
 //           </div>
 //         </div>
 //         <StatusBadge status="sent_to_liaison" />
@@ -2342,7 +2342,7 @@
 //           <div>
 //             <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a", fontFamily: "'Sora', sans-serif" }}>{name}</div>
 //             <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>
-//               {intern?.title || "—"} · Applied {fmt(app.appliedAt)}
+//               {intern?.title || "-"} · Applied {fmt(app.appliedAt)}
 //             </div>
 //           </div>
 //         </div>
@@ -2573,7 +2573,7 @@ import {
   Briefcase, Users, Send, CheckCircle, XCircle, Clock,
   BarChart3, X, Bell, LogOut, FileText, Eye,
   Loader2, Target, Zap, Calendar, RefreshCw, Search,
-  Menu, ChevronLeft,
+  Menu, ChevronLeft, Camera,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -2589,7 +2589,7 @@ const API  = `${BASE}/api/incharge`;
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────
 const fmt = (iso) =>
-  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
 const initials = (name = "") =>
   name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
@@ -2706,22 +2706,40 @@ function Toast({ message, type, onClose }) {
 
 function StatCard({ label, value, icon: Icon, color, sub, delay = 0 }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+    <motion.div
+      initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }}
+      whileHover={{ y: -3 }}
       style={{
-        background: "#fff", border: "1px solid #e8edf5", borderRadius: 16,
-        padding: "22px 24px", display: "flex", gap: 16, alignItems: "center",
-        boxShadow: "0 2px 12px rgba(15,23,42,0.05)",
-      }}>
+        position: "relative",
+        background: "linear-gradient(180deg, #ffffff, #fbfdff)",
+        border: "1px solid #E2EEF9",
+        borderRadius: 16,
+        padding: "20px 22px", display: "flex", gap: 14, alignItems: "center",
+        boxShadow: "0 6px 22px rgba(25,54,72,0.06)",
+        transition: "border-color 0.22s ease, box-shadow 0.22s ease",
+        overflow: "hidden",
+        minWidth: 0,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${color}66`; e.currentTarget.style.boxShadow = `0 12px 28px ${color}22`; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E2EEF9"; e.currentTarget.style.boxShadow = "0 6px 22px rgba(25,54,72,0.06)"; }}
+    >
+      <span aria-hidden style={{
+        position: "absolute", top: 0, bottom: 0, left: 0, width: 4,
+        background: `linear-gradient(180deg, ${color}, ${color}66)`,
+      }} />
       <div style={{
-        width: 52, height: 52, borderRadius: 14, background: `${color}14`,
+        width: 50, height: 50, borderRadius: 13,
+        background: `linear-gradient(135deg, ${color}1F, ${color}0A)`,
+        border: `1px solid ${color}33`,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        boxShadow: `0 4px 12px ${color}22`,
       }}>
         <Icon size={22} color={color} />
       </div>
-      <div>
-        <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>{label}</div>
-        <div style={{ fontSize: 30, fontWeight: 800, color: "#0f172a", lineHeight: 1.15, marginTop: 2, fontFamily: "'Sora', sans-serif" }}>{value}</div>
-        {sub && <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{sub}</div>}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 800, letterSpacing: "0.10em", textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
+        <div style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", lineHeight: 1.1, marginTop: 3, fontFamily: "'Sora', sans-serif", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{value}</div>
+        {sub && <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sub}</div>}
       </div>
     </motion.div>
   );
@@ -2744,6 +2762,14 @@ export default function InternshipDashboard() {
   const [search, setSearch]               = useState("");
   const [filterStatus, setFilterStatus]   = useState("all");
   const [sidebarOpen, setSidebarOpen]     = useState(false);
+  const [profile, setProfile]             = useState({
+    name: "Junaid Malik",
+    email: "junaid.malik@riphah.edu.pk",
+    role: "Internship Incharge",
+    dp: "",
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const dpInputRef                        = React.useRef(null);
   const baselineRef                       = React.useRef({ ready: false, apps: new Map() });
 
   const addToast = (message, type = "info") =>
@@ -2752,7 +2778,7 @@ export default function InternshipDashboard() {
   const handleLogout = () => {
     if (!window.confirm("Are you sure you want to logout?")) return;
     try { localStorage.clear(); sessionStorage.clear(); } catch (_) {}
-    navigate("/login", { replace: true });
+    navigate("/role-select", { replace: true });
   };
 
   const relativeTime = (date) => {
@@ -2779,7 +2805,7 @@ export default function InternshipDashboard() {
       setStats(appJson.stats || {});
       setInternships(intJson.data || []);
     } catch {
-      addToast("Backend unavailable — using demo data", "warn");
+      addToast("Backend unavailable - using demo data", "warn");
       setApplications(DEMO_APPS);
       setInternships(DEMO_INTERNSHIPS);
       setStats({
@@ -2794,7 +2820,102 @@ export default function InternshipDashboard() {
     }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => { fetchAll(); fetchProfile(); fetchNotifications(); }, [fetchAll]);
+
+  // ── NOTIFICATIONS - backend-backed ───────────────────────────────────
+  const fetchNotifications = async () => {
+    try {
+      const r = await fetch(`${API}/notifications`);
+      if (!r.ok) return;
+      const list = await r.json();
+      if (Array.isArray(list)) {
+        setNotifications(list.map((n) => ({
+          id: n._id, _id: n._id,
+          title: n.title, text: n.title, message: n.message,
+          type: n.type, seen: n.seen, read: n.seen,
+          createdAt: n.createdAt,
+          time: relativeTime(n.createdAt),
+        })));
+      }
+    } catch { /* silent */ }
+  };
+  const markNotifSeen = async (id) => {
+    try {
+      await fetch(`${API}/notifications/${id}/seen`, { method: "PATCH" });
+      setNotifications((p) => p.map((n) => (n._id === id || n.id === id) ? { ...n, seen: true, read: true } : n));
+    } catch {}
+  };
+  const markAllNotifSeen = async () => {
+    try {
+      await fetch(`${API}/notifications/mark-all-seen`, { method: "PATCH" });
+      setNotifications((p) => p.map((n) => ({ ...n, seen: true, read: true })));
+    } catch {}
+  };
+  const dismissNotif = async (id) => {
+    try {
+      await fetch(`${API}/notifications/${id}`, { method: "DELETE" });
+      setNotifications((p) => p.filter((n) => (n._id !== id && n.id !== id)));
+    } catch {}
+  };
+
+  // Poll notifications every 15s
+  useEffect(() => {
+    const id = setInterval(() => fetchNotifications(), 15000);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── PROFILE - backend-backed photo + name ────────────────────────────
+  const fetchProfile = async () => {
+    try {
+      const r = await fetch(`${API}/profile`);
+      if (!r.ok) return;
+      const data = await r.json();
+      if (data && typeof data === "object") {
+        setProfile((prev) => ({
+          ...prev,
+          ...(data.name  ? { name:  data.name }  : {}),
+          ...(data.email ? { email: data.email } : {}),
+          ...(data.role  ? { role:  data.role }  : {}),
+          ...(data.dp    ? { dp:    data.dp }    : {}),
+        }));
+      }
+    } catch { /* silent */ }
+  };
+
+  const saveProfile = async (patch) => {
+    setProfileSaving(true);
+    try {
+      const r = await fetch(`${API}/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!r.ok) { addToast("Failed to save profile", "error"); return null; }
+      const saved = await r.json();
+      setProfile((prev) => ({ ...prev, ...saved }));
+      return saved;
+    } catch {
+      addToast("Network error while saving profile", "error");
+      return null;
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleDpChange = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { addToast("Please pick an image file", "warn"); return; }
+    if (file.size > 6 * 1024 * 1024)     { addToast("Image too large (max 6MB)", "warn"); return; }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result;
+      if (typeof dataUrl !== "string") return;
+      setProfile((prev) => ({ ...prev, dp: dataUrl }));
+      const saved = await saveProfile({ dp: dataUrl });
+      if (saved) addToast("Profile photo updated", "success");
+    };
+    reader.readAsDataURL(file);
+  };
 
   // ── Real-time notifications: poll for new student applications every 15s ──
   useEffect(() => {
@@ -2879,11 +3000,12 @@ export default function InternshipDashboard() {
       }));
       const name = getStudentName(app);
       setNotifications((p) => [
-        { id: Date.now(), text: `${name} — accepted & sent to Liaison`, time: "just now", read: false },
+        { id: Date.now(), text: `${name} - accepted & sent to Liaison`, time: "just now", read: false },
         ...p,
       ]);
       addToast("Application accepted & sent to Industry Liaison ✓", "success");
       setCvModal(null);
+      fetchNotifications();
     } catch (err) {
       addToast(err.message || "Failed to accept", "error");
     } finally {
@@ -2906,6 +3028,7 @@ export default function InternshipDashboard() {
       setStats((s) => ({ ...s, pending: Math.max((s.pending || 1) - 1, 0), rejected: (s.rejected || 0) + 1 }));
       addToast("Application rejected", "error");
       setCvModal(null);
+      fetchNotifications();
     } catch (err) {
       addToast(err.message || "Failed to reject", "error");
     } finally {
@@ -2938,9 +3061,488 @@ export default function InternshipDashboard() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #E2EEF9 0%, #FFFFFF 100%)", fontFamily: "'Sora', 'Segoe UI', sans-serif", display: "flex" }}>
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #E2EEF9 0%, #FFFFFF 100%)",
+      fontFamily: "'Sora', 'Segoe UI', sans-serif",
+      display: "block",
+      width: "100%", maxWidth: "100%",
+      overflowX: "hidden",
+      boxSizing: "border-box",
+    }}>
+      <style>{`
+        @keyframes intPing {
+          0%   { transform: scale(0.6); opacity: 0.85; }
+          80%  { transform: scale(2);   opacity: 0; }
+          100% { transform: scale(2);   opacity: 0; }
+        }
+        @keyframes intKenBurns {
+          0%   { transform: scale(1.08) translate3d(0, 0, 0); }
+          50%  { transform: scale(1.18) translate3d(-1.5%, -1%, 0); }
+          100% { transform: scale(1.08) translate3d(0, 0, 0); }
+        }
+        @keyframes intShimmer {
+          0%   { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+        @keyframes intGradientFlow {
+          0%   { background-position: 0% center; }
+          100% { background-position: 200% center; }
+        }
+      `}</style>
 
-      {/* Backdrop when sidebar is open */}
+      {/* TOP NAVBAR - premium sticky */}
+      <nav style={{
+        position: "sticky", top: 0, zIndex: 50,
+        background: "linear-gradient(135deg, rgba(15,42,56,0.92) 0%, rgba(25,54,72,0.92) 50%, rgba(31,65,89,0.92) 100%)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+        boxShadow: "0 8px 28px rgba(15,42,56,0.28)",
+        width: "100%", maxWidth: "100%",
+        display: "flex", alignItems: "center", gap: 14,
+        padding: "10px 24px",
+        flexWrap: "wrap",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        boxSizing: "border-box",
+      }}>
+        <span aria-hidden style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, height: 2,
+          background: "linear-gradient(90deg, transparent 0%, rgba(122,169,214,0.6) 30%, rgba(170,195,252,0.7) 50%, rgba(122,169,214,0.6) 70%, transparent 100%)",
+          opacity: 0.7, pointerEvents: "none",
+        }} />
+
+        {/* Brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
+          <div style={{
+            position: "relative",
+            width: 42, height: 42, borderRadius: 12,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04))",
+            border: "1px solid rgba(255,255,255,0.22)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 6px 18px rgba(15,42,56,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
+          }}>
+            <img src={collaxionLogo} alt="CollaXion" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.2)" }} />
+          </div>
+          <div>
+            <div style={{
+              fontWeight: 800, fontSize: 17, letterSpacing: "-0.01em", lineHeight: 1.1,
+              background: "linear-gradient(90deg, #ffffff 0%, #E2EEF9 50%, #AAC3FC 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}>CollaXion</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 4 }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%", background: "#22C55E",
+                boxShadow: "0 0 0 3px rgba(34,197,94,0.25), 0 0 8px rgba(34,197,94,0.6)",
+              }} />
+              <span style={{ fontSize: 9, color: "rgba(226,238,249,0.78)", fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                Internship Incharge
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 4, alignItems: "center", flex: "1 1 auto", minWidth: 0, justifyContent: "center", flexWrap: "wrap" }}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = tab === item.key;
+            return (
+              <button
+                key={item.key}
+                title={item.desc}
+                onClick={() => setTab(item.key)}
+                style={{
+                  position: "relative",
+                  display: "inline-flex", alignItems: "center", gap: 7,
+                  padding: "8px 12px", borderRadius: 11,
+                  background: active ? "linear-gradient(135deg, rgba(170,195,252,0.18), rgba(122,169,214,0.10))" : "transparent",
+                  border: active ? "1px solid rgba(170,195,252,0.35)" : "1px solid transparent",
+                  color: active ? "#fff" : "rgba(226,238,249,0.70)",
+                  fontSize: 12.5, fontWeight: active ? 800 : 600,
+                  cursor: "pointer", transition: "all 0.22s cubic-bezier(0.22, 1, 0.36, 1)",
+                  whiteSpace: "nowrap",
+                  boxShadow: active ? "0 6px 18px rgba(122,169,214,0.20), inset 0 1px 0 rgba(255,255,255,0.10)" : "none",
+                }}
+                onMouseEnter={(e) => { if (!active) { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+                onMouseLeave={(e) => { if (!active) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(226,238,249,0.70)"; e.currentTarget.style.transform = ""; } }}
+              >
+                <Icon size={15} />
+                <span>{item.label}</span>
+                {item.badge > 0 && (
+                  <span style={{
+                    background: active ? "#3A70B0" : "rgba(255,255,255,0.18)",
+                    color: "#fff", fontSize: 10, fontWeight: 800,
+                    padding: "1px 7px", borderRadius: 99, minWidth: 18, textAlign: "center",
+                  }}>{item.badge}</span>
+                )}
+                {active && (
+                  <span aria-hidden style={{
+                    position: "absolute", left: "20%", right: "20%", bottom: -6, height: 3, borderRadius: 99,
+                    background: "linear-gradient(90deg, transparent 0%, #AAC3FC 50%, transparent 100%)",
+                    boxShadow: "0 0 14px rgba(170,195,252,0.7)",
+                  }} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right cluster */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <button onClick={fetchAll} title="Refresh" style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            color: "#fff", cursor: "pointer",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            transition: "background 0.18s ease, transform 0.4s ease",
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.16)"; e.currentTarget.style.transform = "rotate(180deg)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = ""; }}
+          >
+            <RefreshCw size={14} />
+          </button>
+
+          {/* Bell */}
+          <div style={{ position: "relative" }}>
+            <button onClick={() => setNotifOpen(!notifOpen)} title="Notifications" style={{
+              position: "relative",
+              width: 38, height: 38, borderRadius: 10,
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "#fff", cursor: "pointer",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.18s ease",
+            }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.16)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+            >
+              <Bell size={16} />
+              {unread > 0 && (
+                <span style={{
+                  position: "absolute", top: -3, right: -3,
+                  background: "#ef4444", color: "#fff",
+                  fontSize: 9, minWidth: 16, height: 16, padding: "0 4px",
+                  borderRadius: 999,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 800, border: "2px solid #193648",
+                }}>{Math.min(99, unread)}</span>
+              )}
+            </button>
+            <AnimatePresence>
+              {notifOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    position: "absolute", right: 0, top: 50,
+                    width: 460, maxWidth: "calc(100vw - 32px)", maxHeight: 560, overflow: "hidden",
+                    background: "#fff", color: "#193648",
+                    border: "1px solid #E2EEF9", borderRadius: 18,
+                    boxShadow: "0 32px 70px rgba(15,23,42,0.28), 0 4px 12px rgba(15,23,42,0.10)",
+                    zIndex: 1200,
+                    display: "flex", flexDirection: "column",
+                  }}
+                >
+                  {/* Premium gradient header */}
+                  <div style={{
+                    position: "relative",
+                    background: "linear-gradient(135deg, #0F2A38 0%, #193648 60%, #1F4159 100%)",
+                    padding: "12px 16px", minHeight: 60,
+                    color: "#fff", overflow: "hidden",
+                    borderBottom: "1px solid rgba(170,195,252,0.18)",
+                    display: "flex", alignItems: "center",
+                  }}>
+                    <span aria-hidden style={{
+                      position: "absolute", left: 0, right: 0, bottom: 0, height: 2,
+                      background: "linear-gradient(90deg, transparent 0%, rgba(170,195,252,0.55) 50%, transparent 100%)",
+                      pointerEvents: "none",
+                    }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 11, position: "relative", zIndex: 1, width: "100%" }}>
+                      <div style={{
+                        width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                        background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.20)",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15)",
+                      }}>
+                        <Bell size={15} color="#AAC3FC" />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ fontWeight: 800, fontSize: 14.5, letterSpacing: "-0.01em", fontFamily: "'Sora', 'Inter', sans-serif" }}>Notifications</span>
+                          {unread > 0 && (
+                            <span style={{
+                              fontSize: 10, fontWeight: 800, letterSpacing: "0.04em",
+                              padding: "2px 7px", borderRadius: 999,
+                              background: "#ef4444", color: "#fff",
+                              boxShadow: "0 0 0 2px rgba(239,68,68,0.25)",
+                              fontVariantNumeric: "tabular-nums",
+                            }}>{unread}</span>
+                          )}
+                        </div>
+                        <div style={{
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                          fontSize: 10, color: "rgba(226,238,249,0.7)",
+                          fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 2,
+                        }}>
+                          <span style={{ position: "relative", display: "inline-flex", width: 5, height: 5 }}>
+                            <span aria-hidden style={{
+                              position: "absolute", inset: 0, borderRadius: "50%", background: "#22C55E",
+                              animation: "intPing 1.8s cubic-bezier(0,0,0.2,1) infinite",
+                            }} />
+                            <span style={{ position: "relative", width: 5, height: 5, borderRadius: "50%", background: "#22C55E" }} />
+                          </span>
+                          Live · auto-sync 15s
+                        </div>
+                      </div>
+                      {unread > 0 && (
+                        <button onClick={markAllNotifSeen} title="Mark all as read" style={{
+                          display: "inline-flex", alignItems: "center", gap: 5,
+                          padding: "6px 10px", borderRadius: 8,
+                          background: "rgba(255,255,255,0.10)", color: "#fff",
+                          border: "1px solid rgba(255,255,255,0.20)",
+                          fontSize: 10.5, fontWeight: 700, cursor: "pointer", flexShrink: 0,
+                        }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.10)")}
+                        >
+                          <CheckCircle size={11} /> Mark all
+                        </button>
+                      )}
+                      <button onClick={fetchNotifications} title="Refresh" style={{
+                        width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                        background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.18)",
+                        cursor: "pointer", color: "#fff",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        transition: "background 0.18s ease, transform 0.4s ease",
+                      }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; e.currentTarget.style.transform = "rotate(180deg)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.10)"; e.currentTarget.style.transform = ""; }}
+                      >
+                        <RefreshCw size={12} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Scrollable list */}
+                  <div style={{ padding: 12, overflowY: "auto", flex: 1, background: "#fbfdff" }}>
+                    {notifications.length === 0 ? (
+                      <div style={{
+                        textAlign: "center", padding: "36px 16px",
+                        background: "#fff", border: "1px dashed #E2EEF9", borderRadius: 14,
+                      }}>
+                        <div style={{
+                          width: 50, height: 50, borderRadius: 14,
+                          background: "linear-gradient(135deg, #f8fbff, #E2EEF9)", color: "#3A70B0",
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          marginBottom: 10, boxShadow: "0 6px 14px rgba(58,112,176,0.18)",
+                        }}>
+                          <Bell size={22} />
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "#193648" }}>You're all caught up</div>
+                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4 }}>Live updates appear here every 15s.</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {notifications.slice(0, 12).map((n, i) => {
+                          const tag = (n.type || "info").toLowerCase();
+                          const palette = {
+                            success: { bg: "#f0fdf4", color: "#15803d", Icon: CheckCircle },
+                            warning: { bg: "#fff7ed", color: "#c2410c", Icon: XCircle },
+                            urgent:  { bg: "#fff1f2", color: "#be123c", Icon: XCircle },
+                            info:    { bg: "#eff6ff", color: "#3A70B0", Icon: Bell },
+                          };
+                          const p = palette[tag] || palette.info;
+                          const ts = n.createdAt;
+                          const seen = n.seen || n.read;
+                          return (
+                            <motion.div
+                              key={n._id || n.id}
+                              initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.03, duration: 0.3 }}
+                              style={{
+                                position: "relative",
+                                display: "flex", gap: 10, alignItems: "flex-start",
+                                padding: "11px 12px", borderRadius: 12,
+                                background: seen ? "#fff" : "linear-gradient(180deg, #f8fbff, #ffffff)",
+                                border: `1px solid ${seen ? "#eef2ff" : p.bg}`,
+                                boxShadow: seen ? "none" : `0 2px 10px ${p.color}14`,
+                                overflow: "hidden",
+                                transition: "border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease",
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.borderColor = p.color; e.currentTarget.style.transform = "translateX(2px)"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = seen ? "#eef2ff" : p.bg; e.currentTarget.style.transform = ""; }}
+                            >
+                              {!seen && (
+                                <span aria-hidden style={{
+                                  position: "absolute", top: 0, bottom: 0, left: 0, width: 3,
+                                  background: `linear-gradient(180deg, ${p.color}, ${p.color}88)`,
+                                }} />
+                              )}
+                              <span style={{
+                                width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                background: p.bg, color: p.color,
+                                border: `1px solid ${p.color}33`,
+                                marginLeft: !seen ? 4 : 0,
+                              }}>
+                                <p.Icon size={14} />
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", lineHeight: 1.35, letterSpacing: "-0.005em" }}>
+                                  {n.title || n.text || "Notification"}
+                                </div>
+                                {n.message && n.message !== (n.title || n.text) && (
+                                  <div style={{
+                                    fontSize: 11.5, color: "#5b7184", marginTop: 3, lineHeight: 1.5,
+                                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                                  }}>{n.message}</div>
+                                )}
+                                <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 5, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                                  <span style={{
+                                    color: p.color, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em",
+                                    background: p.bg, padding: "1px 7px", borderRadius: 999,
+                                    border: `1px solid ${p.color}22`,
+                                  }}>{tag}</span>
+                                  {ts && <span>{new Date(ts).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>}
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 4, flexShrink: 0 }}>
+                                {!seen && (
+                                  <button onClick={() => markNotifSeen(n._id || n.id)} title="Mark read" style={{
+                                    width: 26, height: 26, borderRadius: 8,
+                                    background: "#fff", border: "1px solid #E2EEF9",
+                                    color: "#3A70B0", cursor: "pointer",
+                                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                  }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = "#eff6ff"; e.currentTarget.style.borderColor = "#3A70B0"; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#E2EEF9"; }}
+                                  >
+                                    <CheckCircle size={12} />
+                                  </button>
+                                )}
+                                <button onClick={() => dismissNotif(n._id || n.id)} title="Dismiss" style={{
+                                  width: 26, height: 26, borderRadius: 8,
+                                  background: "#fff", border: "1px solid #fecdd3",
+                                  color: "#be123c", cursor: "pointer",
+                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = "#fff1f2"; e.currentTarget.style.borderColor = "#be123c"; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#fecdd3"; }}
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {notifications.length > 0 && (
+                    <div style={{
+                      padding: "10px 14px",
+                      borderTop: "1px solid #eef2ff", background: "#fff",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      fontSize: 11, color: "#94a3b8",
+                    }}>
+                      <span>Showing {Math.min(12, notifications.length)} of {notifications.length}</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#3A70B0", fontWeight: 700 }}>
+                        <RefreshCw size={10} /> Auto-sync 15s
+                      </span>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Profile pill */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "4px 10px 4px 4px", borderRadius: 999,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            color: "#fff",
+          }}>
+            <button
+              type="button"
+              onClick={() => dpInputRef.current?.click()}
+              title={profileSaving ? "Saving..." : "Change profile photo"}
+              disabled={profileSaving}
+              style={{
+                position: "relative", width: 32, height: 32, borderRadius: "50%",
+                background: "linear-gradient(135deg, #193648, #3A70B0)", padding: 2,
+                flexShrink: 0, border: "none",
+                cursor: profileSaving ? "wait" : "pointer",
+                overflow: "hidden",
+              }}
+            >
+              <img
+                src={profile.dp || junaidAvatar}
+                alt={profile.name}
+                onError={(e) => { if (e.currentTarget.src !== junaidAvatar) e.currentTarget.src = junaidAvatar; }}
+                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid #fff", display: "block" }}
+              />
+              <span aria-hidden className="intDpHover" style={{
+                position: "absolute", inset: 2, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "rgba(15,42,56,0.55)", color: "#fff",
+                opacity: 0, transition: "opacity 0.18s ease",
+                pointerEvents: "none",
+              }}>
+                <Camera size={12} />
+              </span>
+              {profileSaving && (
+                <span aria-hidden style={{
+                  position: "absolute", inset: 2, borderRadius: "50%",
+                  background: "rgba(15,42,56,0.55)", color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <RefreshCw size={12} />
+                </span>
+              )}
+              <span style={{
+                position: "absolute", bottom: -1, right: -1,
+                width: 9, height: 9, borderRadius: "50%",
+                background: "#22C55E", border: "2px solid #193648",
+              }} />
+            </button>
+            <input
+              ref={dpInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => { handleDpChange(e.target.files?.[0]); e.target.value = ""; }}
+            />
+            <style>{`
+              button[title="Change profile photo"]:hover .intDpHover { opacity: 1; }
+            `}</style>
+            <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+              <span style={{ fontSize: 11.5, fontWeight: 800, whiteSpace: "nowrap", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis" }}>{profile.name}</span>
+              <span style={{ fontSize: 9.5, color: "rgba(226,238,249,0.7)", fontWeight: 600 }}>{profile.role || "Internship Incharge"}</span>
+            </span>
+            <button onClick={handleLogout} title="Sign out" style={{
+              width: 28, height: 28, borderRadius: 8,
+              background: "rgba(239,68,68,0.16)", border: "1px solid rgba(239,68,68,0.30)",
+              color: "#fca5a5", cursor: "pointer",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.24)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(239,68,68,0.16)")}
+            >
+              <LogOut size={12} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Backdrop when sidebar is open (legacy, kept harmless) */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -2955,19 +3557,19 @@ export default function InternshipDashboard() {
         )}
       </AnimatePresence>
 
-      {/* ── SIDEBAR ─────────────────────────────────────────────────── */}
+      {/* ── SIDEBAR (legacy - disabled in favor of top navbar) ─── */}
       <motion.aside
-        animate={{ x: sidebarOpen ? 0 : -280 }}
+        animate={{ x: -280 }}
         initial={{ x: -280 }}
-        transition={{ type: "spring", stiffness: 260, damping: 32 }}
+        transition={{ duration: 0 }}
         style={{
-          width: 260,
-          background: "linear-gradient(180deg, #0F2A38 0%, #193648 45%, #1F4159 100%)",
+          width: 0, height: 0,
+          background: "transparent",
           position: "fixed",
-          top: 0, left: 0, height: "100vh", zIndex: 40,
-          display: "flex", flexDirection: "column",
-          boxShadow: "4px 0 30px rgba(15,42,56,0.35)",
+          top: 0, left: 0, zIndex: -1,
+          display: "none", flexDirection: "column",
           overflow: "hidden",
+          pointerEvents: "none",
         }}>
         {/* Ambient glow */}
         <div aria-hidden style={{
@@ -3167,161 +3769,77 @@ export default function InternshipDashboard() {
       </motion.aside>
 
       {/* ── MAIN ────────────────────────────────────────────────────── */}
-      <main style={{ marginLeft: 0, flex: 1, padding: "28px 36px 36px", minHeight: "100vh", width: "100%" }}>
+      <main style={{
+        marginLeft: 0,
+        padding: "0 28px 0",
+        minHeight: "calc(100vh - 60px)",
+        width: "100%", maxWidth: "100%",
+        boxSizing: "border-box", overflowX: "hidden",
+        display: "flex", flexDirection: "column",
+      }}>
 
-        {/* Top bar */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28, gap: 16, flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <button
-              onClick={() => setSidebarOpen(true)}
-              title="Open menu"
-              style={{
-                width: 42, height: 42, borderRadius: 12,
-                background: "#fff", border: "1px solid #E2EEF9", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 4px 14px rgba(25,54,72,0.08)", transition: "0.18s",
-                color: "#193648",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "#E2EEF9"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; }}
-            >
-              <Menu size={18} />
-            </button>
-            {tab !== "overview" && (
-              <div>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: "#193648", margin: 0, letterSpacing: "-0.02em", fontFamily: "'Sora', sans-serif" }}>
-                  {tab === "applications" && "Student Applications"}
-                  {tab === "sent"         && "Forwarded to Liaison"}
-                </h1>
-                <p style={{ color: "#94a3b8", margin: "4px 0 0", fontSize: 13 }}>
-                  {tab === "applications" && `${pending.length} pending review`}
-                  {tab === "sent"         && `${sentList.length} applications forwarded to Industry Liaison`}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <button onClick={fetchAll} title="Refresh" style={{
-              width: 40, height: 40, borderRadius: 10, background: "#fff",
-              border: "1px solid #E2EEF9", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 1px 4px rgba(25,54,72,0.06)", transition: "0.15s",
+        {/* Sub-header - only on Applications tab (refined inline) */}
+        {tab === "applications" && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              margin: "20px 0 16px", gap: 16, flexWrap: "wrap",
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "#E2EEF9"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}
-            ><RefreshCw size={15} color="#193648" /></button>
-
-            {/* Bell */}
-            <div style={{ position: "relative" }}>
-              <button onClick={() => setNotifOpen(!notifOpen)} style={{
-                width: 40, height: 40, borderRadius: 10, background: "#fff",
-                border: "1px solid #e2e8f0", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.06)", position: "relative",
-              }}>
-                <Bell size={17} color="#64748b" />
-                {unread > 0 && (
-                  <span style={{
-                    position: "absolute", top: -3, right: -3,
-                    background: "#ef4444", color: "#fff",
-                    fontSize: 9, width: 16, height: 16, borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, border: "2px solid #f4f7fb",
-                  }}>{unread}</span>
-                )}
-              </button>
-              <AnimatePresence>
-                {notifOpen && (
-                  <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                    style={{
-                      position: "absolute", right: 0, top: 48, width: 320,
-                      background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14,
-                      zIndex: 60, boxShadow: "0 16px 40px rgba(15,23,42,0.12)",
-                    }}>
-                    <div style={{ padding: "13px 16px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontWeight: 700, fontSize: 14, color: "#0f172a" }}>Notifications</span>
-                      <button onClick={() => setNotifications((p) => p.map((n) => ({ ...n, read: true })))}
-                        style={{ border: "none", background: "none", color: "#3b82f6", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
-                        Mark all read
-                      </button>
-                    </div>
-                    <div style={{ maxHeight: 280, overflowY: "auto" }}>
-                      {notifications.length === 0
-                        ? <div style={{ padding: "28px 16px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>No notifications yet</div>
-                        : notifications.map((n) => (
-                          <div key={n.id}
-                            onClick={() => setNotifications((p) => p.map((x) => x.id === n.id ? { ...x, read: true } : x))}
-                            style={{
-                              padding: "12px 16px", cursor: "pointer",
-                              background: n.read ? "transparent" : "#eff6ff",
-                              borderBottom: "1px solid #f8fafc",
-                              display: "flex", justifyContent: "space-between", alignItems: "center",
-                            }}>
-                            <div>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{n.text}</div>
-                              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{n.time}</div>
-                            </div>
-                            {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#3A70B0", flexShrink: 0 }} />}
-                          </div>
-                        ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Profile pill */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "6px 14px 6px 6px",
-              background: "linear-gradient(135deg, #FFFFFF 0%, #F5F9FD 100%)",
-              border: "1.5px solid #E2EEF9",
-              borderRadius: 999,
-              boxShadow: "0 6px 20px rgba(25,54,72,0.08)",
-              minWidth: 220,
-              cursor: "pointer",
-              transition: "box-shadow 0.25s ease",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.boxShadow = "0 12px 28px rgba(25,54,72,0.18)"}
-            onMouseLeave={(e) => e.currentTarget.style.boxShadow = "0 6px 20px rgba(25,54,72,0.08)"}
-            >
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
               <div style={{
-                position: "relative",
-                width: 42, height: 42, borderRadius: "50%",
-                padding: 2,
-                background: "linear-gradient(135deg, #193648 0%, #3A70B0 100%)",
-                flexShrink: 0,
-                boxShadow: "0 4px 12px rgba(25,54,72,0.25)",
+                width: 44, height: 44, borderRadius: 12,
+                background: "linear-gradient(135deg, #193648, #3A70B0)",
+                color: "#fff", flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 8px 18px rgba(25,54,72,0.28)",
               }}>
-                <img
-                  src={junaidAvatar}
-                  alt="Junaid Malik"
-                  style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover", border: "2px solid #fff", display: "block" }}
-                />
-                <span style={{
-                  position: "absolute", bottom: 0, right: 0,
-                  width: 10, height: 10, borderRadius: "50%",
-                  background: "#22C55E", border: "2px solid #fff",
-                }} />
+                <Users size={20} />
               </div>
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2, minWidth: 0 }}>
-                <span style={{ fontWeight: 800, color: "#193648", fontSize: "0.95rem", letterSpacing: "-0.005em", whiteSpace: "nowrap" }}>
-                  Junaid Malik
-                </span>
-                <span style={{ fontSize: "0.7rem", color: "#7d8fa3", fontWeight: 600, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
-                  Internship Incharge
-                </span>
+              <div style={{ minWidth: 0 }}>
+                <h1 style={{
+                  margin: 0, fontSize: 22, fontWeight: 800, color: "#193648",
+                  letterSpacing: "-0.02em", fontFamily: "'Sora', sans-serif",
+                  display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+                }}>
+                  Student Applications
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase",
+                    color: "#3A70B0", background: "#eff6ff",
+                    border: "1px solid #cfe0f0",
+                    padding: "3px 10px", borderRadius: 999,
+                  }}>
+                    Inbox
+                  </span>
+                </h1>
+                <div style={{ fontSize: 12.5, color: "#94a3b8", marginTop: 4 }}>
+                  Review &amp; forward applications to the Industry Liaison.
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+            <button onClick={fetchAll} title="Refresh applications" style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "9px 14px", borderRadius: 10,
+              background: "#fff", border: "1px solid #E2EEF9", color: "#193648",
+              fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(25,54,72,0.06)",
+              transition: "background 0.18s ease, border-color 0.18s ease, transform 0.18s ease",
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "#eff6ff"; e.currentTarget.style.borderColor = "#3A70B0"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.borderColor = "#E2EEF9"; e.currentTarget.style.transform = ""; }}
+            >
+              <RefreshCw size={13} /> Refresh
+            </button>
+          </motion.div>
+        )}
 
         {/* ── TAB CONTENT ─────────────────────────────────────────── */}
         <AnimatePresence mode="wait">
           <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+            exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
+            style={{ flex: 1, minHeight: 0 }}>
 
             {/* ─── OVERVIEW ─────────────────────────────────────── */}
             {tab === "overview" && (
@@ -3330,108 +3848,259 @@ export default function InternshipDashboard() {
                   <div style={{ display: "flex", justifyContent: "center", padding: 80 }}><Spinner size={32} /></div>
                 ) : (
                   <>
-                    {/* Hero welcome banner */}
+                    {/* CINEMATIC HERO BANNER - full viewport, full bleed */}
                     <div style={{
                       position: "relative",
-                      overflow: "hidden",
-                      background: "linear-gradient(135deg, #193648 0%, #234d66 60%, #2C5F80 100%)",
-                      borderRadius: 22,
-                      padding: "28px 32px",
-                      marginBottom: 22,
+                      margin: "0 -28px 22px",
+                      height: "calc(100vh - 60px)",
+                      minHeight: 540,
                       color: "#fff",
-                      boxShadow: "0 14px 40px rgba(25,54,72,0.25)",
+                      overflow: "hidden",
+                      boxShadow: "0 14px 40px rgba(15,42,56,0.25)",
+                      isolation: "isolate",
                     }}>
+                      {/* Background image with Ken-Burns motion */}
                       <div aria-hidden style={{
-                        position: "absolute", top: -80, right: -60,
+                        position: "absolute", inset: 0,
+                        backgroundImage: "url(https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=2400&q=85)",
+                        backgroundSize: "cover", backgroundPosition: "center",
+                        filter: "saturate(0.85) contrast(1.05) hue-rotate(-8deg)",
+                        animation: "intKenBurns 24s ease-in-out infinite",
+                        zIndex: 0,
+                      }} />
+                      {/* Multi-layer brand overlays */}
+                      <div aria-hidden style={{
+                        position: "absolute", inset: 0,
+                        background: "linear-gradient(135deg, rgba(15,42,56,0.95) 0%, rgba(25,54,72,0.88) 35%, rgba(44,95,128,0.72) 70%, rgba(15,42,56,0.85) 100%)",
+                        zIndex: 1,
+                      }} />
+                      <div aria-hidden style={{
+                        position: "absolute", inset: 0,
+                        background: "radial-gradient(70% 90% at 20% 50%, rgba(15,42,56,0.75) 0%, rgba(15,42,56,0) 70%)",
+                        zIndex: 1,
+                      }} />
+                      <div aria-hidden style={{
+                        position: "absolute", inset: 0,
+                        background: "linear-gradient(180deg, rgba(15,42,56,0.45) 0%, rgba(15,42,56,0) 25%, rgba(15,42,56,0) 60%, rgba(15,42,56,0.65) 100%)",
+                        zIndex: 1,
+                      }} />
+                      {/* Floating glow orbs */}
+                      <div aria-hidden style={{
+                        position: "absolute", top: "12%", right: "8%",
+                        width: 200, height: 200, borderRadius: "50%",
+                        background: "radial-gradient(circle, rgba(122,169,214,0.35) 0%, rgba(122,169,214,0) 70%)",
+                        filter: "blur(30px)", zIndex: 1,
+                        animation: "intKenBurns 18s ease-in-out infinite reverse",
+                      }} />
+                      <div aria-hidden style={{
+                        position: "absolute", bottom: "-10%", left: "30%",
                         width: 260, height: 260, borderRadius: "50%",
-                        background: "radial-gradient(circle, rgba(226,238,249,0.20) 0%, rgba(226,238,249,0) 70%)",
-                        filter: "blur(20px)",
-                      }} />
-                      <div aria-hidden style={{
-                        position: "absolute", bottom: -100, left: 80,
-                        width: 240, height: 240, borderRadius: "50%",
                         background: "radial-gradient(circle, rgba(58,112,176,0.30) 0%, rgba(58,112,176,0) 70%)",
-                        filter: "blur(30px)",
+                        filter: "blur(40px)", zIndex: 1,
                       }} />
-                      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
-                        <div style={{ flex: 1, minWidth: 280 }}>
+                      {/* Diagonal shimmer */}
+                      <div aria-hidden style={{
+                        position: "absolute", top: 0, bottom: 0, left: 0, width: "30%",
+                        background: "linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%)",
+                        animation: "intShimmer 7s linear infinite",
+                        zIndex: 2, pointerEvents: "none",
+                      }} />
+
+                      {/* CONTENT */}
+                      <div style={{
+                        position: "relative", zIndex: 3,
+                        height: "100%",
+                        padding: "32px 48px 28px",
+                        display: "flex", flexDirection: "column",
+                      }}>
+                        {/* Top badges */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                           <div style={{
-                            display: "inline-flex", alignItems: "center", gap: 6,
-                            background: "rgba(226,238,249,0.18)",
-                            border: "1px solid rgba(226,238,249,0.25)",
-                            padding: "4px 11px", borderRadius: 999,
-                            fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                            color: "#E2EEF9", marginBottom: 12,
+                            display: "inline-flex", alignItems: "center", gap: 8,
+                            background: "rgba(255,255,255,0.10)",
+                            border: "1px solid rgba(255,255,255,0.22)",
+                            backdropFilter: "blur(10px)",
+                            padding: "6px 14px", borderRadius: 999,
+                            fontSize: 10.5, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase",
+                            color: "#E2EEF9",
                           }}>
-                            <Zap size={12} /> Internship Incharge Portal
+                            <span style={{ position: "relative", display: "inline-flex", width: 7, height: 7 }}>
+                              <span aria-hidden style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#22C55E", animation: "intPing 1.6s cubic-bezier(0,0,0.2,1) infinite" }} />
+                              <span style={{ position: "relative", width: 7, height: 7, borderRadius: "50%", background: "#22C55E" }} />
+                            </span>
+                            Internship Operations · Live
                           </div>
-                          <h2 style={{ fontSize: 26, fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
-                            Welcome back, Junaid 👋
-                          </h2>
-                          <p style={{ marginTop: 8, marginBottom: 0, fontSize: 14, color: "rgba(226,238,249,0.78)", lineHeight: 1.55, maxWidth: 620 }}>
-                            Here's a quick snapshot of your internship pipeline.
-                            {" "}<strong style={{ color: "#fff" }}>{stats.pending || 0}</strong> applications are waiting for your review,
-                            {" "}<strong style={{ color: "#fff" }}>{stats.sent_to_liaison || 0}</strong> have been forwarded to the Industry Liaison,
-                            and <strong style={{ color: "#fff" }}>{(stats.total || applications.length) || 0}</strong> students have applied so far.
-                          </p>
-                          <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
-                            <button onClick={() => setTab("applications")} style={{
-                              display: "inline-flex", alignItems: "center", gap: 7,
-                              background: "#fff", color: "#193648",
-                              border: "none", borderRadius: 10, padding: "10px 18px",
-                              fontWeight: 700, fontSize: 13, cursor: "pointer",
-                              boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+                          <div style={{
+                            display: "inline-flex", alignItems: "center", gap: 10,
+                            background: "rgba(255,255,255,0.08)",
+                            border: "1px solid rgba(255,255,255,0.18)",
+                            backdropFilter: "blur(10px)",
+                            padding: "8px 14px", borderRadius: 12,
+                          }}>
+                            <Clock size={14} style={{ color: "#AAC3FC" }} />
+                            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
+                              <span style={{ fontSize: 14, fontWeight: 800 }}>{new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span>
+                              <span style={{ fontSize: 9.5, color: "rgba(226,238,249,0.7)", letterSpacing: "0.10em", textTransform: "uppercase", marginTop: 2 }}>
+                                {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Centerpiece */}
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 760 }}>
+                          <motion.div
+                            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ fontSize: 12.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(226,238,249,0.75)", marginBottom: 8 }}
+                          >
+                            Welcome · Faculty of Computing
+                          </motion.div>
+                          <motion.h1
+                            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.05, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                            style={{
+                              margin: 0, fontSize: 44, fontWeight: 900, lineHeight: 1.05,
+                              letterSpacing: "-0.025em",
+                              fontFamily: "'Sora', 'Inter', sans-serif",
+                              textShadow: "0 4px 20px rgba(0,0,0,0.35)",
+                            }}
+                          >
+                            Hello, Junaid.
+                            <br />
+                            <span style={{
+                              background: "linear-gradient(90deg, #E2EEF9 0%, #AAC3FC 25%, #7AA9D6 50%, #3A70B0 75%, #AAC3FC 100%)",
+                              backgroundSize: "200% auto",
+                              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                              backgroundClip: "text",
+                              animation: "intGradientFlow 6s linear infinite",
+                              display: "inline-block",
                             }}>
+                              Where Talent Meets Opportunity.
+                            </span>
+                          </motion.h1>
+                          <motion.p
+                            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15, duration: 0.7 }}
+                            style={{ marginTop: 14, marginBottom: 0, fontSize: 14.5, color: "rgba(226,238,249,0.85)", lineHeight: 1.6, maxWidth: 600, textShadow: "0 2px 10px rgba(0,0,0,0.25)" }}
+                          >
+                            <strong style={{ color: "#fff" }}>{stats.pending || 0}</strong> awaiting review,
+                            {" "}<strong style={{ color: "#fff" }}>{stats.sent_to_liaison || 0}</strong> forwarded to Industry Liaison,
+                            and <strong style={{ color: "#fff" }}>{(stats.total || applications.length) || 0}</strong> total applications.
+                          </motion.p>
+
+                          <motion.div
+                            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25, duration: 0.6 }}
+                            style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}
+                          >
+                            <button onClick={() => setTab("applications")} style={{
+                              display: "inline-flex", alignItems: "center", gap: 8,
+                              background: "#fff", color: "#193648",
+                              border: "none", borderRadius: 12, padding: "12px 22px",
+                              fontWeight: 800, fontSize: 13.5, cursor: "pointer",
+                              boxShadow: "0 14px 30px rgba(0,0,0,0.30)",
+                              transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                            }}
+                              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 18px 36px rgba(0,0,0,0.36)"; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 14px 30px rgba(0,0,0,0.30)"; }}
+                            >
                               <Users size={14} /> Review Pending
                             </button>
                             <button onClick={() => setTab("sent")} style={{
-                              display: "inline-flex", alignItems: "center", gap: 7,
-                              background: "rgba(255,255,255,0.10)",
-                              color: "#fff",
-                              border: "1px solid rgba(255,255,255,0.25)",
-                              borderRadius: 10, padding: "10px 18px",
-                              fontWeight: 600, fontSize: 13, cursor: "pointer",
-                            }}>
+                              display: "inline-flex", alignItems: "center", gap: 8,
+                              background: "rgba(255,255,255,0.10)", color: "#fff",
+                              border: "1px solid rgba(255,255,255,0.30)",
+                              borderRadius: 12, padding: "12px 22px",
+                              fontWeight: 700, fontSize: 13.5, cursor: "pointer",
+                              backdropFilter: "blur(10px)",
+                              transition: "background 0.18s ease",
+                            }}
+                              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+                              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.10)")}
+                            >
                               <Send size={14} /> View Forwarded
                             </button>
-                          </div>
-                        </div>
-                        <div style={{
-                          background: "rgba(255,255,255,0.08)",
-                          border: "1px solid rgba(255,255,255,0.18)",
-                          backdropFilter: "blur(8px)",
-                          borderRadius: 16,
-                          padding: "16px 22px",
-                          minWidth: 200,
-                        }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(226,238,249,0.7)", textTransform: "uppercase", marginBottom: 6 }}>
-                            Today
-                          </div>
-                          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff" }}>
-                            {new Date().toLocaleDateString("en-GB", { weekday: "long" })}
-                          </div>
-                          <div style={{ fontSize: 13, color: "rgba(226,238,249,0.7)", marginTop: 2 }}>
-                            {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" })}
-                          </div>
+                          </motion.div>
+
+                        {/* Glass stat ribbon - placed inside centerpiece, right under CTAs */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.35, duration: 0.7 }}
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 170px), 1fr))",
+                            gap: 14, marginTop: 28, maxWidth: 920,
+                          }}
+                        >
+                          {[
+                            { Icon: Users,       label: "Total",     value: stats.total || applications.length || 0, sub: "applications",    accent: "#7AA9D6" },
+                            { Icon: Clock,       label: "Pending",   value: stats.pending || 0,                       sub: "awaiting review", accent: "#fcd34d" },
+                            { Icon: Send,        label: "Forwarded", value: stats.sent_to_liaison || 0,                sub: "with liaison",    accent: "#AAC3FC" },
+                            { Icon: CheckCircle, label: "Approved",  value: stats.approved || 0,                       sub: "this term",       accent: "#86efac" },
+                          ].map((s, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.4 + i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                              whileHover={{ y: -3 }}
+                              style={{
+                                position: "relative",
+                                padding: "16px 18px", borderRadius: 14,
+                                background: "linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)",
+                                border: "1px solid rgba(255,255,255,0.16)",
+                                backdropFilter: "blur(14px)",
+                                boxShadow: "0 10px 30px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.10)",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <span aria-hidden style={{
+                                position: "absolute", top: -30, right: -30,
+                                width: 90, height: 90, borderRadius: "50%",
+                                background: `radial-gradient(circle, ${s.accent}40 0%, ${s.accent}00 70%)`,
+                                filter: "blur(8px)", pointerEvents: "none",
+                              }} />
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, position: "relative", zIndex: 1 }}>
+                                <span style={{
+                                  width: 32, height: 32, borderRadius: 10,
+                                  background: `linear-gradient(135deg, ${s.accent}33, ${s.accent}11)`,
+                                  border: `1px solid ${s.accent}55`,
+                                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                  color: s.accent,
+                                  boxShadow: `0 0 14px ${s.accent}33`,
+                                }}>
+                                  <s.Icon size={15} />
+                                </span>
+                                <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(226,238,249,0.7)" }}>{s.label}</span>
+                              </div>
+                              <div style={{
+                                fontSize: 36, fontWeight: 900, color: "#fff",
+                                fontFamily: "'Sora', 'Inter', sans-serif",
+                                fontVariantNumeric: "tabular-nums", letterSpacing: "-0.025em",
+                                lineHeight: 1, marginBottom: 6,
+                                textShadow: `0 2px 14px ${s.accent}33`,
+                              }}>
+                                {s.value}
+                              </div>
+                              <div style={{ fontSize: 11, color: "rgba(226,238,249,0.72)", fontWeight: 600 }}>{s.sub}</div>
+                            </motion.div>
+                          ))}
+                        </motion.div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Stats */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18, marginBottom: 22 }}>
-                      <StatCard label="Total Applications" value={stats.total           || applications.length} icon={Briefcase} color="#193648" sub="All-time received"      delay={0}    />
-                      <StatCard label="Pending Review"     value={stats.pending         || 0}                   icon={Clock}     color="#F59E0B" sub="Awaiting your action"  delay={0.05} />
-                      <StatCard label="Sent to Liaison"    value={stats.sent_to_liaison || 0}                   icon={Send}      color="#3A70B0" sub="Forwarded to industry" delay={0.1}  />
-                      <StatCard label="Rejected"           value={stats.rejected        || 0}                   icon={XCircle}   color="#EF4444" sub="Not progressed"        delay={0.15} />
-                    </div>
+                    {/* (legacy Today card removed - hero now shows live time) */}
 
-                    {/* Charts */}
-                    <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: 22, marginBottom: 22 }}>
+                    {/* (Standalone counts removed - hero already shows live stat ribbon) */}
+
+                    {/* Charts - responsive */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 18, marginBottom: 16 }}>
                       <div style={{ background: "#fff", border: "1px solid #E2EEF9", borderRadius: 18, padding: "24px 28px", boxShadow: "0 4px 18px rgba(25,54,72,0.06)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                           <div>
                             <div style={{ fontWeight: 800, fontSize: 16, color: "#193648" }}>Application Trend</div>
-                            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>Received vs forwarded — this week</div>
+                            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>Received vs forwarded - this week</div>
                           </div>
                           <span style={{
                             fontSize: 10.5, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
@@ -3491,7 +4160,7 @@ export default function InternshipDashboard() {
                         <div>
                           <div style={{ fontWeight: 800, fontSize: 16, color: "#193648" }}>Recent Applications</div>
                           <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3 }}>
-                            Latest students who applied — review and forward to industry
+                            Latest students who applied - review and forward to industry
                           </div>
                         </div>
                         <button onClick={() => setTab("applications")} style={{
@@ -3508,7 +4177,7 @@ export default function InternshipDashboard() {
                           />
                         ))}
                         {applications.length === 0 && (
-                          <div style={{ textAlign: "center", padding: 32, color: "#94a3b8", fontSize: 13 }}>No applications yet — students will appear here once they apply.</div>
+                          <div style={{ textAlign: "center", padding: 32, color: "#94a3b8", fontSize: 13 }}>No applications yet - students will appear here once they apply.</div>
                         )}
                       </div>
                     </div>
@@ -3571,17 +4240,29 @@ export default function InternshipDashboard() {
               </div>
             )}
 
-            {/* ─── SENT TO LIAISON ──────────────────────────────── */}
+            {/* ─── SENT TO LIAISON - premium ─────────────────────── */}
             {tab === "sent" && (
-              <div>
+              <div style={{ paddingTop: 22 }}>
                 {loading
                   ? <div style={{ display: "flex", justifyContent: "center", padding: 80 }}><Spinner size={32} /></div>
                   : sentList.length === 0
                     ? <EmptyState icon={Send} text="No applications forwarded to liaison yet" />
                     : (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px,1fr))", gap: 22 }}>
-                        {sentList.map((app) => (
-                          <SentCard key={app._id} app={app} internships={internships} />
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))",
+                        gap: 20,
+                        marginBottom: 32,
+                      }}>
+                        {sentList.map((app, idx) => (
+                          <motion.div
+                            key={app._id}
+                            initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.04, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ display: "flex" }}
+                          >
+                            <SentCard app={app} internships={internships} />
+                          </motion.div>
                         ))}
                       </div>
                     )}
@@ -3589,6 +4270,177 @@ export default function InternshipDashboard() {
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* ── FOOTER ────────────────────────────────────────────── */}
+        <motion.footer
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: "relative",
+            margin: "28px -28px 0",
+            marginTop: "auto",
+            background: "linear-gradient(135deg, #0F2A38 0%, #193648 50%, #1F4159 100%)",
+            color: "rgba(226,238,249,0.85)",
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+        >
+          <span aria-hidden style={{
+            position: "absolute", left: 0, right: 0, top: 0, height: 2,
+            background: "linear-gradient(90deg, transparent 0%, rgba(122,169,214,0.6) 30%, rgba(170,195,252,0.7) 50%, rgba(122,169,214,0.6) 70%, transparent 100%)",
+            opacity: 0.7, pointerEvents: "none",
+          }} />
+          <div aria-hidden style={{
+            position: "absolute", top: -100, left: -80,
+            width: 320, height: 320, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(122,169,214,0.18) 0%, rgba(122,169,214,0) 70%)",
+            filter: "blur(40px)", pointerEvents: "none",
+          }} />
+          <div aria-hidden style={{
+            position: "absolute", bottom: -120, right: -60,
+            width: 280, height: 280, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(58,112,176,0.22) 0%, rgba(58,112,176,0) 70%)",
+            filter: "blur(40px)", pointerEvents: "none",
+          }} />
+
+          <div style={{
+            position: "relative", zIndex: 1,
+            padding: "40px 32px 24px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+            gap: 28,
+          }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: 12,
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04))",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 6px 18px rgba(15,42,56,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
+                }}>
+                  <img src={collaxionLogo} alt="CollaXion" style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
+                </div>
+                <div>
+                  <div style={{
+                    fontWeight: 800, fontSize: 18, letterSpacing: "-0.01em", lineHeight: 1.1,
+                    background: "linear-gradient(90deg, #ffffff 0%, #E2EEF9 50%, #AAC3FC 100%)",
+                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}>CollaXion</div>
+                  <div style={{ fontSize: 9.5, color: "rgba(226,238,249,0.6)", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 3 }}>
+                    Internship Operations
+                  </div>
+                </div>
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.65, color: "rgba(226,238,249,0.7)", maxWidth: 280 }}>
+                Where talent meets opportunity - review applications, forward to industry, and track every internship from intake to placement.
+              </p>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(226,238,249,0.55)", marginBottom: 14 }}>
+                Workspace
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                {navItems.map((l) => (
+                  <button key={l.key} onClick={() => setTab(l.key)} style={{
+                    display: "inline-flex", alignItems: "center", gap: 9,
+                    background: "transparent", border: "none",
+                    color: "rgba(226,238,249,0.75)", fontSize: 12.5, fontWeight: 600,
+                    cursor: "pointer", padding: 0, textAlign: "left",
+                    transition: "color 0.18s ease, transform 0.18s ease",
+                  }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "translateX(2px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(226,238,249,0.75)"; e.currentTarget.style.transform = ""; }}
+                  >
+                    <l.icon size={13} color="#7AA9D6" />
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(226,238,249,0.55)", marginBottom: 14 }}>
+                At a Glance
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { Icon: Clock,       label: "Pending",   value: stats.pending || 0,                              accent: "#fcd34d" },
+                  { Icon: Send,        label: "Forwarded", value: stats.sent_to_liaison || 0,                      accent: "#AAC3FC" },
+                  { Icon: CheckCircle, label: "Approved",  value: stats.approved || 0,                             accent: "#86efac" },
+                  { Icon: Users,       label: "Total",     value: stats.total || applications.length || 0,         accent: "#7AA9D6" },
+                ].map((s, i) => (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                    padding: "8px 12px", borderRadius: 10,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 9, fontSize: 12, color: "rgba(226,238,249,0.78)" }}>
+                      <s.Icon size={13} color={s.accent} />
+                      {s.label}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(226,238,249,0.55)", marginBottom: 14 }}>
+                Get in Touch
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <a href="mailto:collaxionsupport@gmail.com" style={{
+                  display: "inline-flex", alignItems: "center", gap: 9,
+                  fontSize: 12.5, color: "rgba(226,238,249,0.85)", fontWeight: 600, textDecoration: "none",
+                  transition: "color 0.18s ease",
+                }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = "#fff"}
+                  onMouseLeave={(e) => e.currentTarget.style.color = "rgba(226,238,249,0.85)"}
+                >
+                  <span style={{ width: 28, height: 28, borderRadius: 9, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                    <Briefcase size={13} color="#AAC3FC" />
+                  </span>
+                  Faculty of Computing
+                </a>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 9,
+                  fontSize: 12.5, color: "rgba(226,238,249,0.85)", fontWeight: 600,
+                }}>
+                  <span style={{ width: 28, height: 28, borderRadius: 9, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                    <Target size={13} color="#7AA9D6" />
+                  </span>
+                  Riphah International University
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            position: "relative", zIndex: 1,
+            padding: "16px 32px",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+            display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap",
+            fontSize: 11.5, color: "rgba(226,238,249,0.55)",
+          }}>
+            <div>
+              © {new Date().getFullYear()} <strong style={{ color: "rgba(226,238,249,0.9)", fontWeight: 800 }}>CollaXion</strong> · All rights reserved.
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              {["Privacy", "Terms", "Support", "Changelog"].map((label, i, arr) => (
+                <React.Fragment key={label}>
+                  <span style={{ color: "rgba(226,238,249,0.65)", fontSize: 11.5, fontWeight: 600, padding: "4px 6px" }}>{label}</span>
+                  {i < arr.length - 1 && <span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(226,238,249,0.25)" }} />}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </motion.footer>
       </main>
 
       {/* ── CV MODAL ────────────────────────────────────────────────── */}
@@ -3701,7 +4553,7 @@ function MiniRow({ app, internships, onView, onAccept }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 13.5, color: "#0f172a" }}>{name}</div>
         <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>
-          {intern?.title || "—"}{email ? ` · ${email}` : ""}
+          {intern?.title || "-"}{email ? ` · ${email}` : ""}
         </div>
       </div>
       <StatusBadge status={status} />
@@ -3828,90 +4680,178 @@ function SentCard({ app, internships }) {
   const email  = getStudentEmail(app);
   const intern = internships.find((i) => String(i._id) === String(app.internshipId?._id || app.internshipId));
   const truncate = (s, n) => (s && s.length > n ? s.slice(0, n).trim() + "…" : s);
+  const accent = "#3A70B0";
 
   return (
     <div style={{
+      position: "relative",
       display: "flex", flexDirection: "column", gap: 14,
-      background: "#fff", border: "1px solid #E2EEF9", borderRadius: 18,
-      padding: "22px 22px 20px",
-      boxShadow: "0 4px 18px rgba(25,54,72,0.06)",
-      transition: "box-shadow 0.25s ease, transform 0.25s ease",
+      background: "linear-gradient(180deg, #ffffff, #fbfdff)",
+      border: "1px solid #E2EEF9", borderRadius: 18,
+      padding: "22px 22px 20px 26px",
+      boxShadow: "0 6px 22px rgba(25,54,72,0.07)",
+      transition: "box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease",
+      overflow: "hidden",
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box",
     }}
-    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 10px 28px rgba(25,54,72,0.10)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 4px 18px rgba(25,54,72,0.06)"; e.currentTarget.style.transform = "translateY(0)"; }}
+    onMouseEnter={(e) => { e.currentTarget.style.boxShadow = `0 14px 32px ${accent}26`; e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.borderColor = `${accent}55`; }}
+    onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "0 6px 22px rgba(25,54,72,0.07)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "#E2EEF9"; }}
     >
-      {/* Header row: avatar + name | status pill */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+      {/* Side accent ribbon */}
+      <span aria-hidden style={{
+        position: "absolute", top: 0, bottom: 0, left: 0, width: 4,
+        background: `linear-gradient(180deg, ${accent}, ${accent}66)`,
+      }} />
+      {/* Corner glow */}
+      <span aria-hidden style={{
+        position: "absolute", top: -40, right: -40,
+        width: 120, height: 120, borderRadius: "50%",
+        background: `radial-gradient(circle, ${accent}22 0%, ${accent}00 70%)`,
+        filter: "blur(12px)", pointerEvents: "none",
+      }} />
+
+      {/* Header row: avatar + name + status pill */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, position: "relative", zIndex: 1 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center", flex: 1, minWidth: 0 }}>
           <StudentAvatar app={app} name={name} size={46} radius={12} fontSize={14} />
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontWeight: 800, fontSize: 15, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div style={{ fontWeight: 800, fontSize: 15, color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {name}
             </div>
             {email && (
-              <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {email}
               </div>
             )}
           </div>
         </div>
-        <div style={{ flexShrink: 0 }}>
-          <StatusBadge status="sent_to_liaison" />
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          padding: "4px 10px", borderRadius: 999,
+          background: "linear-gradient(135deg, #eff6ff, #dbeafe)",
+          border: `1px solid ${accent}44`,
+          color: accent,
+          fontSize: 9.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
+          flexShrink: 0,
+          boxShadow: `0 4px 10px ${accent}22`,
+        }}>
+          <Send size={10} /> With Liaison
         </div>
       </div>
 
       {/* Internship info row */}
       <div style={{
-        display: "flex", alignItems: "center", gap: 8,
-        padding: "10px 12px", background: "#F8FBFE",
-        border: "1px solid #E2EEF9", borderRadius: 10,
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "10px 12px",
+        background: "linear-gradient(180deg, #f8fbff, #ffffff)",
+        border: "1px solid #eef2ff", borderRadius: 11,
       }}>
-        <Briefcase size={14} color="#193648" style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: 13, color: "#193648", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {intern?.title || "—"}
-          {intern?.company ? <span style={{ fontWeight: 500, color: "#64748b" }}> · {intern.company}</span> : null}
+        <span style={{
+          width: 28, height: 28, borderRadius: 9,
+          background: `linear-gradient(135deg, ${accent}1F, ${accent}0A)`,
+          border: `1px solid ${accent}33`,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          color: accent, flexShrink: 0,
+        }}>
+          <Briefcase size={13} />
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: 12.5, color: "#0f172a", fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", letterSpacing: "-0.005em" }}>
+            {intern?.title || "-"}
+          </div>
+          {intern?.company && (
+            <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600, marginTop: 1 }}>{intern.company}</div>
+          )}
+        </div>
+      </div>
+
+      {/* Meta + journey indicator */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap",
+        padding: "8px 10px", borderRadius: 9,
+        background: "#f8fbff", border: "1px solid #eef2ff",
+      }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "#64748b", fontWeight: 600 }}>
+          <Calendar size={12} color={accent} />
+          {fmt(app.updatedAt || app.appliedAt)}
+        </span>
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          fontSize: 10, fontWeight: 800, color: accent,
+          background: "#eff6ff", padding: "3px 8px", borderRadius: 999,
+          textTransform: "uppercase", letterSpacing: "0.06em",
+          border: `1px solid ${accent}33`,
+        }}>
+          Awaiting liaison <ChevronLeft size={9} style={{ transform: "rotate(180deg)" }} />
         </span>
       </div>
 
-      {/* Date meta */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <Calendar size={13} color="#94a3b8" />
-        <span style={{ fontSize: 12, color: "#94a3b8" }}>
-          Forwarded on {fmt(app.updatedAt || app.appliedAt)}
-        </span>
+      {/* Mini progress journey */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 4px" }}>
+        {[
+          { label: "Applied",   done: true,  color: "#22C55E" },
+          { label: "Reviewed",  done: true,  color: "#22C55E" },
+          { label: "Forwarded", done: true,  color: accent },
+          { label: "Liaison",   done: false, color: "#94a3b8" },
+        ].map((step, i, arr) => (
+          <React.Fragment key={i}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, minWidth: 0 }}>
+              <span style={{
+                width: 8, height: 8, borderRadius: "50%", flexShrink: 0,
+                background: step.color,
+                boxShadow: step.done ? `0 0 0 3px ${step.color}22` : "none",
+              }} />
+              <span style={{
+                fontSize: 8.5, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase",
+                color: step.done ? "#193648" : "#94a3b8", whiteSpace: "nowrap",
+              }}>
+                {step.label}
+              </span>
+            </div>
+            {i < arr.length - 1 && (
+              <span style={{
+                flex: 0.5,
+                height: 2, borderRadius: 99,
+                background: arr[i + 1].done ? step.color : "#E2EEF9",
+                marginTop: -14,
+              }} />
+            )}
+          </React.Fragment>
+        ))}
       </div>
 
-      {/* Cover letter */}
+      {/* Cover letter quote */}
       {app.coverLetter && (
         <div style={{
-          padding: "11px 13px",
-          background: "#F8FBFE",
-          border: "1px solid #E2EEF9",
-          borderRadius: 10,
-          fontSize: 13,
-          color: "#475569",
-          fontStyle: "italic",
-          lineHeight: 1.5,
+          padding: "10px 12px",
+          background: "linear-gradient(180deg, #f8fbff, #ffffff)",
+          borderLeft: `3px solid ${accent}55`,
+          borderRadius: "0 10px 10px 0",
+          fontSize: 12, color: "#5b7184",
+          fontStyle: "italic", lineHeight: 1.5,
         }}>
           "{truncate(app.coverLetter, 140)}"
         </div>
       )}
 
-      {/* View CV */}
+      {/* View CV - pinned */}
       {app.cvSnapshot && (
         <a href={`${BASE}${app.cvSnapshot}`} target="_blank" rel="noreferrer" style={{
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          padding: "11px 14px",
-          background: "#E2EEF9",
-          border: "1px solid #CFE0F0",
-          borderRadius: 10,
-          color: "#193648",
-          textDecoration: "none",
-          fontSize: 13,
-          fontWeight: 700,
+          padding: "10px 14px", borderRadius: 10,
+          background: "#193648", border: "none",
+          color: "#fff", textDecoration: "none",
+          fontSize: 12.5, fontWeight: 800, letterSpacing: "0.02em",
           marginTop: "auto",
-        }}>
-          <FileText size={14} color="#193648" /> View CV Document
+          boxShadow: "0 8px 18px rgba(25,54,72,0.25)",
+          transition: "transform 0.18s ease, box-shadow 0.18s ease",
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 12px 24px rgba(25,54,72,0.32)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 8px 18px rgba(25,54,72,0.25)"; }}
+        >
+          <FileText size={13} /> View CV Document
         </a>
       )}
     </div>
@@ -3935,7 +4875,7 @@ function CVModal({ app, internships, onClose, onAccept, onReject, loading }) {
             <div style={{ fontWeight: 800, fontSize: 18, color: "#0f172a" }}>{name}</div>
             <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>
               {email && <span>{email} · </span>}
-              {intern?.title || "—"} · Applied {fmt(app.appliedAt)}
+              {intern?.title || "-"} · Applied {fmt(app.appliedAt)}
             </div>
           </div>
         </div>

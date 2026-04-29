@@ -1,5 +1,5 @@
 // // src/pages/StudentApplications.jsx
-// // Industry Liaison Side — Review & Forward/Reject Student Applications
+// // Industry Liaison Side - Review & Forward/Reject Student Applications
 // import React, { useState } from "react";
 // import { motion, AnimatePresence } from "framer-motion";
 // import {
@@ -777,7 +777,7 @@
 
 
 // src/pages/StudentApplications.jsx
-// Industry Liaison Side — Review & Forward/Reject Student Applications
+// Industry Liaison Side - Review & Forward/Reject Student Applications
 // Real backend integrated: fetches sent_to_liaison applications from DB
 
 
@@ -802,7 +802,7 @@
 // const fmt = (iso) =>
 //   iso
 //     ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-//     : "—";
+//     : "-";
 
 // const initials = (name = "") =>
 //   name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -866,7 +866,7 @@
 //       setApplications(appJson.data || []);
 //       setInternships(intJson.data  || []);
 //     } catch (err) {
-//       showToast("Backend unavailable — showing demo data", "warn");
+//       showToast("Backend unavailable - showing demo data", "warn");
 //       setApplications(DEMO_APPS);
 //       setInternships(DEMO_INTERNSHIPS);
 //     } finally {
@@ -1172,7 +1172,7 @@
 //                     <div style={s.postSection}>
 //                       <div style={s.postTitle}>
 //                         <Building2 size={14} color="#3B82F6" />
-//                         {intern.title || "—"}
+//                         {intern.title || "-"}
 //                         {intern.company && <span style={{ fontWeight: 400, color: "#94A3B8" }}> · {intern.company}</span>}
 //                       </div>
 //                       <div style={s.postMeta}>
@@ -1331,8 +1331,8 @@
 //                   <div style={s.modalSection}>
 //                     <h4 style={s.sectionTitle}><Building2 size={14} /> Applied Position</h4>
 //                     <div style={s.infoGrid}>
-//                       <div style={s.infoCell}><span style={s.infoLabel}>Post Title</span><span style={s.infoVal}>{intern.title || "—"}</span></div>
-//                       <div style={s.infoCell}><span style={s.infoLabel}>Company</span><span style={s.infoVal}>{intern.company || "—"}</span></div>
+//                       <div style={s.infoCell}><span style={s.infoLabel}>Post Title</span><span style={s.infoVal}>{intern.title || "-"}</span></div>
+//                       <div style={s.infoCell}><span style={s.infoLabel}>Company</span><span style={s.infoVal}>{intern.company || "-"}</span></div>
 //                       <div style={s.infoCell}><span style={s.infoLabel}>Applied On</span><span style={s.infoVal}>{fmt(selectedApp.appliedAt)}</span></div>
 //                       <div style={s.infoCell}><span style={s.infoLabel}>Incharge Approved</span><span style={s.infoVal}>{fmt(selectedApp.internshipInchargeApproval?.approvedAt)}</span></div>
 //                     </div>
@@ -1378,9 +1378,9 @@
 //                   <div style={s.modalSection}>
 //                     <h4 style={s.sectionTitle}><GraduationCap size={14} /> Student Profile</h4>
 //                     <div style={s.infoGrid}>
-//                       <div style={s.infoCell}><span style={s.infoLabel}>Email</span><span style={s.infoVal}>{selectedApp.studentId?.email || "—"}</span></div>
-//                       <div style={s.infoCell}><span style={s.infoLabel}>Department</span><span style={s.infoVal}>{selectedApp.studentId?.department || "—"}</span></div>
-//                       <div style={s.infoCell}><span style={s.infoLabel}>Roll No.</span><span style={s.infoVal}>{selectedApp.studentId?.rollNumber || selectedApp.studentId?.studentId || "—"}</span></div>
+//                       <div style={s.infoCell}><span style={s.infoLabel}>Email</span><span style={s.infoVal}>{selectedApp.studentId?.email || "-"}</span></div>
+//                       <div style={s.infoCell}><span style={s.infoLabel}>Department</span><span style={s.infoVal}>{selectedApp.studentId?.department || "-"}</span></div>
+//                       <div style={s.infoCell}><span style={s.infoLabel}>Roll No.</span><span style={s.infoVal}>{selectedApp.studentId?.rollNumber || selectedApp.studentId?.studentId || "-"}</span></div>
 //                       {selectedApp.cvSnapshot && (
 //                         <div style={s.infoCell}>
 //                           <span style={s.infoLabel}>CV</span>
@@ -1859,7 +1859,7 @@
 // const fmt = (iso) =>
 //   iso
 //     ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-//     : "—";
+//     : "-";
 
 // const initials = (name = "") =>
 //   name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
@@ -1883,8 +1883,8 @@
 //   app.studentId?.cgpa || "";
 
 // // ── Resolve internship ────────────────────────────────────────────────────────
-// const getInternTitle   = (app) => app.internshipId?.title   || app.resolvedInternship?.title   || "—";
-// const getInternCompany = (app) => app.internshipId?.company || app.resolvedInternship?.company || "—";
+// const getInternTitle   = (app) => app.internshipId?.title   || app.resolvedInternship?.title   || "-";
+// const getInternCompany = (app) => app.internshipId?.company || app.resolvedInternship?.company || "-";
 // const getInternType    = (app) => app.internshipId?.type    || app.resolvedInternship?.type    || "";
 // const getInternSkills  = (app) => app.internshipId?.requiredSkills || app.resolvedInternship?.requiredSkills || [];
 
@@ -1953,7 +1953,7 @@
 //       setApplications(appJson.data || []);
 //       setInternships(intJson.data  || []);
 //     } catch {
-//       showToast("Backend unavailable — showing demo data", "warn");
+//       showToast("Backend unavailable - showing demo data", "warn");
 //       setApplications(DEMO_APPS);
 //       setInternships(DEMO_INTERNSHIPS);
 //     } finally {
@@ -2245,7 +2245,7 @@
 //                       <div style={s.postTitle}>
 //                         <Building2 size={14} color="#3B82F6" />
 //                         {getInternTitle(app)}
-//                         {getInternCompany(app) !== "—" && (
+//                         {getInternCompany(app) !== "-" && (
 //                           <span style={{ fontWeight: 400, color: "#94A3B8" }}>
 //                             {" · "}{getInternCompany(app)}
 //                           </span>
@@ -2488,17 +2488,17 @@
 //                       </div>
 //                       <div style={s.infoCell}>
 //                         <span style={s.infoLabel}>Email</span>
-//                         <span style={s.infoVal}>{getStudentEmail(selectedApp) || "—"}</span>
+//                         <span style={s.infoVal}>{getStudentEmail(selectedApp) || "-"}</span>
 //                       </div>
 //                       <div style={s.infoCell}>
 //                         <span style={s.infoLabel}>Department</span>
-//                         <span style={s.infoVal}>{getStudentDept(selectedApp) || "—"}</span>
+//                         <span style={s.infoVal}>{getStudentDept(selectedApp) || "-"}</span>
 //                       </div>
 //                       <div style={s.infoCell}>
 //                         <span style={s.infoLabel}>Roll No.</span>
 //                         <span style={s.infoVal}>
 //                           {selectedApp.studentId?.rollNumber ||
-//                            selectedApp.studentId?.studentId  || "—"}
+//                            selectedApp.studentId?.studentId  || "-"}
 //                         </span>
 //                       </div>
 //                       {selectedApp.cvSnapshot && (
@@ -2952,6 +2952,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 import {
   Users, CheckCircle, XCircle, Clock, Eye, Send,
   Search, ChevronRight, Building2, GraduationCap,
@@ -2967,7 +2969,7 @@ const API  = `${BASE}/api/liaison`;
 const fmt = (iso) =>
   iso
     ? new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-    : "—";
+    : "-";
 
 const initials = (name = "") =>
   name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
@@ -2997,8 +2999,8 @@ const getStudentAvatar = (app) => {
 };
 
 // ── Resolve internship ────────────────────────────────────────────────────────
-const getInternTitle   = (app) => app.internshipId?.title   || app.resolvedInternship?.title   || "—";
-const getInternCompany = (app) => app.internshipId?.company || app.resolvedInternship?.company || "—";
+const getInternTitle   = (app) => app.internshipId?.title   || app.resolvedInternship?.title   || "-";
+const getInternCompany = (app) => app.internshipId?.company || app.resolvedInternship?.company || "-";
 const getInternType    = (app) => app.internshipId?.type    || app.resolvedInternship?.type    || "";
 const getInternSkills  = (app) => app.internshipId?.requiredSkills || app.resolvedInternship?.requiredSkills || [];
 
@@ -3176,6 +3178,8 @@ const StudentApplications = () => {
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
+    <>
+    <LiaisonNavbar />
     <div style={s.page}>
 
       {/* Toast */}
@@ -3239,31 +3243,7 @@ const StudentApplications = () => {
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div style={s.statRow}>
-        {[
-          { label: "Total Received", value: counts.All,       color: "#193648", bg: "#E2EEF9", Icon: Inbox    },
-          { label: "Pending Review", value: counts.Pending,   color: "#D97706", bg: "#FFFBEB", Icon: Clock    },
-          { label: "Forwarded",      value: counts.Forwarded, color: "#193648", bg: "#E2EEF9", Icon: Send     },
-          { label: "Rejected",       value: counts.Rejected,  color: "#DC2626", bg: "#FEF2F2", Icon: XCircle  },
-        ].map(({ label, value, color, bg, Icon }, i) => (
-          <motion.div
-            key={label}
-            style={{ ...s.statCard }}
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06 }}
-          >
-            <div style={{ ...s.statIcon, background: bg }}>
-              <Icon size={18} color={color} />
-            </div>
-            <div>
-              <div style={s.statLabel}>{label}</div>
-              <div style={s.statValue}>{value}</div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {/* (Big stat cards removed - tab counts below already show these numbers) */}
 
       {/* Tabs */}
       <div style={s.tabs}>
@@ -3382,7 +3362,7 @@ const StudentApplications = () => {
                       <div style={s.postTitle}>
                         <Building2 size={14} color="#193648" />
                         {getInternTitle(app)}
-                        {getInternCompany(app) !== "—" && (
+                        {getInternCompany(app) !== "-" && (
                           <span style={{ fontWeight: 400, color: "#94A3B8" }}>
                             {" · "}{getInternCompany(app)}
                           </span>
@@ -3638,17 +3618,17 @@ const StudentApplications = () => {
                       </div>
                       <div style={s.infoCell}>
                         <span style={s.infoLabel}>Email</span>
-                        <span style={s.infoVal}>{getStudentEmail(selectedApp) || "—"}</span>
+                        <span style={s.infoVal}>{getStudentEmail(selectedApp) || "-"}</span>
                       </div>
                       <div style={s.infoCell}>
                         <span style={s.infoLabel}>Department</span>
-                        <span style={s.infoVal}>{getStudentDept(selectedApp) || "—"}</span>
+                        <span style={s.infoVal}>{getStudentDept(selectedApp) || "-"}</span>
                       </div>
                       <div style={s.infoCell}>
                         <span style={s.infoLabel}>Roll No.</span>
                         <span style={s.infoVal}>
                           {selectedApp.studentId?.rollNumber ||
-                           selectedApp.studentId?.studentId  || "—"}
+                           selectedApp.studentId?.studentId  || "-"}
                         </span>
                       </div>
                       {selectedApp.cvSnapshot && (
@@ -3806,6 +3786,8 @@ const StudentApplications = () => {
         )}
       </AnimatePresence>
     </div>
+    <LiaisonFooter />
+    </>
   );
 };
 

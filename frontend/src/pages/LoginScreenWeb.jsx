@@ -136,7 +136,7 @@ const LoginScreenWeb = () => {
 
           {/* Tagline */}
           <p style={s.brandSubtitle}>
-            <span style={s.shimmer}>Bridging</span> universities &amp; industries — manage MOUs,
+            <span style={s.shimmer}>Bridging</span> universities &amp; industries - manage MOUs,
             student applications, events, and partnerships from one elegant workspace.
           </p>
 

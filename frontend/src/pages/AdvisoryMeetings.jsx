@@ -17,7 +17,7 @@
 // const callClaudeForMinutes = async (roughNotes, meetingMeta) => {
 //   const systemPrompt = `You are a professional meeting secretary for an Advisory Board.
 // Your job is to transform rough meeting notes into a well-structured meeting minutes document.
-// Always respond with ONLY valid JSON — no markdown fences, no backticks, no preamble, no trailing text.
+// Always respond with ONLY valid JSON - no markdown fences, no backticks, no preamble, no trailing text.
 // The JSON must match this exact schema:
 // {
 //   "meetingTitle": "string",
@@ -156,7 +156,7 @@
 //   };
 //   const footerOn = () => {
 //     page.drawLine({ start: { x: ML, y: MB - 6 }, end: { x: W - ML, y: MB - 6 }, thickness: 0.5, color: grayLt });
-//     page.drawText("CollaXion — Confidential Advisory Board Record", { x: ML, y: MB - 18, font: italic, size: 7, color: grayMid });
+//     page.drawText("CollaXion - Confidential Advisory Board Record", { x: ML, y: MB - 18, font: italic, size: 7, color: grayMid });
 //     const pn = doc.getPageCount();
 //     page.drawText(`Page ${pn}`, { x: W - ML - 32, y: MB - 18, font: bold, size: 7, color: grayMid });
 //   };
@@ -193,7 +193,7 @@
 //   for (const ln of mtLines.slice(0, 3)) { page.drawText(S(ln), { x: ML, y: mtY, font: bold, size: 11.5, color: rgb(0.83, 0.90, 0.96) }); mtY -= 17; }
 
 //   const cardTop = H - COVER_H - 16, cardH = 46, cardW = (CW - 12) / 3;
-//   const cards = [{ label: "DATE", val: meetingMeta.date || "—" }, { label: "TIME", val: meetingMeta.time || "—" }, { label: "VENUE", val: meetingMeta.venue || "—" }];
+//   const cards = [{ label: "DATE", val: meetingMeta.date || "-" }, { label: "TIME", val: meetingMeta.time || "-" }, { label: "VENUE", val: meetingMeta.venue || "-" }];
 //   cards.forEach((c, i) => {
 //     const cx = ML + i * (cardW + 6);
 //     page.drawRectangle({ x: cx + 1, y: cardTop - cardH - 1, width: cardW, height: cardH, color: grayLt });
@@ -411,20 +411,20 @@
 //         exit={{ scale: 0.92, opacity: 0 }} transition={{ type: "spring", damping: 20, stiffness: 260 }}
 //         style={{ background: "#fff", borderRadius: "24px", width: phase === "edit" ? "820px" : "720px", maxWidth: "100%", maxHeight: "92vh", overflowY: "auto", boxShadow: "0 30px 80px rgba(0,0,0,0.35)", border: "1px solid #e2e8f0", transition: "width 0.3s ease" }}
 //       >
-//         <div style={{ background: "linear-gradient(120deg,#193648 0%,#2d6a9f 100%)", padding: "22px 28px", borderRadius: "24px 24px 0 0", display: "flex", alignItems: "center", gap: "14px", position: "sticky", top: 0, zIndex: 10 }}>
+//         <div style={{ background: "#193648", padding: "22px 28px", borderRadius: "24px 24px 0 0", display: "flex", alignItems: "center", gap: "14px", position: "sticky", top: 0, zIndex: 10 }}>
 //           <div style={{ width: 42, height: 42, borderRadius: "12px", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
 //             {phase === "edit" ? <FileText size={20} color="white" /> : <PenLine size={20} color="white" />}
 //           </div>
 //           <div style={{ flex: 1 }}>
 //             <div style={{ color: "white", fontWeight: 700, fontSize: "1.05rem" }}>{phase === "edit" ? "✏️ Review & Edit Minutes" : "Write Meeting Notes"}</div>
-//             <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.8rem", marginTop: 2 }}>{meeting.agenda} — {meeting.date}</div>
+//             <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.8rem", marginTop: 2 }}>{meeting.agenda} - {meeting.date}</div>
 //           </div>
 //           <div style={{ display: "flex", gap: 6 }}>
 //             {["Write", "Edit", "Save"].map((p, i) => {
 //               const active = (i === 0 && (phase === "write" || phase === "error" || phase === "processing")) || (i === 1 && phase === "edit");
 //               const done = (i === 0 && phase === "edit");
 //               return (
-//                 <div key={p} style={{ display: "flex", alignItems: "center", gap: 4, background: done ? "rgba(16,185,129,0.3)" : active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.07)", borderRadius: "20px", padding: "3px 10px", fontSize: "0.7rem", color: done ? "#6ee7b7" : active ? "white" : "rgba(255,255,255,0.4)", fontWeight: 600 }}>
+//                 <div key={p} style={{ display: "flex", alignItems: "center", gap: 4, background: done ? "rgba(58,112,176,0.3)" : active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.07)", borderRadius: "20px", padding: "3px 10px", fontSize: "0.7rem", color: done ? "#6ee7b7" : active ? "white" : "rgba(255,255,255,0.4)", fontWeight: 600 }}>
 //                   {done ? "✓" : `${i + 1}.`} {p}
 //                 </div>
 //               );
@@ -443,16 +443,16 @@
 //                   <ClipboardList size={16} /> Rough Meeting Notes
 //                 </div>
 //                 <p style={{ color: "#64748b", fontSize: "0.82rem", margin: "0 0 10px 0", lineHeight: 1.5 }}>
-//                   Write everything that happened — decisions, who said what, tasks, deadlines. AI will structure it and you can edit before saving.
+//                   Write everything that happened - decisions, who said what, tasks, deadlines. AI will structure it and you can edit before saving.
 //                 </p>
 //                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
-//                   placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update — agreed to add AI module in semester 3..."}
+//                   placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update - agreed to add AI module in semester 3..."}
 //                   style={{ width: "100%", boxSizing: "border-box", minHeight: 240, padding: "13px 15px", border: "2px solid #e2e8f0", borderRadius: "14px", fontSize: "0.87rem", lineHeight: 1.7, fontFamily: "inherit", resize: "vertical", outline: "none", color: "#1e293b", background: "#f8fafc" }}
 //                   onFocus={onFocus} onBlur={onBlur}
 //                 />
 //                 <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7, fontSize: "0.77rem", color: "#94a3b8" }}>
 //                   <span>{wordCount} words · {charCount} characters</span>
-//                   <span style={{ color: charCount < 30 ? "#ef4444" : "#10b981" }}>{charCount < 30 ? `${30 - charCount} more chars needed` : "✓ Ready to send"}</span>
+//                   <span style={{ color: charCount < 30 ? "#ef4444" : "#3A70B0" }}>{charCount < 30 ? `${30 - charCount} more chars needed` : "✓ Ready to send"}</span>
 //                 </div>
 //               </div>
 //               {phase === "error" && (
@@ -476,7 +476,7 @@
 //                 <button onClick={onClose} style={{ padding: "9px 20px", borderRadius: "10px", border: "1.5px solid #e2e8f0", background: "white", color: "#64748b", fontWeight: 500, cursor: "pointer", fontSize: "0.86rem" }}>Cancel</button>
 //                 <motion.button whileHover={charCount >= 30 ? { scale: 1.03 } : {}} whileTap={charCount >= 30 ? { scale: 0.97 } : {}}
 //                   onClick={handleSendToAI} disabled={charCount < 30}
-//                   style={{ padding: "9px 22px", borderRadius: "10px", border: "none", background: charCount >= 30 ? "linear-gradient(120deg,#193648,#2d6a9f)" : "#e2e8f0", color: charCount >= 30 ? "white" : "#94a3b8", fontWeight: 600, cursor: charCount >= 30 ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 8, fontSize: "0.86rem" }}>
+//                   style={{ padding: "9px 22px", borderRadius: "10px", border: "none", background: charCount >= 30 ? "#193648" : "#e2e8f0", color: charCount >= 30 ? "white" : "#94a3b8", fontWeight: 600, cursor: charCount >= 30 ? "pointer" : "not-allowed", display: "flex", alignItems: "center", gap: 8, fontSize: "0.86rem" }}>
 //                   <Sparkles size={15} /> Send to AI <ChevronRight size={13} />
 //                 </motion.button>
 //               </div>
@@ -485,7 +485,7 @@
 
 //           {phase === "processing" && (
 //             <div style={{ textAlign: "center", padding: "46px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
-//               <div style={{ width: 68, height: 68, borderRadius: "50%", background: "linear-gradient(135deg,#193648,#3a70b0)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//               <div style={{ width: 68, height: 68, borderRadius: "50%", background: "#193648", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                 <Bot size={32} color="white" />
 //               </div>
 //               <div>
@@ -508,7 +508,7 @@
 //               <div style={{ background: "linear-gradient(120deg,#eff6ff,#dbeafe)", border: "1px solid #93c5fd", borderRadius: "12px", padding: "12px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "center" }}>
 //                 <span style={{ fontSize: "1.1rem" }}>✏️</span>
 //                 <div>
-//                   <div style={{ fontWeight: 700, color: "#1e40af", fontSize: "0.88rem" }}>AI generated your minutes — edit anything before saving</div>
+//                   <div style={{ fontWeight: 700, color: "#1e40af", fontSize: "0.88rem" }}>AI generated your minutes - edit anything before saving</div>
 //                   <div style={{ color: "#3b82f6", fontSize: "0.76rem", marginTop: 1 }}>All fields are editable.</div>
 //                 </div>
 //               </div>
@@ -574,7 +574,7 @@
 //               </div>
 //               <div style={{ marginBottom: 22 }}>
 //                 <div style={sectionLabel}>📅 Next Meeting Note</div>
-//                 <input value={editData.nextMeetingNote || ""} onChange={e => updateField("nextMeetingNote", e.target.value)} placeholder="e.g. In 4 weeks — follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur} />
+//                 <input value={editData.nextMeetingNote || ""} onChange={e => updateField("nextMeetingNote", e.target.value)} placeholder="e.g. In 4 weeks - follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur} />
 //               </div>
 //               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", paddingTop: 14, borderTop: "1px solid #f1f5f9" }}>
 //                 <button onClick={() => setPhase("write")} style={{ padding: "9px 18px", borderRadius: "10px", border: "1.5px solid #e2e8f0", background: "white", color: "#64748b", fontWeight: 500, cursor: "pointer", fontSize: "0.84rem", display: "flex", alignItems: "center", gap: 6 }}>
@@ -582,11 +582,11 @@
 //                 </button>
 //                 <div style={{ display: "flex", gap: 10 }}>
 //                   <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleSaveOnly} disabled={isRegenerating}
-//                     style={{ padding: "9px 20px", borderRadius: "10px", border: "none", background: "#10b981", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, fontSize: "0.84rem", opacity: isRegenerating ? 0.7 : 1 }}>
+//                     style={{ padding: "9px 20px", borderRadius: "10px", border: "none", background: "#3A70B0", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, fontSize: "0.84rem", opacity: isRegenerating ? 0.7 : 1 }}>
 //                     {isRegenerating ? <Loader size={14} /> : <CheckCircle2 size={14} />} Save & Close
 //                   </motion.button>
 //                   <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={handleDownloadAndSave} disabled={isRegenerating}
-//                     style={{ padding: "9px 22px", borderRadius: "10px", border: "none", background: "linear-gradient(120deg,#193648,#2d6a9f)", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, fontSize: "0.84rem", opacity: isRegenerating ? 0.7 : 1 }}>
+//                     style={{ padding: "9px 22px", borderRadius: "10px", border: "none", background: "#193648", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 7, fontSize: "0.84rem", opacity: isRegenerating ? 0.7 : 1 }}>
 //                     {isRegenerating ? <Loader size={14} /> : <Download size={14} />} Download PDF & Save
 //                   </motion.button>
 //                 </div>
@@ -600,7 +600,7 @@
 // };
 
 // /* ══════════════════════════════════════════════
-//    MAIN COMPONENT — YE FILE KA ASLI FIX HAI
+//    MAIN COMPONENT - YE FILE KA ASLI FIX HAI
 // ══════════════════════════════════════════════ */
 // const AdvisoryMeeting = () => {
 //   const [meetings, setMeetings] = React.useState([]);
@@ -627,7 +627,7 @@
 //     { name: "Omar Siddiqui – DataNest", suggested: false },
 //   ];
 
-//   // ✅ FIX #1 — Page load par DB se saari meetings fetch karo
+//   // ✅ FIX #1 - Page load par DB se saari meetings fetch karo
 //   useEffect(() => {
 //     const fetchMeetings = async () => {
 //       try {
@@ -659,7 +659,7 @@
 //     fetchMeetings();
 //   }, []);
 
-//   // ✅ FIX #2 — Meeting banate waqt DB mein bhi save karo
+//   // ✅ FIX #2 - Meeting banate waqt DB mein bhi save karo
 //   const handleAddMeeting = async () => {
 //     if (!newMeeting.agenda || !newMeeting.date || !newMeeting.time || !newMeeting.venue) {
 //       alert("Please fill all meeting details!"); return;
@@ -823,10 +823,10 @@
 //                       <td>{m.status === "Scheduled" ? <span className="status-scheduled"><Clock size={15} /> Scheduled</span> : <span className="status-completed"><CheckCircle2 size={15} /> Completed</span>}</td>
 //                       <td>
 //                         {m.minutesGenerated ? (
-//                           <span style={{ color: "#059669", fontWeight: 600, fontSize: "0.8rem", display: "flex", alignItems: "center", gap: 5, justifyContent: "center" }}><CheckCircle2 size={14} /> Generated</span>
+//                           <span style={{ color: "#193648", fontWeight: 600, fontSize: "0.8rem", display: "flex", alignItems: "center", gap: 5, justifyContent: "center" }}><CheckCircle2 size={14} /> Generated</span>
 //                         ) : (
 //                           <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setNotesModalFor(m)}
-//                             style={{ background: "linear-gradient(120deg,#193648,#2d6a9f)", color: "white", border: "none", borderRadius: "9px", padding: "8px 16px", cursor: "pointer", fontWeight: 600, fontSize: "0.8rem", display: "flex", alignItems: "center", gap: 6, margin: "auto" }}>
+//                             style={{ background: "#193648", color: "white", border: "none", borderRadius: "9px", padding: "8px 16px", cursor: "pointer", fontWeight: 600, fontSize: "0.8rem", display: "flex", alignItems: "center", gap: 6, margin: "auto" }}>
 //                             <Sparkles size={14} /> Write Notes
 //                           </motion.button>
 //                         )}
@@ -852,7 +852,7 @@
 //       <style>{`
 //         body { font-family:'Poppins',sans-serif; background:linear-gradient(135deg,#e2eef9 0%,#ffffff 100%); }
 //         .page-container { padding:40px 20px; min-height:100vh; }
-//         .advisory-header { display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg,#193648,#3a70b0); padding:25px 40px; border-radius:20px; box-shadow:0 15px 35px rgba(0,0,0,0.12); margin-bottom:40px; color:white; }
+//         .advisory-header { display:flex; justify-content:space-between; align-items:center; background:#193648; padding:25px 40px; border-radius:20px; box-shadow:0 15px 35px rgba(0,0,0,0.12); margin-bottom:40px; color:white; }
 //         .advisory-title h1 { font-size:2rem; font-weight:700; margin:0; }
 //         .advisory-title p { font-size:0.95rem; margin-top:6px; color:#dce3f2; margin-bottom:0; }
 //         .tab-buttons { display:flex; justify-content:center; gap:20px; margin-bottom:40px; }
@@ -861,7 +861,7 @@
 //         .tab-buttons button:hover:not(.active) { background:#d1d9e6; transform:translateY(-2px); }
 //         .stats-row { display:flex; gap:20px; justify-content:center; margin-bottom:35px; flex-wrap:wrap; }
 //         .stat-card { display:flex; align-items:center; gap:14px; background:white; padding:18px 24px; border-radius:16px; box-shadow:0 6px 20px rgba(0,0,0,0.07); border:1px solid #edf1f7; min-width:170px; }
-//         .stat-total { border-top:3px solid #3a70b0; } .stat-scheduled { border-top:3px solid #f59e0b; } .stat-completed { border-top:3px solid #10b981; }
+//         .stat-total { border-top:3px solid #3a70b0; } .stat-scheduled { border-top:3px solid #f59e0b; } .stat-completed { border-top:3px solid #3A70B0; }
 //         .stat-info { display:flex; flex-direction:column; }
 //         .stat-number { font-size:1.6rem; font-weight:700; color:#193648; line-height:1; }
 //         .stat-label { font-size:0.78rem; color:#64748b; margin-top:3px; }
@@ -879,8 +879,8 @@
 //         th { background:#193648; color:white; padding:12px; font-size:0.9rem; }
 //         td { padding:12px 10px; border-bottom:1px solid #e2e8f0; vertical-align:middle; }
 //         tr:hover { background:#f1f6fb; }
-//         .download-btn { background:#10b981; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.3s ease; margin:auto; }
-//         .download-btn:hover { background:#059669; transform:scale(1.05); }
+//         .download-btn { background:#3A70B0; color:white; border:none; padding:8px 16px; border-radius:8px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.3s ease; margin:auto; }
+//         .download-btn:hover { background:#193648; transform:scale(1.05); }
 //         .not-generated { display:flex; align-items:center; justify-content:center; gap:5px; color:#94a3b8; font-size:0.82rem; }
 //         .status-scheduled { display:inline-flex; align-items:center; gap:5px; background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:20px; font-size:0.8rem; font-weight:600; }
 //         .status-completed { display:inline-flex; align-items:center; gap:5px; background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:20px; font-size:0.8rem; font-weight:600; }
@@ -970,7 +970,7 @@
 
 // /* ─── AI call ─── */
 // const callClaudeForMinutes = async (roughNotes, meetingMeta) => {
-//   const systemPrompt = `You are a professional meeting secretary. Always respond with ONLY valid JSON — no markdown, no backticks, no preamble. Schema: {"meetingTitle":"string","summary":"string","keyDecisions":[{"id":1,"decision":"string","rationale":"string"}],"actionItems":[{"id":1,"task":"string","responsible":"string","deadline":"string","priority":"High|Medium|Low"}],"discussionPoints":["string"],"nextSteps":"string","nextMeetingNote":"string"}`;
+//   const systemPrompt = `You are a professional meeting secretary. Always respond with ONLY valid JSON - no markdown, no backticks, no preamble. Schema: {"meetingTitle":"string","summary":"string","keyDecisions":[{"id":1,"decision":"string","rationale":"string"}],"actionItems":[{"id":1,"task":"string","responsible":"string","deadline":"string","priority":"High|Medium|Low"}],"discussionPoints":["string"],"nextSteps":"string","nextMeetingNote":"string"}`;
 //   const userPrompt = `Meeting Details:\n- Agenda: ${meetingMeta.agenda}\n- Date: ${meetingMeta.date}\n- Time: ${meetingMeta.time}\n- Venue: ${meetingMeta.venue}\n- Attendees: ${meetingMeta.boardMembers.map(b=>`${b.name} (${b.role})`).join(", ")}\n\nRough Notes:\n${roughNotes}\n\nReturn ONLY JSON.`;
 //   const resp = await fetch("http://localhost:5000/api/generate-minutes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemPrompt,userPrompt})});
 //   const raw = await resp.text();
@@ -999,7 +999,7 @@
 //   const T=(text,opts={})=>{const{x=ML,size=10,font=regular,color=black,maxW=CW,lh=1.55,dx=0}=opts;const lines=wrap(text,maxW-dx,size);for(const l of lines){if(y-size-2<MB){footerOn();addPage();headerOn();}page.drawText(l,{x:x+dx,y:y-size,font,size,color});y-=size*lh;}};
 //   const addPage=()=>{page=doc.addPage([W,H]);y=H-50;};
 //   const headerOn=()=>{page.drawRectangle({x:0,y:H-32,width:W,height:32,color:navyDk});page.drawRectangle({x:0,y:H-32,width:5,height:32,color:blue});page.drawText("ADVISORY BOARD MEETING MINUTES",{x:ML+4,y:H-21,font:bold,size:8,color:rgb(0.65,0.76,0.87)});page.drawText("CollaXion",{x:W-ML-44,y:H-21,font:bold,size:9,color:blue});y=H-46;};
-//   const footerOn=()=>{page.drawLine({start:{x:ML,y:MB-6},end:{x:W-ML,y:MB-6},thickness:0.5,color:grayLt});page.drawText("CollaXion — Confidential Advisory Board Record",{x:ML,y:MB-18,font:italic,size:7,color:grayMd});};
+//   const footerOn=()=>{page.drawLine({start:{x:ML,y:MB-6},end:{x:W-ML,y:MB-6},thickness:0.5,color:grayLt});page.drawText("CollaXion - Confidential Advisory Board Record",{x:ML,y:MB-18,font:italic,size:7,color:grayMd});};
 //   const need=(h)=>{if(y-h<MB+10){footerOn();addPage();headerOn();}};
 //   const heading=(title)=>{need(36);page.drawRectangle({x:ML,y:y-28,width:5,height:28,color:blue});page.drawRectangle({x:ML+5,y:y-28,width:CW-5,height:28,color:offWh});page.drawText(sanitize(title).toUpperCase(),{x:ML+14,y:y-18,font:bold,size:9.5,color:navy});y-=36;};
 //   const pill=(label,px,py)=>{const map={High:[redLt,red],Medium:[amberLt,amber],Low:[greenLt,green]};const[bg,fg]=map[label]||map.Medium;const pw=label.length*5.6+14;page.drawRectangle({x:px,y:py-10,width:pw,height:12,color:bg});page.drawText(sanitize(label),{x:px+7,y:py-7,font:bold,size:7.5,color:fg});};
@@ -1019,7 +1019,7 @@
 //   let mtY=H-140;
 //   for(const ln of mtLines.slice(0,3)){page.drawText(sanitize(ln),{x:ML,y:mtY,font:bold,size:11.5,color:rgb(0.83,0.90,0.96)});mtY-=17;}
 //   const cardTop=H-COVER_H-16,cardH=46,cardW=(CW-12)/3;
-//   [{label:"DATE",val:meetingMeta.date||"—"},{label:"TIME",val:meetingMeta.time||"—"},{label:"VENUE",val:meetingMeta.venue||"—"}].forEach((c,i)=>{const cx=ML+i*(cardW+6);page.drawRectangle({x:cx+1,y:cardTop-cardH-1,width:cardW,height:cardH,color:grayLt});page.drawRectangle({x:cx,y:cardTop-cardH,width:cardW,height:cardH,color:white});page.drawRectangle({x:cx,y:cardTop-3,width:cardW,height:3,color:blue});page.drawText(c.label,{x:cx+8,y:cardTop-13,font:bold,size:7,color:blue});const vw=wrap(sanitize(c.val),cardW-16,10);vw.slice(0,2).forEach((vl,vi)=>{page.drawText(vl,{x:cx+8,y:cardTop-26-vi*13,font:bold,size:10,color:navy});});});
+//   [{label:"DATE",val:meetingMeta.date||"-"},{label:"TIME",val:meetingMeta.time||"-"},{label:"VENUE",val:meetingMeta.venue||"-"}].forEach((c,i)=>{const cx=ML+i*(cardW+6);page.drawRectangle({x:cx+1,y:cardTop-cardH-1,width:cardW,height:cardH,color:grayLt});page.drawRectangle({x:cx,y:cardTop-cardH,width:cardW,height:cardH,color:white});page.drawRectangle({x:cx,y:cardTop-3,width:cardW,height:3,color:blue});page.drawText(c.label,{x:cx+8,y:cardTop-13,font:bold,size:7,color:blue});const vw=wrap(sanitize(c.val),cardW-16,10);vw.slice(0,2).forEach((vl,vi)=>{page.drawText(vl,{x:cx+8,y:cardTop-26-vi*13,font:bold,size:10,color:navy});});});
 //   y=cardTop-cardH-22;
 //   if(minutesData.summary){need(50);y-=6;heading("Executive Summary");const sumLines=wrap(minutesData.summary,CW-18,9.5);const boxH=sumLines.length*14+16;need(boxH+8);page.drawRectangle({x:ML,y:y-boxH,width:4,height:boxH,color:blue});page.drawRectangle({x:ML+4,y:y-boxH,width:CW-4,height:boxH,color:rgb(0.96,0.97,0.99)});y-=10;T(minutesData.summary,{font:italic,size:9.5,color:gray,dx:14});y-=6;}
 //   y-=4;heading("Attendees");
@@ -1093,7 +1093,7 @@
 //   const isSelected=(rep)=>!!selected.find(r=>r.id===rep.id);
 
 //   const validateAdd=()=>{const e={};if(isEmpty(newName))e.name="Name required";if(isEmpty(newEmail))e.email="Email required";else if(!isEmail(newEmail))e.email="Invalid email";setErrors(e);return Object.keys(e).length===0;};
-//   const addCustom=()=>{if(!validateAdd())return;const rep={id:"c"+Date.now(),name:newName,email:newEmail,org:newOrg||"—",role:newRole||"Guest",image:null,isCustom:true};setCustom(p=>[...p,rep]);setSelected(p=>[...p,rep]);setNewName("");setNewEmail("");setNewOrg("");setNewRole("");setErrors({});};
+//   const addCustom=()=>{if(!validateAdd())return;const rep={id:"c"+Date.now(),name:newName,email:newEmail,org:newOrg||"-",role:newRole||"Guest",image:null,isCustom:true};setCustom(p=>[...p,rep]);setSelected(p=>[...p,rep]);setNewName("");setNewEmail("");setNewOrg("");setNewRole("");setErrors({});};
 
 //   const filtered=SUGGESTED_REPS.filter(r=>r.name.toLowerCase().includes(searchQ.toLowerCase())||r.org.toLowerCase().includes(searchQ.toLowerCase()));
 
@@ -1119,13 +1119,13 @@
 //       <motion.div initial={{scale:0.9,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.9,opacity:0}}
 //         style={{background:"#fff",borderRadius:20,width:760,maxWidth:"100%",maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.3)"}}>
 //         {/* Header */}
-//         <div style={{background:"linear-gradient(120deg,#193648,#2d6a9f)",padding:"22px 28px",borderRadius:"20px 20px 0 0",display:"flex",alignItems:"center",gap:14,position:"sticky",top:0,zIndex:10}}>
+//         <div style={{background:"#193648",padding:"22px 28px",borderRadius:"20px 20px 0 0",display:"flex",alignItems:"center",gap:14,position:"sticky",top:0,zIndex:10}}>
 //           <div style={{width:42,height:42,borderRadius:12,background:"rgba(255,255,255,0.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>
 //             <Mail size={20} color="white"/>
 //           </div>
 //           <div style={{flex:1}}>
 //             <div style={{color:"white",fontWeight:700,fontSize:"1.05rem"}}>Send Meeting Invitations</div>
-//             <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.78rem",marginTop:2}}>{meeting.agenda} — {meeting.date}</div>
+//             <div style={{color:"rgba(255,255,255,0.65)",fontSize:"0.78rem",marginTop:2}}>{meeting.agenda} - {meeting.date}</div>
 //           </div>
 //           {selected.length>0&&<div style={{background:"rgba(255,255,255,0.2)",borderRadius:20,padding:"4px 12px",color:"white",fontSize:"0.78rem",fontWeight:700}}>{selected.length} selected</div>}
 //           <button onClick={onClose} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:8,padding:"6px 8px",cursor:"pointer",color:"white",display:"flex",alignItems:"center"}}>
@@ -1200,14 +1200,14 @@
 //             <div style={{display:"flex",justifyContent:"flex-end",gap:10,paddingTop:10,borderTop:"1px solid #f1f5f9"}}>
 //               <button onClick={onClose} style={{padding:"9px 20px",borderRadius:10,border:"1.5px solid #e2e8f0",background:"white",color:"#64748b",fontWeight:500,cursor:"pointer",fontSize:"0.84rem"}}>Cancel</button>
 //               <motion.button whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={sendAll} disabled={sending||selected.length===0}
-//                 style={{padding:"9px 22px",borderRadius:10,border:"none",background:selected.length>0?"linear-gradient(120deg,#193648,#2d6a9f)":"#e2e8f0",color:selected.length>0?"white":"#94a3b8",fontWeight:600,cursor:selected.length>0?"pointer":"not-allowed",display:"flex",alignItems:"center",gap:7,fontSize:"0.84rem",opacity:sending?0.8:1}}>
+//                 style={{padding:"9px 22px",borderRadius:10,border:"none",background:selected.length>0?"#193648":"#e2e8f0",color:selected.length>0?"white":"#94a3b8",fontWeight:600,cursor:selected.length>0?"pointer":"not-allowed",display:"flex",alignItems:"center",gap:7,fontSize:"0.84rem",opacity:sending?0.8:1}}>
 //                 {sending?<><Loader size={14}/> Sending…</>:<><Send size={14}/> Send {selected.length>0?`to ${selected.length}`:"Invitations"}</>}
 //               </motion.button>
 //             </div>
 //           </>) : (
 //             <div style={{textAlign:"center",padding:"40px 20px"}}>
 //               <div style={{width:64,height:64,borderRadius:"50%",background:"#d1fae5",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
-//                 <MailCheck size={28} color="#059669"/>
+//                 <MailCheck size={28} color="#193648"/>
 //               </div>
 //               <div style={{fontWeight:700,fontSize:"1.1rem",color:"#193648",marginBottom:8}}>Invitations Sent!</div>
 //               <div style={{color:"#64748b",fontSize:"0.86rem",marginBottom:24}}>Email invitations have been dispatched to {selected.length} representative(s).</div>
@@ -1298,16 +1298,16 @@
 //       <motion.div initial={{scale:0.92,opacity:0,y:20}} animate={{scale:1,opacity:1,y:0}} exit={{scale:0.92,opacity:0}} transition={{type:"spring",damping:20,stiffness:260}}
 //         style={{background:"#fff",borderRadius:24,width:phase==="edit"?"840px":"720px",maxWidth:"100%",maxHeight:"92vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.35)",border:"1px solid #e2e8f0",transition:"width 0.3s"}}>
 //         {/* Header */}
-//         <div style={{background:"linear-gradient(120deg,#193648 0%,#2d6a9f 100%)",padding:"22px 28px",borderRadius:"24px 24px 0 0",display:"flex",alignItems:"center",gap:14,position:"sticky",top:0,zIndex:10}}>
+//         <div style={{background:"#193648",padding:"22px 28px",borderRadius:"24px 24px 0 0",display:"flex",alignItems:"center",gap:14,position:"sticky",top:0,zIndex:10}}>
 //           <div style={{width:42,height:42,borderRadius:12,background:"rgba(255,255,255,0.15)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
 //             {phase==="edit"?<FileText size={20} color="white"/>:<PenLine size={20} color="white"/>}
 //           </div>
 //           <div style={{flex:1}}>
 //             <div style={{color:"white",fontWeight:700,fontSize:"1.05rem"}}>{phase==="edit"?"✏️ Review & Edit Minutes":"Write Meeting Notes"}</div>
-//             <div style={{color:"rgba(255,255,255,0.7)",fontSize:"0.8rem",marginTop:2}}>{meeting.agenda} — {meeting.date}</div>
+//             <div style={{color:"rgba(255,255,255,0.7)",fontSize:"0.8rem",marginTop:2}}>{meeting.agenda} - {meeting.date}</div>
 //           </div>
 //           {["Write","Edit","Save"].map((p,i)=>{const active=(i===0&&["write","error","processing"].includes(phase))||(i===1&&phase==="edit");const done=i===0&&phase==="edit";return(
-//             <div key={p} style={{display:"flex",alignItems:"center",gap:4,background:done?"rgba(16,185,129,0.3)":active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.07)",borderRadius:20,padding:"3px 10px",fontSize:"0.7rem",color:done?"#6ee7b7":active?"white":"rgba(255,255,255,0.4)",fontWeight:600}}>
+//             <div key={p} style={{display:"flex",alignItems:"center",gap:4,background:done?"rgba(58,112,176,0.3)":active?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.07)",borderRadius:20,padding:"3px 10px",fontSize:"0.7rem",color:done?"#6ee7b7":active?"white":"rgba(255,255,255,0.4)",fontWeight:600}}>
 //               {done?"✓":`${i+1}.`} {p}
 //             </div>
 //           );})}
@@ -1317,13 +1317,13 @@
 //         <div style={{padding:"26px 28px"}}>
 //           {(phase==="write"||phase==="error")&&(<>
 //             <div style={{display:"flex",alignItems:"center",gap:8,color:"#193648",fontWeight:600,fontSize:"0.93rem",marginBottom:8}}><ClipboardList size={16}/> Rough Meeting Notes</div>
-//             <p style={{color:"#64748b",fontSize:"0.82rem",margin:"0 0 10px 0",lineHeight:1.5}}>Write everything that happened — decisions, who said what, tasks, deadlines. AI will structure it.</p>
-//             <textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update — agreed to add AI module in semester 3..."}
+//             <p style={{color:"#64748b",fontSize:"0.82rem",margin:"0 0 10px 0",lineHeight:1.5}}>Write everything that happened - decisions, who said what, tasks, deadlines. AI will structure it.</p>
+//             <textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update - agreed to add AI module in semester 3..."}
 //               style={{width:"100%",boxSizing:"border-box",minHeight:240,padding:"13px 15px",border:"2px solid #e2e8f0",borderRadius:14,fontSize:"0.87rem",lineHeight:1.7,fontFamily:"inherit",resize:"vertical",outline:"none",color:"#1e293b",background:"#f8fafc"}}
 //               onFocus={onFocus} onBlur={onBlur}/>
 //             <div style={{display:"flex",justifyContent:"space-between",marginTop:7,fontSize:"0.77rem",color:"#94a3b8"}}>
 //               <span>{words} words · {chars} characters</span>
-//               <span style={{color:chars<30?"#ef4444":"#10b981"}}>{chars<30?`${30-chars} more chars needed`:"✓ Ready to send"}</span>
+//               <span style={{color:chars<30?"#ef4444":"#3A70B0"}}>{chars<30?`${30-chars} more chars needed`:"✓ Ready to send"}</span>
 //             </div>
 //             {phase==="error"&&(
 //               <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:10,padding:"11px 15px",display:"flex",gap:10,alignItems:"flex-start",margin:"14px 0"}}>
@@ -1340,7 +1340,7 @@
 //             <div style={{display:"flex",justifyContent:"flex-end",gap:10}}>
 //               <button onClick={onClose} style={{padding:"9px 20px",borderRadius:10,border:"1.5px solid #e2e8f0",background:"white",color:"#64748b",fontWeight:500,cursor:"pointer",fontSize:"0.86rem"}}>Cancel</button>
 //               <motion.button whileHover={chars>=30?{scale:1.03}:{}} whileTap={chars>=30?{scale:0.97}:{}} onClick={sendToAI} disabled={chars<30}
-//                 style={{padding:"9px 22px",borderRadius:10,border:"none",background:chars>=30?"linear-gradient(120deg,#193648,#2d6a9f)":"#e2e8f0",color:chars>=30?"white":"#94a3b8",fontWeight:600,cursor:chars>=30?"pointer":"not-allowed",display:"flex",alignItems:"center",gap:8,fontSize:"0.86rem"}}>
+//                 style={{padding:"9px 22px",borderRadius:10,border:"none",background:chars>=30?"#193648":"#e2e8f0",color:chars>=30?"white":"#94a3b8",fontWeight:600,cursor:chars>=30?"pointer":"not-allowed",display:"flex",alignItems:"center",gap:8,fontSize:"0.86rem"}}>
 //                 <Sparkles size={15}/> Send to AI <ChevronRight size={13}/>
 //               </motion.button>
 //             </div>
@@ -1348,7 +1348,7 @@
 
 //           {phase==="processing"&&(
 //             <div style={{textAlign:"center",padding:"46px 20px",display:"flex",flexDirection:"column",alignItems:"center",gap:18}}>
-//               <div style={{width:68,height:68,borderRadius:"50%",background:"linear-gradient(135deg,#193648,#3a70b0)",display:"flex",alignItems:"center",justifyContent:"center"}}><Bot size={32} color="white"/></div>
+//               <div style={{width:68,height:68,borderRadius:"50%",background:"#193648",display:"flex",alignItems:"center",justifyContent:"center"}}><Bot size={32} color="white"/></div>
 //               <div><div style={{fontWeight:700,fontSize:"1.1rem",color:"#193648",marginBottom:5}}>AI is processing your notes…</div><div style={{color:"#64748b",fontSize:"0.86rem"}}>Structuring decisions & action items</div></div>
 //               <div style={{display:"flex",gap:7}}>
 //                 {["Analysing notes","Extracting decisions","Structuring output"].map((label,i)=>(
@@ -1364,7 +1364,7 @@
 //           {phase==="edit"&&editData&&(<>
 //             <div style={{background:"linear-gradient(120deg,#eff6ff,#dbeafe)",border:"1px solid #93c5fd",borderRadius:12,padding:"12px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center"}}>
 //               <span style={{fontSize:"1.1rem"}}>✏️</span>
-//               <div><div style={{fontWeight:700,color:"#1e40af",fontSize:"0.88rem"}}>AI generated your minutes — edit anything before saving</div><div style={{color:"#3b82f6",fontSize:"0.76rem",marginTop:1}}>All fields are fully editable.</div></div>
+//               <div><div style={{fontWeight:700,color:"#1e40af",fontSize:"0.88rem"}}>AI generated your minutes - edit anything before saving</div><div style={{color:"#3b82f6",fontSize:"0.76rem",marginTop:1}}>All fields are fully editable.</div></div>
 //             </div>
 
 //             <div style={{marginBottom:18}}>
@@ -1427,21 +1427,21 @@
 //             </div>
 //             <div style={{marginBottom:22}}>
 //               <div style={sectionLabel}>📅 Next Meeting Note</div>
-//               <input value={editData.nextMeetingNote||""} onChange={e=>uf("nextMeetingNote",e.target.value)} placeholder="e.g. In 4 weeks — follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur}/>
+//               <input value={editData.nextMeetingNote||""} onChange={e=>uf("nextMeetingNote",e.target.value)} placeholder="e.g. In 4 weeks - follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur}/>
 //             </div>
 //             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,flexWrap:"wrap",paddingTop:14,borderTop:"1px solid #f1f5f9"}}>
 //               <button onClick={()=>setPhase("write")} style={{padding:"9px 18px",borderRadius:10,border:"1.5px solid #e2e8f0",background:"white",color:"#64748b",fontWeight:500,cursor:"pointer",fontSize:"0.84rem"}}>← Back</button>
 //               <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
 //                 <motion.button whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleEmailPDF} disabled={isRegen||sendingEmail}
-//                   style={{padding:"9px 16px",borderRadius:10,border:"none",background:"#0ea5e9",color:"white",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",opacity:sendingEmail?0.7:1}}>
+//                   style={{padding:"9px 16px",borderRadius:10,border:"none",background:"#193648",color:"white",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",opacity:sendingEmail?0.7:1}}>
 //                   {sendingEmail?<Loader size={13}/>:<Mail size={13}/>} Email PDF to All
 //                 </motion.button>
 //                 <motion.button whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSaveOnly} disabled={isRegen}
-//                   style={{padding:"9px 18px",borderRadius:10,border:"none",background:"#10b981",color:"white",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",opacity:isRegen?0.7:1}}>
+//                   style={{padding:"9px 18px",borderRadius:10,border:"none",background:"#3A70B0",color:"white",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",opacity:isRegen?0.7:1}}>
 //                   {isRegen?<Loader size={13}/>:<CheckCircle2 size={13}/>} Save & Close
 //                 </motion.button>
 //                 <motion.button whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleDownloadSave} disabled={isRegen}
-//                   style={{padding:"9px 20px",borderRadius:10,border:"none",background:"linear-gradient(120deg,#193648,#2d6a9f)",color:"white",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",opacity:isRegen?0.7:1}}>
+//                   style={{padding:"9px 20px",borderRadius:10,border:"none",background:"#193648",color:"white",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:"0.82rem",opacity:isRegen?0.7:1}}>
 //                   {isRegen?<Loader size={13}/>:<Download size={13}/>} Download PDF & Save
 //                 </motion.button>
 //               </div>
@@ -1468,7 +1468,7 @@
 //   const [form,setForm]=useState({agenda:"",date:"",time:"",venue:""});
 //   const [formErrors,setFormErrors]=useState({});
 
-//   /* Board members state — fixed + customizable */
+//   /* Board members state - fixed + customizable */
 //   const [boardMembers,setBoardMembers]=useState(DEFAULT_BOARD);
 //   const [addMember,setAddMember]=useState({name:"",role:"",email:"",org:""});
 //   const [addMemberErrors,setAddMemberErrors]=useState({});
@@ -1545,7 +1545,7 @@
 
 //       {/* ── Header ── */}
 //       <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} transition={{duration:0.5}}
-//         style={{background:"linear-gradient(120deg,#193648 0%,#1e4d78 50%,#2d6a9f 100%)",borderRadius:20,padding:"28px 40px",marginBottom:32,boxShadow:"0 16px 48px rgba(25,54,72,0.3)",position:"relative",overflow:"hidden"}}>
+//         style={{background:"#193648",borderRadius:20,padding:"28px 40px",marginBottom:32,boxShadow:"0 16px 48px rgba(25,54,72,0.3)",position:"relative",overflow:"hidden"}}>
 //         <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:"rgba(255,255,255,0.04)"}}/>
 //         <div style={{position:"absolute",bottom:-60,right:100,width:160,height:160,borderRadius:"50%",background:"rgba(96,179,240,0.08)"}}/>
 //         <div style={{position:"relative"}}>
@@ -1565,7 +1565,7 @@
 //       <div style={{display:"flex",gap:16,marginBottom:28,flexWrap:"wrap"}}>
 //         {[{label:"Total Meetings",val:meetings.length,color:"#3a70b0",icon:<CalendarDays size={22} color="#3a70b0"/>},
 //           {label:"Scheduled",val:meetings.filter(m=>m.status==="Scheduled").length,color:"#f59e0b",icon:<Clock size={22} color="#f59e0b"/>},
-//           {label:"Completed with MoM",val:meetings.filter(m=>m.minutesGenerated).length,color:"#10b981",icon:<CheckCircle2 size={22} color="#10b981"/>}
+//           {label:"Completed with MoM",val:meetings.filter(m=>m.minutesGenerated).length,color:"#3A70B0",icon:<CheckCircle2 size={22} color="#3A70B0"/>}
 //         ].map((s,i)=>(
 //           <motion.div key={i} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:i*0.1}}
 //             style={{background:"white",borderRadius:16,padding:"18px 24px",display:"flex",alignItems:"center",gap:14,flex:"1 1 160px",boxShadow:"0 4px 16px rgba(0,0,0,0.06)",border:`1px solid #edf1f7`,borderTop:`3px solid ${s.color}`}}>
@@ -1661,7 +1661,7 @@
 //           </div>
 
 //           <motion.button whileHover={{scale:1.03}} whileTap={{scale:0.97}} onClick={handleSchedule}
-//             style={{background:"linear-gradient(120deg,#193648,#2d6a9f)",color:"white",border:"none",borderRadius:12,padding:"13px 36px",fontWeight:700,fontSize:"0.95rem",cursor:"pointer",display:"flex",alignItems:"center",gap:9,boxShadow:"0 6px 20px rgba(25,54,72,0.3)",fontFamily:"inherit"}}>
+//             style={{background:"#193648",color:"white",border:"none",borderRadius:12,padding:"13px 36px",fontWeight:700,fontSize:"0.95rem",cursor:"pointer",display:"flex",alignItems:"center",gap:9,boxShadow:"0 6px 20px rgba(25,54,72,0.3)",fontFamily:"inherit"}}>
 //             <Send size={18}/> Schedule Meeting & Send Invites
 //           </motion.button>
 //         </motion.div>
@@ -1713,16 +1713,16 @@
 //                       </td>
 //                       <td style={{padding:"14px"}}>
 //                         {m.minutesGenerated
-//                           ?<span style={{color:"#059669",fontWeight:700,fontSize:"0.78rem",display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}><CheckCircle2 size={13}/> Generated</span>
+//                           ?<span style={{color:"#193648",fontWeight:700,fontSize:"0.78rem",display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}><CheckCircle2 size={13}/> Generated</span>
 //                           :<motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} onClick={()=>setNotesModalFor(m)}
-//                               style={{background:"linear-gradient(120deg,#193648,#2d6a9f)",color:"white",border:"none",borderRadius:9,padding:"7px 14px",cursor:"pointer",fontWeight:600,fontSize:"0.77rem",display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap",fontFamily:"inherit"}}>
+//                               style={{background:"#193648",color:"white",border:"none",borderRadius:9,padding:"7px 14px",cursor:"pointer",fontWeight:600,fontSize:"0.77rem",display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap",fontFamily:"inherit"}}>
 //                               <Sparkles size={13}/> Write Notes
 //                             </motion.button>}
 //                       </td>
 //                       <td style={{padding:"14px"}}>
 //                         {m.minutesGenerated
 //                           ?<motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} onClick={()=>downloadMinutes(m)}
-//                               style={{background:"#10b981",color:"white",border:"none",borderRadius:9,padding:"7px 14px",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:5,fontSize:"0.77rem",fontFamily:"inherit",whiteSpace:"nowrap"}}>
+//                               style={{background:"#3A70B0",color:"white",border:"none",borderRadius:9,padding:"7px 14px",fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:5,fontSize:"0.77rem",fontFamily:"inherit",whiteSpace:"nowrap"}}>
 //                               <Download size={13}/> Download
 //                             </motion.button>
 //                           :<span style={{display:"flex",alignItems:"center",gap:5,color:"#cbd5e1",fontSize:"0.78rem",whiteSpace:"nowrap"}}><FileCheck size={13}/> Not yet</span>}
@@ -1793,7 +1793,7 @@
 // };
 
 // const AVATAR_COLORS = [
-//   ["#0a1628","#4f9cf9"],["#0d2818","#4ade80"],["#2d1b69","#a78bfa"],
+//   ["#0a1628","#7AA9D6"],["#0d2818","#4ade80"],["#2d1b69","#a78bfa"],
 //   ["#7c2d12","#fb923c"],["#0c2340","#60a5fa"],["#451a03","#fcd34d"],
 // ];
 // const getAvatarColor = (name) => {
@@ -1856,7 +1856,7 @@
 // const isEmpty = (v) => !v || !String(v).trim();
 
 // const callClaudeForMinutes = async (roughNotes, meetingMeta) => {
-//   const systemPrompt = `You are a professional meeting secretary. Always respond with ONLY valid JSON — no markdown, no backticks, no preamble. Schema: {"meetingTitle":"string","summary":"string","keyDecisions":[{"id":1,"decision":"string","rationale":"string"}],"actionItems":[{"id":1,"task":"string","responsible":"string","deadline":"string","priority":"High|Medium|Low"}],"discussionPoints":["string"],"nextSteps":"string","nextMeetingNote":"string"}`;
+//   const systemPrompt = `You are a professional meeting secretary. Always respond with ONLY valid JSON - no markdown, no backticks, no preamble. Schema: {"meetingTitle":"string","summary":"string","keyDecisions":[{"id":1,"decision":"string","rationale":"string"}],"actionItems":[{"id":1,"task":"string","responsible":"string","deadline":"string","priority":"High|Medium|Low"}],"discussionPoints":["string"],"nextSteps":"string","nextMeetingNote":"string"}`;
 //   const userPrompt = `Meeting Details:\n- Agenda: ${meetingMeta.agenda}\n- Date: ${meetingMeta.date}\n- Time: ${meetingMeta.time}\n- Venue: ${meetingMeta.venue}\n- Attendees: ${meetingMeta.boardMembers.map(b=>`${b.name} (${b.role})`).join(", ")}\n\nRough Notes:\n${roughNotes}\n\nReturn ONLY JSON.`;
 //   const resp = await fetch("http://localhost:5000/api/generate-minutes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemPrompt,userPrompt})});
 //   const raw = await resp.text();
@@ -1884,7 +1884,7 @@
 //   const T=(text,opts={})=>{const{x=ML,size=10,font=regular,color=black,maxW=CW,lh=1.55,dx=0}=opts;const lines=wrap(text,maxW-dx,size);for(const l of lines){if(y-size-2<MB){footerOn();addPage();headerOn();}page.drawText(l,{x:x+dx,y:y-size,font,size,color});y-=size*lh;}};
 //   const addPage=()=>{page=doc.addPage([W,H]);y=H-50;};
 //   const headerOn=()=>{page.drawRectangle({x:0,y:H-32,width:W,height:32,color:navyDk});page.drawRectangle({x:0,y:H-32,width:5,height:32,color:blue});page.drawText("ADVISORY BOARD MEETING MINUTES",{x:ML+4,y:H-21,font:bold,size:8,color:rgb(0.65,0.76,0.87)});page.drawText("CollaXion",{x:W-ML-44,y:H-21,font:bold,size:9,color:blue});y=H-46;};
-//   const footerOn=()=>{page.drawLine({start:{x:ML,y:MB-6},end:{x:W-ML,y:MB-6},thickness:0.5,color:grayLt});page.drawText("CollaXion — Confidential Advisory Board Record",{x:ML,y:MB-18,font:italic,size:7,color:grayMd});};
+//   const footerOn=()=>{page.drawLine({start:{x:ML,y:MB-6},end:{x:W-ML,y:MB-6},thickness:0.5,color:grayLt});page.drawText("CollaXion - Confidential Advisory Board Record",{x:ML,y:MB-18,font:italic,size:7,color:grayMd});};
 //   const need=(h)=>{if(y-h<MB+10){footerOn();addPage();headerOn();}};
 //   const heading=(title)=>{need(36);page.drawRectangle({x:ML,y:y-28,width:5,height:28,color:blue});page.drawRectangle({x:ML+5,y:y-28,width:CW-5,height:28,color:offWh});page.drawText(sanitize(title).toUpperCase(),{x:ML+14,y:y-18,font:bold,size:9.5,color:navy});y-=36;};
 //   const pill=(label,px,py)=>{const map={High:[redLt,red],Medium:[amberLt,amber],Low:[greenLt,green]};const[bg,fg]=map[label]||map.Medium;const pw=label.length*5.6+14;page.drawRectangle({x:px,y:py-10,width:pw,height:12,color:bg});page.drawText(sanitize(label),{x:px+7,y:py-7,font:bold,size:7.5,color:fg});};
@@ -1904,7 +1904,7 @@
 //   let mtY=H-140;
 //   for(const ln of mtLines.slice(0,3)){page.drawText(sanitize(ln),{x:ML,y:mtY,font:bold,size:11.5,color:rgb(0.83,0.90,0.96)});mtY-=17;}
 //   const cardTop=H-COVER_H-16,cardH=46,cardW=(CW-12)/3;
-//   [{label:"DATE",val:meetingMeta.date||"—"},{label:"TIME",val:meetingMeta.time||"—"},{label:"VENUE",val:meetingMeta.venue||"—"}].forEach((c,i)=>{const cx=ML+i*(cardW+6);page.drawRectangle({x:cx+1,y:cardTop-cardH-1,width:cardW,height:cardH,color:grayLt});page.drawRectangle({x:cx,y:cardTop-cardH,width:cardW,height:cardH,color:white});page.drawRectangle({x:cx,y:cardTop-3,width:cardW,height:3,color:blue});page.drawText(c.label,{x:cx+8,y:cardTop-13,font:bold,size:7,color:blue});const vw=wrap(sanitize(c.val),cardW-16,10);vw.slice(0,2).forEach((vl,vi)=>{page.drawText(vl,{x:cx+8,y:cardTop-26-vi*13,font:bold,size:10,color:navy});});});
+//   [{label:"DATE",val:meetingMeta.date||"-"},{label:"TIME",val:meetingMeta.time||"-"},{label:"VENUE",val:meetingMeta.venue||"-"}].forEach((c,i)=>{const cx=ML+i*(cardW+6);page.drawRectangle({x:cx+1,y:cardTop-cardH-1,width:cardW,height:cardH,color:grayLt});page.drawRectangle({x:cx,y:cardTop-cardH,width:cardW,height:cardH,color:white});page.drawRectangle({x:cx,y:cardTop-3,width:cardW,height:3,color:blue});page.drawText(c.label,{x:cx+8,y:cardTop-13,font:bold,size:7,color:blue});const vw=wrap(sanitize(c.val),cardW-16,10);vw.slice(0,2).forEach((vl,vi)=>{page.drawText(vl,{x:cx+8,y:cardTop-26-vi*13,font:bold,size:10,color:navy});});});
 //   y=cardTop-cardH-22;
 //   if(minutesData.summary){need(50);y-=6;heading("Executive Summary");const sumLines=wrap(minutesData.summary,CW-18,9.5);const boxH=sumLines.length*14+16;need(boxH+8);page.drawRectangle({x:ML,y:y-boxH,width:4,height:boxH,color:blue});page.drawRectangle({x:ML+4,y:y-boxH,width:CW-4,height:boxH,color:rgb(0.96,0.97,0.99)});y-=10;T(minutesData.summary,{font:italic,size:9.5,color:gray,dx:14});y-=6;}
 //   y-=4;heading("Attendees");
@@ -1937,7 +1937,7 @@
 //       onHoverEnd={() => setHovered(false)}
 //       style={{
 //         background: hovered
-//           ? "linear-gradient(135deg,#0f2744 0%,#1a3a5c 100%)"
+//           ? "#193648"
 //           : "linear-gradient(135deg,#ffffff 0%,#f7f9fc 100%)",
 //         border: hovered ? "1px solid #3a70b0" : "1px solid #e8edf4",
 //         borderRadius: 16, padding: compact ? "14px 16px" : "18px 20px",
@@ -1949,7 +1949,7 @@
 //         <div style={{
 //           width: compact ? 42 : 52, height: compact ? 42 : 52,
 //           borderRadius: "50%", overflow: "hidden",
-//           boxShadow: hovered ? "0 0 0 3px #4f9cf9" : "0 0 0 2px #dde3ec",
+//           boxShadow: hovered ? "0 0 0 3px #7AA9D6" : "0 0 0 2px #dde3ec",
 //           transition: "box-shadow 0.25s"
 //         }}>
 //           <Avatar name={member.name} image={member.image} size={compact ? 42 : 52} />
@@ -1961,9 +1961,9 @@
 //             style={{
 //               position: "absolute", bottom: -2, right: -2,
 //               width: 20, height: 20, borderRadius: "50%",
-//               background: "#4f9cf9", border: "2px solid white",
+//               background: "#7AA9D6", border: "2px solid white",
 //               display: "flex", alignItems: "center", justifyContent: "center",
-//               cursor: "pointer", boxShadow: "0 2px 8px rgba(79,156,249,0.5)"
+//               cursor: "pointer", boxShadow: "0 2px 8px rgba(122,169,214,0.5)"
 //             }}
 //           >
 //             <Camera size={9} color="white" />
@@ -1979,19 +1979,19 @@
 //       <div style={{ flex: 1, minWidth: 0 }}>
 //         <div style={{
 //           fontWeight: 700, fontSize: compact ? "0.84rem" : "0.92rem",
-//           color: hovered ? "#e8f0fb" : "#0f2240",
+//           color: hovered ? "#e8f0fb" : "#193648",
 //           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 //           transition: "color 0.25s", fontFamily: "'Playfair Display', Georgia, serif"
 //         }}>{member.name}</div>
 //         <div style={{
-//           color: hovered ? "#7db3e8" : "#64748b",
+//           color: hovered ? "#7AA9D6" : "#64748b",
 //           fontSize: "0.74rem", marginTop: 2,
 //           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 //           transition: "color 0.25s"
 //         }}>{member.role}{member.org ? ` · ${member.org}` : ""}</div>
 //         {member.email && (
 //           <div style={{
-//             color: hovered ? "#4f9cf9" : "#94a3b8",
+//             color: hovered ? "#7AA9D6" : "#94a3b8",
 //             fontSize: "0.68rem", marginTop: 2,
 //             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
 //             transition: "color 0.25s"
@@ -2000,10 +2000,10 @@
 //       </div>
 //       {member.isFixed && (
 //         <div style={{
-//           background: hovered ? "rgba(79,156,249,0.2)" : "#eef4ff",
+//           background: hovered ? "rgba(122,169,214,0.2)" : "#eef4ff",
 //           borderRadius: 6, padding: "2px 7px",
 //           fontSize: "0.65rem", fontWeight: 700,
-//           color: hovered ? "#7db3e8" : "#3a70b0",
+//           color: hovered ? "#7AA9D6" : "#3a70b0",
 //           transition: "all 0.25s"
 //         }}>CORE</div>
 //       )}
@@ -2047,7 +2047,7 @@
 //   };
 //   const addCustom = () => {
 //     if (!validateAdd()) return;
-//     const rep = { id: "c" + Date.now(), name: newName, email: newEmail, org: newOrg || "—", role: newRole || "Guest", image: null, isCustom: true };
+//     const rep = { id: "c" + Date.now(), name: newName, email: newEmail, org: newOrg || "-", role: newRole || "Guest", image: null, isCustom: true };
 //     setCustom(p => [...p, rep]); setSelected(p => [...p, rep]);
 //     setNewName(""); setNewEmail(""); setNewOrg(""); setNewRole(""); setErrors({});
 //   };
@@ -2078,7 +2078,7 @@
 //     width: "100%", boxSizing: "border-box", padding: "10px 14px",
 //     border: "1.5px solid #dde3ec", borderRadius: "10px",
 //     fontSize: "0.83rem", fontFamily: "inherit", outline: "none",
-//     color: "#0f2240", background: "#f8fbff", transition: "all 0.2s"
+//     color: "#193648", background: "#f8fbff", transition: "all 0.2s"
 //   };
 
 //   return (
@@ -2102,29 +2102,29 @@
 //       >
 //         {/* Header */}
 //         <div style={{
-//           background: "linear-gradient(130deg,#050f23 0%,#0f2744 50%,#1a4570 100%)",
+//           background: "#193648",
 //           padding: "24px 30px", borderRadius: "24px 24px 0 0",
 //           display: "flex", alignItems: "center", gap: 14,
 //           position: "sticky", top: 0, zIndex: 10
 //         }}>
 //           <div style={{
 //             width: 46, height: 46, borderRadius: 14,
-//             background: "rgba(79,156,249,0.2)",
-//             border: "1px solid rgba(79,156,249,0.4)",
+//             background: "rgba(122,169,214,0.2)",
+//             border: "1px solid rgba(122,169,214,0.4)",
 //             display: "flex", alignItems: "center", justifyContent: "center"
 //           }}>
-//             <Mail size={22} color="#7db3e8" />
+//             <Mail size={22} color="#7AA9D6" />
 //           </div>
 //           <div style={{ flex: 1 }}>
 //             <div style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", fontFamily: "'Playfair Display', Georgia, serif" }}>Send Meeting Invitations</div>
-//             <div style={{ color: "rgba(150,180,230,0.8)", fontSize: "0.78rem", marginTop: 2 }}>{meeting.agenda} — {meeting.date}</div>
+//             <div style={{ color: "rgba(150,180,230,0.8)", fontSize: "0.78rem", marginTop: 2 }}>{meeting.agenda} - {meeting.date}</div>
 //           </div>
 //           {selected.length > 0 && (
 //             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
 //               style={{
-//                 background: "rgba(79,156,249,0.25)", borderRadius: 20,
-//                 padding: "4px 14px", color: "#7db3e8",
-//                 fontSize: "0.78rem", fontWeight: 700, border: "1px solid rgba(79,156,249,0.3)"
+//                 background: "rgba(122,169,214,0.25)", borderRadius: 20,
+//                 padding: "4px 14px", color: "#7AA9D6",
+//                 fontSize: "0.78rem", fontWeight: 700, border: "1px solid rgba(122,169,214,0.3)"
 //               }}>
 //               {selected.length} selected
 //             </motion.div>
@@ -2148,7 +2148,7 @@
 //                   style={{ ...inpStyle, paddingLeft: 38 }} />
 //               </div>
 
-//               <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.82rem", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+//               <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.82rem", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
 //                 <Star size={13} color="#f59e0b" /> System Suggested Representatives
 //               </div>
 //               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 10, marginBottom: 22 }}>
@@ -2165,7 +2165,7 @@
 //                       <Avatar name={rep.name} image={rep.image} size={40} />
 //                     </div>
 //                     <div style={{ flex: 1, minWidth: 0 }}>
-//                       <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.83rem" }}>{rep.name}</div>
+//                       <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.83rem" }}>{rep.name}</div>
 //                       <div style={{ color: "#64748b", fontSize: "0.72rem" }}>{rep.org} · {rep.role}</div>
 //                       <div style={{ color: "#94a3b8", fontSize: "0.67rem" }}>{rep.email}</div>
 //                     </div>
@@ -2183,7 +2183,7 @@
 
 //               {custom.length > 0 && (
 //                 <>
-//                   <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.82rem", marginBottom: 10 }}>✅ Added by You</div>
+//                   <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.82rem", marginBottom: 10 }}>✅ Added by You</div>
 //                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginBottom: 20 }}>
 //                     {custom.map(rep => (
 //                       <div key={rep.id} onClick={() => toggle(rep)}
@@ -2195,7 +2195,7 @@
 //                         }}>
 //                         <Avatar name={rep.name} size={34} />
 //                         <div style={{ flex: 1, minWidth: 0 }}>
-//                           <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.81rem" }}>{rep.name}</div>
+//                           <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.81rem" }}>{rep.name}</div>
 //                           <div style={{ color: "#64748b", fontSize: "0.7rem" }}>{rep.org} · {rep.role}</div>
 //                         </div>
 //                         {isSelected(rep) && <CheckCheck size={14} color="#3a70b0" />}
@@ -2210,7 +2210,7 @@
 //                 border: "1px solid #c7d9f5", borderRadius: 16,
 //                 padding: "18px 20px", marginBottom: 22
 //               }}>
-//                 <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.83rem", marginBottom: 13, display: "flex", alignItems: "center", gap: 7 }}>
+//                 <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.83rem", marginBottom: 13, display: "flex", alignItems: "center", gap: 7 }}>
 //                   <UserPlus size={14} color="#3a70b0" /> Add External Representative
 //                 </div>
 //                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
@@ -2229,7 +2229,7 @@
 //                 </div>
 //                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={addCustom}
 //                   style={{
-//                     background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//                     background: "#193648",
 //                     color: "white", border: "none", borderRadius: 9,
 //                     padding: "8px 20px", fontSize: "0.8rem", fontWeight: 600,
 //                     cursor: "pointer", display: "flex", alignItems: "center", gap: 6
@@ -2247,7 +2247,7 @@
 //                   disabled={sending || selected.length === 0}
 //                   style={{
 //                     padding: "10px 24px", borderRadius: 11, border: "none",
-//                     background: selected.length > 0 ? "linear-gradient(120deg,#0f2744,#3a70b0)" : "#e2e8f0",
+//                     background: selected.length > 0 ? "#193648" : "#e2e8f0",
 //                     color: selected.length > 0 ? "white" : "#94a3b8",
 //                     fontWeight: 600, cursor: selected.length > 0 ? "pointer" : "not-allowed",
 //                     display: "flex", alignItems: "center", gap: 7, fontSize: "0.84rem",
@@ -2268,13 +2268,13 @@
 //                   display: "flex", alignItems: "center", justifyContent: "center",
 //                   margin: "0 auto 18px", boxShadow: "0 10px 30px rgba(5,150,105,0.25)"
 //                 }}>
-//                 <MailCheck size={30} color="#059669" />
+//                 <MailCheck size={30} color="#193648" />
 //               </motion.div>
-//               <div style={{ fontWeight: 700, fontSize: "1.15rem", color: "#0f2240", marginBottom: 8, fontFamily: "'Playfair Display', Georgia, serif" }}>Invitations Dispatched!</div>
+//               <div style={{ fontWeight: 700, fontSize: "1.15rem", color: "#193648", marginBottom: 8, fontFamily: "'Playfair Display', Georgia, serif" }}>Invitations Dispatched!</div>
 //               <div style={{ color: "#64748b", fontSize: "0.87rem", marginBottom: 26 }}>Email invitations sent to {selected.length} representative(s).</div>
 //               <motion.button whileHover={{ scale: 1.04 }} onClick={onClose}
 //                 style={{
-//                   background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//                   background: "#193648",
 //                   color: "white", border: "none", borderRadius: 11,
 //                   padding: "11px 32px", fontWeight: 600, cursor: "pointer",
 //                   boxShadow: "0 8px 24px rgba(58,112,176,0.35)"
@@ -2292,10 +2292,10 @@
 //   width: "100%", boxSizing: "border-box", padding: "9px 13px",
 //   border: "1.5px solid #dde3ec", borderRadius: 9,
 //   fontSize: "0.83rem", fontFamily: "inherit", outline: "none",
-//   color: "#0f2240", background: "#f8fbff", transition: "border-color 0.2s"
+//   color: "#193648", background: "#f8fbff", transition: "border-color 0.2s"
 // };
 // const editTextarea = { ...editInput, resize: "vertical", minHeight: 64, lineHeight: 1.6 };
-// const sectionLabel = { fontWeight: 700, color: "#0f2240", fontSize: "0.83rem", marginBottom: 9, display: "flex", alignItems: "center", justifyContent: "space-between" };
+// const sectionLabel = { fontWeight: 700, color: "#193648", fontSize: "0.83rem", marginBottom: 9, display: "flex", alignItems: "center", justifyContent: "space-between" };
 // const addBtnStyle = { background: "#eef4ff", color: "#3a70b0", border: "1px solid #c7d9f5", borderRadius: 7, padding: "4px 12px", fontSize: "0.74rem", fontWeight: 600, cursor: "pointer" };
 // const remBtnStyle = { background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: "3px 5px", borderRadius: 5, fontSize: "0.75rem", flexShrink: 0 };
 
@@ -2405,24 +2405,24 @@
 //         }}
 //       >
 //         <div style={{
-//           background: "linear-gradient(130deg,#050f23 0%,#0f2744 50%,#1a4570 100%)",
+//           background: "#193648",
 //           padding: "24px 30px", borderRadius: "24px 24px 0 0",
 //           display: "flex", alignItems: "center", gap: 14,
 //           position: "sticky", top: 0, zIndex: 10
 //         }}>
 //           <div style={{
 //             width: 46, height: 46, borderRadius: 14,
-//             background: "rgba(79,156,249,0.2)",
-//             border: "1px solid rgba(79,156,249,0.4)",
+//             background: "rgba(122,169,214,0.2)",
+//             border: "1px solid rgba(122,169,214,0.4)",
 //             display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
 //           }}>
-//             {phase === "edit" ? <FileText size={22} color="#7db3e8" /> : <PenLine size={22} color="#7db3e8" />}
+//             {phase === "edit" ? <FileText size={22} color="#7AA9D6" /> : <PenLine size={22} color="#7AA9D6" />}
 //           </div>
 //           <div style={{ flex: 1 }}>
 //             <div style={{ color: "white", fontWeight: 700, fontSize: "1.05rem", fontFamily: "'Playfair Display', Georgia, serif" }}>
 //               {phase === "edit" ? "✏️ Review & Edit Minutes" : "Write Meeting Notes"}
 //             </div>
-//             <div style={{ color: "rgba(150,180,230,0.8)", fontSize: "0.8rem", marginTop: 2 }}>{meeting.agenda} — {meeting.date}</div>
+//             <div style={{ color: "rgba(150,180,230,0.8)", fontSize: "0.8rem", marginTop: 2 }}>{meeting.agenda} - {meeting.date}</div>
 //           </div>
 //           {["Write", "Edit", "Save"].map((p, i) => {
 //             const active = (i === 0 && ["write", "error", "processing"].includes(phase)) || (i === 1 && phase === "edit");
@@ -2430,10 +2430,10 @@
 //             return (
 //               <div key={p} style={{
 //                 display: "flex", alignItems: "center", gap: 4,
-//                 background: done ? "rgba(16,185,129,0.25)" : active ? "rgba(79,156,249,0.2)" : "rgba(255,255,255,0.06)",
+//                 background: done ? "rgba(58,112,176,0.25)" : active ? "rgba(122,169,214,0.2)" : "rgba(255,255,255,0.06)",
 //                 borderRadius: 20, padding: "3px 11px", fontSize: "0.7rem",
-//                 color: done ? "#6ee7b7" : active ? "#7db3e8" : "rgba(255,255,255,0.35)",
-//                 fontWeight: 600, border: `1px solid ${done ? "rgba(110,231,183,0.3)" : active ? "rgba(79,156,249,0.3)" : "transparent"}`
+//                 color: done ? "#6ee7b7" : active ? "#7AA9D6" : "rgba(255,255,255,0.35)",
+//                 fontWeight: 600, border: `1px solid ${done ? "rgba(110,231,183,0.3)" : active ? "rgba(122,169,214,0.3)" : "transparent"}`
 //               }}>
 //                 {done ? "✓" : `${i + 1}.`} {p}
 //               </div>
@@ -2449,28 +2449,28 @@
 //         <div style={{ padding: "28px 30px" }}>
 //           {(phase === "write" || phase === "error") && (
 //             <>
-//               <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#0f2240", fontWeight: 700, fontSize: "0.95rem", marginBottom: 8 }}>
+//               <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#193648", fontWeight: 700, fontSize: "0.95rem", marginBottom: 8 }}>
 //                 <ClipboardList size={17} color="#3a70b0" /> Rough Meeting Notes
 //               </div>
 //               <p style={{ color: "#64748b", fontSize: "0.83rem", margin: "0 0 12px", lineHeight: 1.6 }}>
-//                 Write everything that happened — decisions, who said what, tasks, deadlines. AI will structure it into formal minutes.
+//                 Write everything that happened - decisions, who said what, tasks, deadlines. AI will structure it into formal minutes.
 //               </p>
 //               <textarea
 //                 value={notes} onChange={e => setNotes(e.target.value)}
-//                 placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update — agreed to add AI module in semester 3..."}
+//                 placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update - agreed to add AI module in semester 3..."}
 //                 style={{
 //                   width: "100%", boxSizing: "border-box", minHeight: 240,
 //                   padding: "15px 17px", border: "2px solid #dde3ec",
 //                   borderRadius: 14, fontSize: "0.88rem", lineHeight: 1.75,
 //                   fontFamily: "inherit", resize: "vertical", outline: "none",
-//                   color: "#0f2240", background: "#f8fbff", transition: "all 0.2s"
+//                   color: "#193648", background: "#f8fbff", transition: "all 0.2s"
 //                 }}
 //                 onFocus={e => { e.target.style.borderColor = "#3a70b0"; e.target.style.background = "#fff"; e.target.style.boxShadow = "0 0 0 4px rgba(58,112,176,0.1)"; }}
 //                 onBlur={e => { e.target.style.borderColor = "#dde3ec"; e.target.style.background = "#f8fbff"; e.target.style.boxShadow = "none"; }}
 //               />
 //               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: "0.77rem", color: "#94a3b8" }}>
 //                 <span>{words} words · {chars} chars</span>
-//                 <span style={{ color: chars < 30 ? "#ef4444" : "#10b981", fontWeight: 600 }}>
+//                 <span style={{ color: chars < 30 ? "#ef4444" : "#3A70B0", fontWeight: 600 }}>
 //                   {chars < 30 ? `${30 - chars} more chars needed` : "✓ Ready to generate"}
 //                 </span>
 //               </div>
@@ -2494,7 +2494,7 @@
 //                 border: "1px solid #c7d9f5", borderRadius: 14,
 //                 padding: "14px 17px", margin: "16px 0 20px"
 //               }}>
-//                 <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.81rem", marginBottom: 9 }}>📋 Attendees (auto-included)</div>
+//                 <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.81rem", marginBottom: 9 }}>📋 Attendees (auto-included)</div>
 //                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
 //                   {meeting.boardMembers.map((m, i) => (
 //                     <span key={i} style={{
@@ -2518,7 +2518,7 @@
 //                   onClick={sendToAI} disabled={chars < 30}
 //                   style={{
 //                     padding: "10px 24px", borderRadius: 11, border: "none",
-//                     background: chars >= 30 ? "linear-gradient(120deg,#0f2744,#3a70b0)" : "#e2e8f0",
+//                     background: chars >= 30 ? "#193648" : "#e2e8f0",
 //                     color: chars >= 30 ? "white" : "#94a3b8",
 //                     fontWeight: 600, cursor: chars >= 30 ? "pointer" : "not-allowed",
 //                     display: "flex", alignItems: "center", gap: 8, fontSize: "0.86rem",
@@ -2537,14 +2537,14 @@
 //                 transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
 //                 style={{
 //                   width: 72, height: 72, borderRadius: "50%",
-//                   background: "linear-gradient(135deg,#0f2744,#3a70b0)",
+//                   background: "#193648",
 //                   display: "flex", alignItems: "center", justifyContent: "center",
 //                   boxShadow: "0 12px 36px rgba(58,112,176,0.4)"
 //                 }}>
 //                 <Bot size={34} color="white" />
 //               </motion.div>
 //               <div>
-//                 <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "#0f2240", marginBottom: 6, fontFamily: "'Playfair Display', Georgia, serif" }}>
+//                 <div style={{ fontWeight: 700, fontSize: "1.1rem", color: "#193648", marginBottom: 6, fontFamily: "'Playfair Display', Georgia, serif" }}>
 //                   AI is processing your notes…
 //                 </div>
 //                 <div style={{ color: "#64748b", fontSize: "0.86rem" }}>Structuring decisions & action items into formal minutes</div>
@@ -2577,7 +2577,7 @@
 //               }}>
 //                 <span style={{ fontSize: "1.2rem" }}>✏️</span>
 //                 <div>
-//                   <div style={{ fontWeight: 700, color: "#1e40af", fontSize: "0.88rem" }}>AI generated your minutes — edit anything before saving</div>
+//                   <div style={{ fontWeight: 700, color: "#1e40af", fontSize: "0.88rem" }}>AI generated your minutes - edit anything before saving</div>
 //                   <div style={{ color: "#3b82f6", fontSize: "0.76rem", marginTop: 1 }}>All fields are fully editable below.</div>
 //                 </div>
 //               </div>
@@ -2595,7 +2595,7 @@
 //                 {editData.keyDecisions.map((d, idx) => (
 //                   <div key={d.id} style={{ background: "#f8fbff", border: "1px solid #dde3ec", borderRadius: 11, padding: "13px 15px", marginBottom: 10 }}>
 //                     <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-//                       <span style={{ minWidth: 24, height: 24, borderRadius: "50%", background: "linear-gradient(135deg,#0f2744,#3a70b0)", color: "white", fontSize: "0.69rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>{idx + 1}</span>
+//                       <span style={{ minWidth: 24, height: 24, borderRadius: "50%", background: "#193648", color: "white", fontSize: "0.69rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>{idx + 1}</span>
 //                       <div style={{ flex: 1 }}>
 //                         <input value={d.decision} onChange={e => ud(d.id, "decision", e.target.value)} placeholder="Decision…" style={{ ...editInput, marginBottom: 6, fontWeight: 600 }} onFocus={onFocus} onBlur={onBlur} />
 //                         <input value={d.rationale || ""} onChange={e => ud(d.id, "rationale", e.target.value)} placeholder="Rationale…" style={{ ...editInput, fontSize: "0.78rem", color: "#64748b" }} onFocus={onFocus} onBlur={onBlur} />
@@ -2610,7 +2610,7 @@
 //                 {editData.actionItems.map((a, idx) => (
 //                   <div key={a.id} style={{ background: "#f8fbff", border: "1px solid #dde3ec", borderRadius: 11, padding: "13px 15px", marginBottom: 10 }}>
 //                     <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-//                       <span style={{ minWidth: 24, height: 24, borderRadius: "50%", background: "linear-gradient(135deg,#1a4570,#4f9cf9)", color: "white", fontSize: "0.69rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>{idx + 1}</span>
+//                       <span style={{ minWidth: 24, height: 24, borderRadius: "50%", background: "#193648", color: "white", fontSize: "0.69rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>{idx + 1}</span>
 //                       <div style={{ flex: 1 }}>
 //                         <input value={a.task} onChange={e => ua(a.id, "task", e.target.value)} placeholder="Task…" style={{ ...editInput, marginBottom: 6, fontWeight: 600 }} onFocus={onFocus} onBlur={onBlur} />
 //                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 8 }}>
@@ -2643,22 +2643,22 @@
 //               </div>
 //               <div style={{ marginBottom: 24 }}>
 //                 <div style={sectionLabel}>📅 Next Meeting Note</div>
-//                 <input value={editData.nextMeetingNote || ""} onChange={e => uf("nextMeetingNote", e.target.value)} placeholder="e.g. In 4 weeks — follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur} />
+//                 <input value={editData.nextMeetingNote || ""} onChange={e => uf("nextMeetingNote", e.target.value)} placeholder="e.g. In 4 weeks - follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur} />
 //               </div>
 
 //               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", paddingTop: 16, borderTop: "1px solid #f0f4f9" }}>
 //                 <button onClick={() => setPhase("write")} style={{ padding: "9px 19px", borderRadius: 11, border: "1.5px solid #dde3ec", background: "white", color: "#64748b", fontWeight: 500, cursor: "pointer", fontSize: "0.84rem" }}>← Back</button>
 //                 <div style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
 //                   <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={handleEmailPDF} disabled={isRegen || sendingEmail}
-//                     style={{ padding: "9px 17px", borderRadius: 11, border: "none", background: "#0ea5e9", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", opacity: sendingEmail ? 0.7 : 1, boxShadow: "0 6px 18px rgba(14,165,233,0.3)" }}>
+//                     style={{ padding: "9px 17px", borderRadius: 11, border: "none", background: "#193648", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", opacity: sendingEmail ? 0.7 : 1, boxShadow: "0 6px 18px rgba(25,54,72,0.3)" }}>
 //                     {sendingEmail ? <Loader size={13} /> : <Mail size={13} />} Email PDF to All
 //                   </motion.button>
 //                   <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={handleSaveOnly} disabled={isRegen}
-//                     style={{ padding: "9px 19px", borderRadius: 11, border: "none", background: "#10b981", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", opacity: isRegen ? 0.7 : 1, boxShadow: "0 6px 18px rgba(16,185,129,0.3)" }}>
+//                     style={{ padding: "9px 19px", borderRadius: 11, border: "none", background: "#3A70B0", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", opacity: isRegen ? 0.7 : 1, boxShadow: "0 6px 18px rgba(58,112,176,0.3)" }}>
 //                     {isRegen ? <Loader size={13} /> : <CheckCircle2 size={13} />} Save & Close
 //                   </motion.button>
 //                   <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} onClick={handleDownloadSave} disabled={isRegen}
-//                     style={{ padding: "9px 22px", borderRadius: 11, border: "none", background: "linear-gradient(120deg,#0f2744,#3a70b0)", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", opacity: isRegen ? 0.7 : 1, boxShadow: "0 8px 24px rgba(58,112,176,0.35)" }}>
+//                     style={{ padding: "9px 22px", borderRadius: 11, border: "none", background: "#193648", color: "white", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: "0.82rem", opacity: isRegen ? 0.7 : 1, boxShadow: "0 8px 24px rgba(58,112,176,0.35)" }}>
 //                     {isRegen ? <Loader size={13} /> : <Download size={13} />} Download PDF & Save
 //                   </motion.button>
 //                 </div>
@@ -2769,7 +2769,7 @@
 //     width: "100%", boxSizing: "border-box", padding: "11px 15px",
 //     border: "1.5px solid #dde3ec", borderRadius: 11,
 //     fontSize: "0.88rem", fontFamily: "inherit", outline: "none",
-//     color: "#0f2240", background: "#f8fbff", transition: "all 0.2s"
+//     color: "#193648", background: "#f8fbff", transition: "all 0.2s"
 //   };
 
 //   return (
@@ -2785,7 +2785,7 @@
 //         ::-webkit-scrollbar-thumb:hover { background: #3a70b0; }
 //         @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 //         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-//         @keyframes pulse-ring { 0%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(79,156,249,0.5)} 70%{transform:scale(1);box-shadow:0 0 0 12px rgba(79,156,249,0)} 100%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(79,156,249,0)} }
+//         @keyframes pulse-ring { 0%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(122,169,214,0.5)} 70%{transform:scale(1);box-shadow:0 0 0 12px rgba(122,169,214,0)} 100%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(122,169,214,0)} }
 
 //         @media (max-width: 768px) {
 //           .stats-grid { flex-direction: column !important; }
@@ -2807,27 +2807,27 @@
 
 //         {/* ── TOP NAVBAR ── */}
 //         <nav style={{
-//           background: "linear-gradient(110deg,#050f23 0%,#0a1e3d 60%,#0f2744 100%)",
+//           background: "#193648",
 //           padding: "0 32px", height: 64,
 //           display: "flex", alignItems: "center", justifyContent: "space-between",
 //           position: "sticky", top: 0, zIndex: 100,
 //           boxShadow: "0 4px 24px rgba(5,15,35,0.5)",
-//           borderBottom: "1px solid rgba(79,156,249,0.2)"
+//           borderBottom: "1px solid rgba(122,169,214,0.2)"
 //         }}>
 //           {/* Logo */}
 //           {/* <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 //             <div style={{
 //               width: 36, height: 36, borderRadius: 10,
-//               background: "linear-gradient(135deg,#3a70b0,#4f9cf9)",
+//               background: "linear-gradient(135deg,#3a70b0,#7AA9D6)",
 //               display: "flex", alignItems: "center", justifyContent: "center",
-//               boxShadow: "0 4px 16px rgba(79,156,249,0.5)",
+//               boxShadow: "0 4px 16px rgba(122,169,214,0.5)",
 //               animation: "pulse-ring 2.5s infinite"
 //             }}>
 //               <Zap size={18} color="white" strokeWidth={2.5} />
 //             </div>
 //             <div>
 //               <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 800, fontSize: "1.2rem", color: "white", letterSpacing: "-0.3px" }}>
-//                 Colla<span style={{ color: "#4f9cf9" }}>X</span>ion
+//                 Colla<span style={{ color: "#7AA9D6" }}>X</span>ion
 //               </span>
 //               <div style={{ fontSize: "0.58rem", color: "rgba(150,180,230,0.7)", letterSpacing: "2px", textTransform: "uppercase", marginTop: -3 }}>
 //                 Advisory Board
@@ -2847,7 +2847,7 @@
 //       height: 36,
 //       borderRadius: 10,
 //       overflow: "hidden",
-//       boxShadow: "0 4px 16px rgba(79,156,249,0.5)",
+//       boxShadow: "0 4px 16px rgba(122,169,214,0.5)",
 //       animation: "pulse-ring 2.5s infinite",
 //       flexShrink: 0,
 //     }}
@@ -2898,10 +2898,10 @@
 //               { id: "records", label: "Meeting Records", icon: <FileText size={15} /> }
 //             ].map(t => (
 //               <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-//                 background: activeTab === t.id ? "rgba(79,156,249,0.2)" : "transparent",
-//                 border: activeTab === t.id ? "1px solid rgba(79,156,249,0.4)" : "1px solid transparent",
+//                 background: activeTab === t.id ? "rgba(122,169,214,0.2)" : "transparent",
+//                 border: activeTab === t.id ? "1px solid rgba(122,169,214,0.4)" : "1px solid transparent",
 //                 borderRadius: 9, padding: "8px 18px", cursor: "pointer",
-//                 color: activeTab === t.id ? "#7db3e8" : "rgba(180,210,240,0.7)",
+//                 color: activeTab === t.id ? "#7AA9D6" : "rgba(180,210,240,0.7)",
 //                 fontWeight: activeTab === t.id ? 600 : 500,
 //                 fontSize: "0.84rem", fontFamily: "'DM Sans', sans-serif",
 //                 display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s"
@@ -2914,13 +2914,13 @@
 //           {/* Right side */}
 //           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 //             <div style={{
-//               background: "rgba(79,156,249,0.15)",
-//               border: "1px solid rgba(79,156,249,0.3)",
+//               background: "rgba(122,169,214,0.15)",
+//               border: "1px solid rgba(122,169,214,0.3)",
 //               borderRadius: 22, padding: "5px 14px",
 //               display: "flex", alignItems: "center", gap: 7
 //             }}>
 //               <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
-//               <span style={{ color: "#7db3e8", fontSize: "0.76rem", fontWeight: 600 }}>System Online</span>
+//               <span style={{ color: "#7AA9D6", fontSize: "0.76rem", fontWeight: 600 }}>System Online</span>
 //             </div>
 //             <button onClick={() => setMobileMenuOpen(p => !p)}
 //               style={{ display: "none", background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 8, padding: "7px 9px", cursor: "pointer", color: "white" }}
@@ -2932,14 +2932,14 @@
 
 //         {/* ── HERO BANNER ── */}
 //         <div style={{
-//           background: "linear-gradient(130deg,#050f23 0%,#0a1e3d 40%,#102a50 70%,#1a3a5c 100%)",
+//           background: "#193648",
 //           padding: "48px 40px 52px",
 //           position: "relative", overflow: "hidden"
 //         }}>
 //           {/* Decorative orbs */}
-//           <div style={{ position: "absolute", top: -60, right: -40, width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle,rgba(79,156,249,0.15),transparent)", pointerEvents: "none" }} />
+//           <div style={{ position: "absolute", top: -60, right: -40, width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle,rgba(122,169,214,0.15),transparent)", pointerEvents: "none" }} />
 //           <div style={{ position: "absolute", bottom: -80, left: 60, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle,rgba(74,222,128,0.08),transparent)", pointerEvents: "none" }} />
-//           <div style={{ position: "absolute", top: "50%", left: "50%", width: 400, height: 1, background: "linear-gradient(90deg,transparent,rgba(79,156,249,0.2),transparent)", transform: "translateY(-50%)", pointerEvents: "none" }} />
+//           <div style={{ position: "absolute", top: "50%", left: "50%", width: 400, height: 1, background: "linear-gradient(90deg,transparent,rgba(122,169,214,0.2),transparent)", transform: "translateY(-50%)", pointerEvents: "none" }} />
 
 //           {/* Floating grid dots */}
 //           {[...Array(6)].map((_, i) => (
@@ -2948,7 +2948,7 @@
 //               top: `${20 + i * 12}%`,
 //               right: `${10 + (i % 3) * 12}%`,
 //               width: 4, height: 4, borderRadius: "50%",
-//               background: "rgba(79,156,249,0.4)",
+//               background: "rgba(122,169,214,0.4)",
 //               animation: `float ${2 + i * 0.4}s ease-in-out infinite`,
 //               animationDelay: `${i * 0.3}s`,
 //               pointerEvents: "none"
@@ -2959,10 +2959,10 @@
 //             <div>
 //               {/* <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
 //                 <div style={{
-//                   background: "rgba(79,156,249,0.15)",
-//                   border: "1px solid rgba(79,156,249,0.35)", borderRadius: 24,
+//                   background: "rgba(122,169,214,0.15)",
+//                   border: "1px solid rgba(122,169,214,0.35)", borderRadius: 24,
 //                   padding: "4px 14px", fontSize: "0.72rem",
-//                   color: "#7db3e8", fontWeight: 600, letterSpacing: "0.5px"
+//                   color: "#7AA9D6", fontWeight: 600, letterSpacing: "0.5px"
 //                 }}>
 //                   UNIVERSITY ADVISORY SYSTEM
 //                 </div>
@@ -2976,8 +2976,8 @@
 //     alignItems: "center",
 //     gap: 6,
 //     marginBottom: 14,
-//     background: "rgba(79,156,249,0.15)",
-//     border: "1px solid rgba(79,156,249,0.35)",
+//     background: "rgba(122,169,214,0.15)",
+//     border: "1px solid rgba(122,169,214,0.35)",
 //     borderRadius: 24,
 //     padding: "6px 12px",
 //     width: "fit-content",
@@ -2997,7 +2997,7 @@
 //   <span
 //     style={{
 //       fontSize: "0.72rem",
-//       color: "#7db3e8",
+//       color: "#7AA9D6",
 //       fontWeight: 600,
 //       letterSpacing: "0.5px",
 //       whiteSpace: "nowrap",
@@ -3013,15 +3013,15 @@
 //                 lineHeight: 1.15, letterSpacing: "-0.5px"
 //               }}>
 //                 Advisory Board<br />
-//                 {/* <span style={{ background: "linear-gradient(120deg,#4f9cf9,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+//                 {/* <span style={{ background: "linear-gradient(120deg,#7AA9D6,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
 //                   Meeting Management
 //                 </span> */}
 
 //                 <span
 //   style={{
-//     // background: "linear-gradient(120deg, #193648, #4da3d9)",
+//     // background: "#193648",
 
-//     background: "linear-gradient(120deg, #193648, #00c6ff)",
+//     background: "#193648",
 //     WebkitBackgroundClip: "text",
 //     WebkitTextFillColor: "transparent",
 //     textShadow: "0px 0px 8px rgba(77,163,217,0.6)",
@@ -3144,7 +3144,7 @@
 //                 layout
 //                 style={{
 //                   padding: "10px 26px", borderRadius: 10, border: "none",
-//                   background: activeTab === t.id ? "linear-gradient(120deg,#0f2744,#3a70b0)" : "transparent",
+//                   background: activeTab === t.id ? "#193648" : "transparent",
 //                   color: activeTab === t.id ? "white" : "#64748b",
 //                   fontWeight: 600, cursor: "pointer", fontSize: "0.88rem",
 //                   display: "flex", alignItems: "center", gap: 7,
@@ -3171,12 +3171,12 @@
 //                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
 //                       <div style={{
 //                         width: 38, height: 38, borderRadius: 11,
-//                         background: "linear-gradient(135deg,#0f2744,#3a70b0)",
+//                         background: "#193648",
 //                         display: "flex", alignItems: "center", justifyContent: "center"
 //                       }}>
 //                         <CalendarDays size={18} color="white" />
 //                       </div>
-//                       <h2 style={{ margin: 0, color: "#0f2240", fontSize: "1.15rem", fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Meeting Details</h2>
+//                       <h2 style={{ margin: 0, color: "#193648", fontSize: "1.15rem", fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Meeting Details</h2>
 //                     </div>
 //                     <p style={{ margin: 0, color: "#94a3b8", fontSize: "0.82rem" }}>Complete all fields to schedule your advisory board meeting.</p>
 //                   </div>
@@ -3210,7 +3210,7 @@
 //                   <motion.button whileHover={{ scale: 1.03, boxShadow: "0 14px 40px rgba(58,112,176,0.45)" }} whileTap={{ scale: 0.97 }}
 //                     onClick={handleSchedule}
 //                     style={{
-//                       background: "linear-gradient(120deg,#0a1e3d 0%,#0f2744 40%,#3a70b0 100%)",
+//                       background: "#193648",
 //                       color: "white", border: "none", borderRadius: 13,
 //                       padding: "14px 38px", fontWeight: 700, fontSize: "0.95rem",
 //                       cursor: "pointer", display: "flex", alignItems: "center", gap: 9,
@@ -3231,20 +3231,20 @@
 //                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
 //                       <div style={{
 //                         width: 34, height: 34, borderRadius: 10,
-//                         background: "linear-gradient(135deg,#1a4570,#4f9cf9)",
+//                         background: "#193648",
 //                         display: "flex", alignItems: "center", justifyContent: "center"
 //                       }}>
 //                         <Users size={16} color="white" />
 //                       </div>
 //                       <div>
-//                         <h3 style={{ margin: 0, color: "#0f2240", fontSize: "0.95rem", fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Board Members</h3>
+//                         <h3 style={{ margin: 0, color: "#193648", fontSize: "0.95rem", fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Board Members</h3>
 //                         <div style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{boardMembers.length} members</div>
 //                       </div>
 //                     </div>
 //                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
 //                       onClick={() => setShowAddMember(p => !p)}
 //                       style={{
-//                         background: showAddMember ? "linear-gradient(120deg,#0f2744,#3a70b0)" : "#f0f7ff",
+//                         background: showAddMember ? "#193648" : "#f0f7ff",
 //                         color: showAddMember ? "white" : "#3a70b0",
 //                         border: "1px solid " + (showAddMember ? "transparent" : "#c7d9f5"),
 //                         borderRadius: 9, padding: "7px 13px",
@@ -3275,7 +3275,7 @@
 //                           background: "linear-gradient(135deg,#f0f7ff,#e8f0fb)",
 //                           border: "1px solid #c7d9f5", borderRadius: 14, padding: "16px 18px"
 //                         }}>
-//                           <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.8rem", marginBottom: 12 }}>New Board Member</div>
+//                           <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.8rem", marginBottom: 12 }}>New Board Member</div>
 //                           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 11 }}>
 //                             {[{ k: "name", pl: "Full Name *" }, { k: "role", pl: "Role *" }, { k: "email", pl: "Email" }, { k: "org", pl: "Organisation" }].map(f => (
 //                               <div key={f.k}>
@@ -3290,7 +3290,7 @@
 //                           </div>
 //                           <div style={{ display: "flex", gap: 8 }}>
 //                             <motion.button whileHover={{ scale: 1.04 }} onClick={handleAddMemberSubmit}
-//                               style={{ background: "linear-gradient(120deg,#0f2744,#3a70b0)", color: "white", border: "none", borderRadius: 8, padding: "8px 17px", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+//                               style={{ background: "#193648", color: "white", border: "none", borderRadius: 8, padding: "8px 17px", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
 //                               <Plus size={12} /> Add
 //                             </motion.button>
 //                             <button onClick={() => setShowAddMember(false)}
@@ -3319,20 +3319,20 @@
 //                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
 //                     <div style={{
 //                       width: 38, height: 38, borderRadius: 11,
-//                       background: "linear-gradient(135deg,#0f2744,#3a70b0)",
+//                       background: "#193648",
 //                       display: "flex", alignItems: "center", justifyContent: "center"
 //                     }}>
 //                       <FileText size={18} color="white" />
 //                     </div>
 //                     <div>
-//                       <h2 style={{ margin: 0, color: "#0f2240", fontSize: "1.1rem", fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Meeting Records</h2>
+//                       <h2 style={{ margin: 0, color: "#193648", fontSize: "1.1rem", fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Meeting Records</h2>
 //                       <div style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{meetings.length} total meetings</div>
 //                     </div>
 //                   </div>
 //                   <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
 //                     onClick={() => setActiveTab("create")}
 //                     style={{
-//                       background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//                       background: "#193648",
 //                       color: "white", border: "none", borderRadius: 10,
 //                       padding: "9px 18px", fontWeight: 600, fontSize: "0.82rem",
 //                       cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
@@ -3362,7 +3362,7 @@
 //                     <p style={{ margin: "6px 0 20px", fontSize: "0.84rem", color: "#94a3b8" }}>Schedule your first advisory board meeting to get started.</p>
 //                     <motion.button whileHover={{ scale: 1.04 }} onClick={() => setActiveTab("create")}
 //                       style={{
-//                         background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//                         background: "#193648",
 //                         color: "white", border: "none", borderRadius: 11,
 //                         padding: "11px 28px", fontWeight: 600, cursor: "pointer",
 //                         boxShadow: "0 8px 24px rgba(58,112,176,0.35)"
@@ -3397,7 +3397,7 @@
 //                             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
 //                           >
 //                             <td style={{ padding: "16px", maxWidth: 220 }}>
-//                               <div style={{ fontWeight: 700, color: "#0f2240", fontSize: "0.88rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'Playfair Display', Georgia, serif" }}>
+//                               <div style={{ fontWeight: 700, color: "#193648", fontSize: "0.88rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'Playfair Display', Georgia, serif" }}>
 //                                 {m.agenda}
 //                               </div>
 //                               <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: 2 }}>ID: {m.id.slice(-6)}</div>
@@ -3436,7 +3436,7 @@
 //                               {m.minutesGenerated ? (
 //                                 <span style={{
 //                                   display: "flex", alignItems: "center", gap: 5,
-//                                   color: "#059669", fontWeight: 700, fontSize: "0.78rem", whiteSpace: "nowrap"
+//                                   color: "#193648", fontWeight: 700, fontSize: "0.78rem", whiteSpace: "nowrap"
 //                                 }}>
 //                                   <CheckCircle2 size={14} /> Generated
 //                                 </span>
@@ -3444,7 +3444,7 @@
 //                                 <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
 //                                   onClick={() => setNotesModalFor(m)}
 //                                   style={{
-//                                     background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//                                     background: "#193648",
 //                                     color: "white", border: "none", borderRadius: 9,
 //                                     padding: "7px 14px", cursor: "pointer",
 //                                     fontWeight: 600, fontSize: "0.76rem",
@@ -3461,12 +3461,12 @@
 //                                 <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
 //                                   onClick={() => downloadMinutes(m)}
 //                                   style={{
-//                                     background: "#10b981", color: "white", border: "none",
+//                                     background: "#3A70B0", color: "white", border: "none",
 //                                     borderRadius: 9, padding: "7px 14px", fontWeight: 600,
 //                                     cursor: "pointer", display: "flex", alignItems: "center",
 //                                     gap: 5, fontSize: "0.76rem",
 //                                     fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap",
-//                                     boxShadow: "0 4px 14px rgba(16,185,129,0.3)"
+//                                     boxShadow: "0 4px 14px rgba(58,112,176,0.3)"
 //                                   }}>
 //                                   <Download size={12} /> Download
 //                                 </motion.button>
@@ -3524,7 +3524,7 @@
 //               width: 38,
 //               height: 38,
 //               borderRadius: 11,
-//               background: "linear-gradient(135deg,#0f2744,#3a70b0)",
+//               background: "#193648",
 //               display: "flex",
 //               alignItems: "center",
 //               justifyContent: "center",
@@ -3537,7 +3537,7 @@
 //             <h2
 //               style={{
 //                 margin: 0,
-//                 color: "#0f2240",
+//                 color: "#193648",
 //                 fontSize: "1.1rem",
 //                 fontWeight: 700,
 //                 fontFamily: "'Playfair Display', Georgia, serif",
@@ -3556,7 +3556,7 @@
 //           whileTap={{ scale: 0.96 }}
 //           onClick={() => setActiveTab("create")}
 //           style={{
-//             background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//             background: "#193648",
 //             color: "white",
 //             border: "none",
 //             borderRadius: 10,
@@ -3640,7 +3640,7 @@
 //             whileHover={{ scale: 1.04 }}
 //             onClick={() => setActiveTab("create")}
 //             style={{
-//               background: "linear-gradient(120deg,#0f2744,#3a70b0)",
+//               background: "#193648",
 //               color: "white",
 //               border: "none",
 //               borderRadius: 11,
@@ -3713,7 +3713,7 @@
 //                     <div
 //                       style={{
 //                         fontWeight: 700,
-//                         color: "#0f2240",
+//                         color: "#193648",
 //                         fontSize: "0.88rem",
 //                         overflow: "hidden",
 //                         textOverflow: "ellipsis",
@@ -3796,7 +3796,7 @@
 //                     {m.minutesGenerated ? (
 //                       <span
 //                         style={{
-//                           color: "#059669",
+//                           color: "#193648",
 //                           fontWeight: 700,
 //                           fontSize: "0.78rem",
 //                         }}
@@ -3809,7 +3809,7 @@
 //                         onClick={() => setNotesModalFor(m)}
 //                         style={{
 //                           background:
-//                             "linear-gradient(120deg,#0f2744,#3a70b0)",
+//                             "#193648",
 //                           color: "white",
 //                           border: "none",
 //                           borderRadius: 9,
@@ -3832,7 +3832,7 @@
 //                           whileHover={{ scale: 1.06 }}
 //                           onClick={() => downloadMinutes(m)}
 //                           style={{
-//                             background: "#10b981",
+//                             background: "#3A70B0",
 //                             color: "white",
 //                             border: "none",
 //                             borderRadius: 9,
@@ -3849,7 +3849,7 @@
 //                           whileHover={{ scale: 1.04 }}
 //                           onClick={() => handleEmailPDF(m)}
 //                           style={{
-//                             background: "#0ea5e9",
+//                             background: "#193648",
 //                             color: "white",
 //                             border: "none",
 //                             borderRadius: 9,
@@ -3891,13 +3891,13 @@
 
 //         {/* Footer */}
 //         {/* <footer style={{
-//           background: "linear-gradient(110deg,#050f23,#0a1e3d)",
+//           background: "#193648",
 //           padding: "20px 40px", marginTop: 40,
-//           borderTop: "1px solid rgba(79,156,249,0.15)"
+//           borderTop: "1px solid rgba(122,169,214,0.15)"
 //         }}>
 //           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
 //             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-//               <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#3a70b0,#4f9cf9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//               <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg,#3a70b0,#7AA9D6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
 //                 <Zap size={13} color="white" />
 //               </div>
 //               <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 700, color: "white", fontSize: "0.95rem" }}>
@@ -3920,10 +3920,10 @@
 
 //         <footer
 //   style={{
-//     background: "linear-gradient(110deg,#050f23,#0a1e3d)",
+//     background: "#193648",
 //     padding: "20px 40px",
 //     marginTop: 40,
-//     borderTop: "1px solid rgba(79,156,249,0.15)",
+//     borderTop: "1px solid rgba(122,169,214,0.15)",
 //   }}
 // >
 //   <div
@@ -3943,7 +3943,7 @@
 //           height: 28,
 //           borderRadius: 8,
 //           overflow: "hidden",
-//           boxShadow: "0 3px 12px rgba(79,156,249,0.4)",
+//           boxShadow: "0 3px 12px rgba(122,169,214,0.4)",
 //           flexShrink: 0,
 //         }}
 //       >
@@ -3993,7 +3993,7 @@
 //             transition: "0.2s",
 //           }}
 //           onMouseOver={(e) =>
-//             (e.target.style.color = "#4f9cf9")
+//             (e.target.style.color = "#7AA9D6")
 //           }
 //           onMouseOut={(e) =>
 //             (e.target.style.color = "rgba(130,160,200,0.5)")
@@ -4022,6 +4022,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 
 import {
   CalendarDays, Users, FileText, CheckCircle2, Clock, Send, Mail,
@@ -4040,7 +4042,7 @@ const getProfessionalAvatar = (name) => {
 };
 
 const AVATAR_COLORS = [
-  ["#0a1628","#4f9cf9"],["#0d2818","#4ade80"],["#2d1b69","#a78bfa"],
+  ["#0a1628","#7AA9D6"],["#0d2818","#4ade80"],["#2d1b69","#a78bfa"],
   ["#7c2d12","#fb923c"],["#0c2340","#60a5fa"],["#451a03","#fcd34d"],
 ];
 const getAvatarColor = (name) => {
@@ -4097,7 +4099,7 @@ const sanitize = (t) => (t==null?"":String(t)
   .replace(/[^\x00-\xFF]/g,"?"));
 
 const callClaudeForMinutes = async (roughNotes, meetingMeta) => {
-  const systemPrompt = `You are a professional meeting secretary. Always respond with ONLY valid JSON — no markdown, no backticks, no preamble. Schema: {"meetingTitle":"string","summary":"string","keyDecisions":[{"id":1,"decision":"string","rationale":"string"}],"actionItems":[{"id":1,"task":"string","responsible":"string","deadline":"string","priority":"High|Medium|Low"}],"discussionPoints":["string"],"nextSteps":"string","nextMeetingNote":"string"}`;
+  const systemPrompt = `You are a professional meeting secretary. Always respond with ONLY valid JSON - no markdown, no backticks, no preamble. Schema: {"meetingTitle":"string","summary":"string","keyDecisions":[{"id":1,"decision":"string","rationale":"string"}],"actionItems":[{"id":1,"task":"string","responsible":"string","deadline":"string","priority":"High|Medium|Low"}],"discussionPoints":["string"],"nextSteps":"string","nextMeetingNote":"string"}`;
   const userPrompt = `Meeting Details:\n- Agenda: ${meetingMeta.agenda}\n- Date: ${meetingMeta.date}\n- Time: ${meetingMeta.time}\n- Venue: ${meetingMeta.venue}\n- Attendees: ${meetingMeta.boardMembers.map(b=>`${b.name} (${b.role})`).join(", ")}\n\nRough Notes:\n${roughNotes}\n\nReturn ONLY JSON.`;
   const resp = await fetch("http://localhost:5000/api/generate-minutes",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemPrompt,userPrompt})});
   const raw = await resp.text();
@@ -4123,7 +4125,7 @@ const createMinutesPDF = async (minutesData, meetingMeta) => {
   const T=(text,opts={})=>{const{x=ML,size=10,font=regular,color=black,maxW=CW,lh=1.55,dx=0}=opts;const lines=wrap(text,maxW-dx,size);for(const l of lines){if(y-size-2<MB){footerOn();addPage();headerOn();}page.drawText(l,{x:x+dx,y:y-size,font,size,color});y-=size*lh;}};
   const addPage=()=>{page=doc.addPage([W,H]);y=H-50;};
   const headerOn=()=>{page.drawRectangle({x:0,y:H-32,width:W,height:32,color:navyDk});page.drawRectangle({x:0,y:H-32,width:5,height:32,color:blue});page.drawText("ADVISORY BOARD MEETING MINUTES",{x:ML+4,y:H-21,font:bold,size:8,color:rgb(0.65,0.76,0.87)});page.drawText("CollaXion",{x:W-ML-44,y:H-21,font:bold,size:9,color:blue});y=H-46;};
-  const footerOn=()=>{page.drawLine({start:{x:ML,y:MB-6},end:{x:W-ML,y:MB-6},thickness:0.5,color:grayLt});page.drawText("CollaXion — Confidential Advisory Board Record",{x:ML,y:MB-18,font:italic,size:7,color:grayMd});};
+  const footerOn=()=>{page.drawLine({start:{x:ML,y:MB-6},end:{x:W-ML,y:MB-6},thickness:0.5,color:grayLt});page.drawText("CollaXion - Confidential Advisory Board Record",{x:ML,y:MB-18,font:italic,size:7,color:grayMd});};
   const need=(h)=>{if(y-h<MB+10){footerOn();addPage();headerOn();}};
   const heading=(title)=>{need(36);page.drawRectangle({x:ML,y:y-28,width:5,height:28,color:blue});page.drawRectangle({x:ML+5,y:y-28,width:CW-5,height:28,color:offWh});page.drawText(sanitize(title).toUpperCase(),{x:ML+14,y:y-18,font:bold,size:9.5,color:navy});y-=36;};
   const pill=(label,px,py)=>{const map={High:[redLt,red],Medium:[amberLt,amber],Low:[greenLt,green]};const[bg,fg]=map[label]||map.Medium;const pw=label.length*5.6+14;page.drawRectangle({x:px,y:py-10,width:pw,height:12,color:bg});page.drawText(sanitize(label),{x:px+7,y:py-7,font:bold,size:7.5,color:fg});};
@@ -4143,7 +4145,7 @@ const createMinutesPDF = async (minutesData, meetingMeta) => {
   let mtY=H-140;
   for(const ln of mtLines.slice(0,3)){page.drawText(sanitize(ln),{x:ML,y:mtY,font:bold,size:11.5,color:rgb(0.83,0.90,0.96)});mtY-=17;}
   const cardTop=H-COVER_H-16,cardH=46,cardW=(CW-12)/3;
-  [{label:"DATE",val:meetingMeta.date||"—"},{label:"TIME",val:meetingMeta.time||"—"},{label:"VENUE",val:meetingMeta.venue||"—"}].forEach((c,i)=>{const cx=ML+i*(cardW+6);page.drawRectangle({x:cx+1,y:cardTop-cardH-1,width:cardW,height:cardH,color:grayLt});page.drawRectangle({x:cx,y:cardTop-cardH,width:cardW,height:cardH,color:white});page.drawRectangle({x:cx,y:cardTop-3,width:cardW,height:3,color:blue});page.drawText(c.label,{x:cx+8,y:cardTop-13,font:bold,size:7,color:blue});const vw=wrap(sanitize(c.val),cardW-16,10);vw.slice(0,2).forEach((vl,vi)=>{page.drawText(vl,{x:cx+8,y:cardTop-26-vi*13,font:bold,size:10,color:navy});});});
+  [{label:"DATE",val:meetingMeta.date||"-"},{label:"TIME",val:meetingMeta.time||"-"},{label:"VENUE",val:meetingMeta.venue||"-"}].forEach((c,i)=>{const cx=ML+i*(cardW+6);page.drawRectangle({x:cx+1,y:cardTop-cardH-1,width:cardW,height:cardH,color:grayLt});page.drawRectangle({x:cx,y:cardTop-cardH,width:cardW,height:cardH,color:white});page.drawRectangle({x:cx,y:cardTop-3,width:cardW,height:3,color:blue});page.drawText(c.label,{x:cx+8,y:cardTop-13,font:bold,size:7,color:blue});const vw=wrap(sanitize(c.val),cardW-16,10);vw.slice(0,2).forEach((vl,vi)=>{page.drawText(vl,{x:cx+8,y:cardTop-26-vi*13,font:bold,size:10,color:navy});});});
   y=cardTop-cardH-22;
   if(minutesData.summary){need(50);y-=6;heading("Executive Summary");const sumLines=wrap(minutesData.summary,CW-18,9.5);const boxH=sumLines.length*14+16;need(boxH+8);page.drawRectangle({x:ML,y:y-boxH,width:4,height:boxH,color:blue});page.drawRectangle({x:ML+4,y:y-boxH,width:CW-4,height:boxH,color:rgb(0.96,0.97,0.99)});y-=10;T(minutesData.summary,{font:italic,size:9.5,color:gray,dx:14});y-=6;}
   y-=4;heading("Attendees");
@@ -4176,7 +4178,7 @@ const MemberCard = ({ member, removable, onRemove, onImageUpload, compact=false 
       onHoverEnd={() => setHovered(false)}
       style={{
         background: hovered
-          ? "linear-gradient(135deg,#0f2744 0%,#1a3a5c 100%)"
+          ? "#193648"
           : "linear-gradient(135deg,#ffffff 0%,#f7f9fc 100%)",
         border: hovered ? "1px solid #3a70b0" : "1px solid #e8edf4",
         borderRadius: 16, padding: compact ? "14px 16px" : "18px 20px",
@@ -4188,7 +4190,7 @@ const MemberCard = ({ member, removable, onRemove, onImageUpload, compact=false 
         <div style={{
           width: compact ? 42 : 52, height: compact ? 42 : 52,
           borderRadius: "50%", overflow: "hidden",
-          boxShadow: hovered ? "0 0 0 3px #4f9cf9" : "0 0 0 2px #dde3ec",
+          boxShadow: hovered ? "0 0 0 3px #7AA9D6" : "0 0 0 2px #dde3ec",
           transition: "box-shadow 0.25s"
         }}>
           <Avatar name={member.name} image={member.image} size={compact ? 42 : 52} />
@@ -4200,9 +4202,9 @@ const MemberCard = ({ member, removable, onRemove, onImageUpload, compact=false 
             style={{
               position: "absolute", bottom: -2, right: -2,
               width: 20, height: 20, borderRadius: "50%",
-              background: "#4f9cf9", border: "2px solid white",
+              background: "#7AA9D6", border: "2px solid white",
               display: "flex", alignItems: "center", justifyContent: "center",
-              cursor: "pointer", boxShadow: "0 2px 8px rgba(79,156,249,0.5)"
+              cursor: "pointer", boxShadow: "0 2px 8px rgba(122,169,214,0.5)"
             }}
           >
             <Camera size={9} color="white" />
@@ -4218,19 +4220,19 @@ const MemberCard = ({ member, removable, onRemove, onImageUpload, compact=false 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontWeight: 700, fontSize: compact ? "0.84rem" : "0.92rem",
-          color: hovered ? "#e8f0fb" : "#0f2240",
+          color: hovered ? "#e8f0fb" : "#193648",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           transition: "color 0.25s", fontFamily: "'Playfair Display', Georgia, serif"
         }}>{member.name}</div>
         <div style={{
-          color: hovered ? "#7db3e8" : "#64748b",
+          color: hovered ? "#7AA9D6" : "#64748b",
           fontSize: "0.74rem", marginTop: 2,
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           transition: "color 0.25s"
         }}>{member.role}{member.org ? ` · ${member.org}` : ""}</div>
         {member.email && (
           <div style={{
-            color: hovered ? "#4f9cf9" : "#94a3b8",
+            color: hovered ? "#7AA9D6" : "#94a3b8",
             fontSize: "0.68rem", marginTop: 2,
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
             transition: "color 0.25s"
@@ -4239,10 +4241,10 @@ const MemberCard = ({ member, removable, onRemove, onImageUpload, compact=false 
       </div>
       {member.isFixed && (
         <div style={{
-          background: hovered ? "rgba(79,156,249,0.2)" : "#eef4ff",
+          background: hovered ? "rgba(122,169,214,0.2)" : "#eef4ff",
           borderRadius: 6, padding: "2px 7px",
           fontSize: "0.65rem", fontWeight: 700,
-          color: hovered ? "#7db3e8" : "#3a70b0",
+          color: hovered ? "#7AA9D6" : "#3a70b0",
           transition: "all 0.25s"
         }}>CORE</div>
       )}
@@ -4286,7 +4288,7 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
   };
   const addCustom = () => {
     if (!validateAdd()) return;
-    const rep = { id: "c" + Date.now(), name: newName, email: newEmail, org: newOrg || "—", role: newRole || "Guest", image: null, isCustom: true };
+    const rep = { id: "c" + Date.now(), name: newName, email: newEmail, org: newOrg || "-", role: newRole || "Guest", image: null, isCustom: true };
     setCustom(p => [...p, rep]); setSelected(p => [...p, rep]);
     setNewName(""); setNewEmail(""); setNewOrg(""); setNewRole(""); setErrors({});
   };
@@ -4317,7 +4319,7 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
     width: "100%", boxSizing: "border-box", padding: "10px 14px",
     border: "1.5px solid #dde3ec", borderRadius: "10px",
     fontSize: "0.83rem", fontFamily: "inherit", outline: "none",
-    color: "#0f2240", background: "#f8fbff", transition: "all 0.2s"
+    color: "#193648", background: "#f8fbff", transition: "all 0.2s"
   };
 
   return (
@@ -4329,16 +4331,16 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
         transition={{ type:"spring", damping:22, stiffness:280 }}
         style={{ background:"#ffffff", borderRadius:24, width:780, maxWidth:"100%", maxHeight:"90vh", overflowY:"auto", boxShadow:"0 40px 100px rgba(0,0,0,0.35)", border:"1px solid #dde3ec" }}
       >
-        <div style={{ background:"linear-gradient(130deg,#050f23 0%,#0f2744 50%,#1a4570 100%)", padding:"24px 30px", borderRadius:"24px 24px 0 0", display:"flex", alignItems:"center", gap:14, position:"sticky", top:0, zIndex:10 }}>
-          <div style={{ width:46, height:46, borderRadius:14, background:"rgba(79,156,249,0.2)", border:"1px solid rgba(79,156,249,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <Mail size={22} color="#7db3e8" />
+        <div style={{ background:"#193648", padding:"24px 30px", borderRadius:"24px 24px 0 0", display:"flex", alignItems:"center", gap:14, position:"sticky", top:0, zIndex:10 }}>
+          <div style={{ width:46, height:46, borderRadius:14, background:"rgba(122,169,214,0.2)", border:"1px solid rgba(122,169,214,0.4)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Mail size={22} color="#7AA9D6" />
           </div>
           <div style={{ flex:1 }}>
             <div style={{ color:"white", fontWeight:700, fontSize:"1.05rem", fontFamily:"'Playfair Display', Georgia, serif" }}>Send Meeting Invitations</div>
-            <div style={{ color:"rgba(150,180,230,0.8)", fontSize:"0.78rem", marginTop:2 }}>{meeting.agenda} — {meeting.date}</div>
+            <div style={{ color:"rgba(150,180,230,0.8)", fontSize:"0.78rem", marginTop:2 }}>{meeting.agenda} - {meeting.date}</div>
           </div>
           {selected.length > 0 && (
-            <motion.div initial={{ scale:0 }} animate={{ scale:1 }} style={{ background:"rgba(79,156,249,0.25)", borderRadius:20, padding:"4px 14px", color:"#7db3e8", fontSize:"0.78rem", fontWeight:700, border:"1px solid rgba(79,156,249,0.3)" }}>
+            <motion.div initial={{ scale:0 }} animate={{ scale:1 }} style={{ background:"rgba(122,169,214,0.25)", borderRadius:20, padding:"4px 14px", color:"#7AA9D6", fontSize:"0.78rem", fontWeight:700, border:"1px solid rgba(122,169,214,0.3)" }}>
               {selected.length} selected
             </motion.div>
           )}
@@ -4354,7 +4356,7 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
                 <Search size={15} style={{ position:"absolute", left:13, top:"50%", transform:"translateY(-50%)", color:"#94a3b8" }} />
                 <input value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="Search by name or organisation…" style={{ ...inpStyle, paddingLeft:38 }} />
               </div>
-              <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.82rem", marginBottom:12, display:"flex", alignItems:"center", gap:6 }}>
+              <div style={{ fontWeight:700, color:"#193648", fontSize:"0.82rem", marginBottom:12, display:"flex", alignItems:"center", gap:6 }}>
                 <Star size={13} color="#f59e0b" /> System Suggested Representatives
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px, 1fr))", gap:10, marginBottom:22 }}>
@@ -4365,7 +4367,7 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
                       <Avatar name={rep.name} image={rep.image} size={40} />
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.83rem" }}>{rep.name}</div>
+                      <div style={{ fontWeight:700, color:"#193648", fontSize:"0.83rem" }}>{rep.name}</div>
                       <div style={{ color:"#64748b", fontSize:"0.72rem" }}>{rep.org} · {rep.role}</div>
                       <div style={{ color:"#94a3b8", fontSize:"0.67rem" }}>{rep.email}</div>
                     </div>
@@ -4377,13 +4379,13 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
               </div>
               {custom.length > 0 && (
                 <>
-                  <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.82rem", marginBottom:10 }}>✅ Added by You</div>
+                  <div style={{ fontWeight:700, color:"#193648", fontSize:"0.82rem", marginBottom:10 }}>✅ Added by You</div>
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px, 1fr))", gap:10, marginBottom:20 }}>
                     {custom.map(rep => (
                       <div key={rep.id} onClick={()=>toggle(rep)} style={{ padding:"11px 13px", borderRadius:12, border:`2px solid ${isSelected(rep)?"#3a70b0":"#e8edf4"}`, background:isSelected(rep)?"#eff6ff":"#f8fbff", cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}>
                         <Avatar name={rep.name} size={34} />
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.81rem" }}>{rep.name}</div>
+                          <div style={{ fontWeight:700, color:"#193648", fontSize:"0.81rem" }}>{rep.name}</div>
                           <div style={{ color:"#64748b", fontSize:"0.7rem" }}>{rep.org} · {rep.role}</div>
                         </div>
                         {isSelected(rep) && <CheckCheck size={14} color="#3a70b0" />}
@@ -4393,7 +4395,7 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
                 </>
               )}
               <div style={{ background:"linear-gradient(135deg,#f0f7ff,#e8f0fb)", border:"1px solid #c7d9f5", borderRadius:16, padding:"18px 20px", marginBottom:22 }}>
-                <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.83rem", marginBottom:13, display:"flex", alignItems:"center", gap:7 }}>
+                <div style={{ fontWeight:700, color:"#193648", fontSize:"0.83rem", marginBottom:13, display:"flex", alignItems:"center", gap:7 }}>
                   <UserPlus size={14} color="#3a70b0" /> Add External Representative
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
@@ -4409,14 +4411,14 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
                   <input value={newRole} onChange={e=>setNewRole(e.target.value)} placeholder="Role / Title" style={inpStyle} />
                 </div>
                 <motion.button whileHover={{ scale:1.03 }} whileTap={{ scale:0.97 }} onClick={addCustom}
-                  style={{ background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", border:"none", borderRadius:9, padding:"8px 20px", fontSize:"0.8rem", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
+                  style={{ background:"#193648", color:"white", border:"none", borderRadius:9, padding:"8px 20px", fontSize:"0.8rem", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6 }}>
                   <Plus size={13} /> Add & Select
                 </motion.button>
               </div>
               <div style={{ display:"flex", justifyContent:"flex-end", gap:10, paddingTop:14, borderTop:"1px solid #f0f4f9" }}>
                 <button onClick={onClose} style={{ padding:"10px 22px", borderRadius:11, border:"1.5px solid #dde3ec", background:"white", color:"#64748b", fontWeight:500, cursor:"pointer", fontSize:"0.85rem" }}>Cancel</button>
                 <motion.button whileHover={{ scale:1.04 }} whileTap={{ scale:0.96 }} onClick={sendAll} disabled={sending||selected.length===0}
-                  style={{ padding:"10px 24px", borderRadius:11, border:"none", background:selected.length>0?"linear-gradient(120deg,#0f2744,#3a70b0)":"#e2e8f0", color:selected.length>0?"white":"#94a3b8", fontWeight:600, cursor:selected.length>0?"pointer":"not-allowed", display:"flex", alignItems:"center", gap:7, fontSize:"0.84rem", opacity:sending?0.8:1, boxShadow:selected.length>0?"0 8px 24px rgba(58,112,176,0.35)":"none" }}>
+                  style={{ padding:"10px 24px", borderRadius:11, border:"none", background:selected.length>0?"#193648":"#e2e8f0", color:selected.length>0?"white":"#94a3b8", fontWeight:600, cursor:selected.length>0?"pointer":"not-allowed", display:"flex", alignItems:"center", gap:7, fontSize:"0.84rem", opacity:sending?0.8:1, boxShadow:selected.length>0?"0 8px 24px rgba(58,112,176,0.35)":"none" }}>
                   {sending ? <><Loader size={14} /> Sending…</> : <><Send size={14} /> Send {selected.length>0?`to ${selected.length}`:"Invitations"}</>}
                 </motion.button>
               </div>
@@ -4425,12 +4427,12 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
             <div style={{ textAlign:"center", padding:"50px 20px" }}>
               <motion.div initial={{ scale:0 }} animate={{ scale:1 }} transition={{ type:"spring", damping:12, stiffness:200 }}
                 style={{ width:72, height:72, borderRadius:"50%", background:"linear-gradient(135deg,#d1fae5,#a7f3d0)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 18px", boxShadow:"0 10px 30px rgba(5,150,105,0.25)" }}>
-                <MailCheck size={30} color="#059669" />
+                <MailCheck size={30} color="#193648" />
               </motion.div>
-              <div style={{ fontWeight:700, fontSize:"1.15rem", color:"#0f2240", marginBottom:8, fontFamily:"'Playfair Display', Georgia, serif" }}>Invitations Dispatched!</div>
+              <div style={{ fontWeight:700, fontSize:"1.15rem", color:"#193648", marginBottom:8, fontFamily:"'Playfair Display', Georgia, serif" }}>Invitations Dispatched!</div>
               <div style={{ color:"#64748b", fontSize:"0.87rem", marginBottom:26 }}>Email invitations sent to {selected.length} representative(s).</div>
               <motion.button whileHover={{ scale:1.04 }} onClick={onClose}
-                style={{ background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", border:"none", borderRadius:11, padding:"11px 32px", fontWeight:600, cursor:"pointer", boxShadow:"0 8px 24px rgba(58,112,176,0.35)" }}>Done</motion.button>
+                style={{ background:"#193648", color:"white", border:"none", borderRadius:11, padding:"11px 32px", fontWeight:600, cursor:"pointer", boxShadow:"0 8px 24px rgba(58,112,176,0.35)" }}>Done</motion.button>
             </div>
           )}
         </div>
@@ -4440,9 +4442,9 @@ const InviteModal = ({ meeting, onClose, onSent }) => {
 };
 
 /* ═══ NOTES MODAL ═══ */
-const editInput = { width:"100%", boxSizing:"border-box", padding:"9px 13px", border:"1.5px solid #dde3ec", borderRadius:9, fontSize:"0.83rem", fontFamily:"inherit", outline:"none", color:"#0f2240", background:"#f8fbff", transition:"border-color 0.2s" };
+const editInput = { width:"100%", boxSizing:"border-box", padding:"9px 13px", border:"1.5px solid #dde3ec", borderRadius:9, fontSize:"0.83rem", fontFamily:"inherit", outline:"none", color:"#193648", background:"#f8fbff", transition:"border-color 0.2s" };
 const editTextarea = { ...editInput, resize:"vertical", minHeight:64, lineHeight:1.6 };
-const sectionLabel = { fontWeight:700, color:"#0f2240", fontSize:"0.83rem", marginBottom:9, display:"flex", alignItems:"center", justifyContent:"space-between" };
+const sectionLabel = { fontWeight:700, color:"#193648", fontSize:"0.83rem", marginBottom:9, display:"flex", alignItems:"center", justifyContent:"space-between" };
 const addBtnStyle = { background:"#eef4ff", color:"#3a70b0", border:"1px solid #c7d9f5", borderRadius:7, padding:"4px 12px", fontSize:"0.74rem", fontWeight:600, cursor:"pointer" };
 const remBtnStyle = { background:"none", border:"none", color:"#ef4444", cursor:"pointer", padding:"3px 5px", borderRadius:5, fontSize:"0.75rem", flexShrink:0 };
 
@@ -4556,21 +4558,21 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
         transition={{ type:"spring", damping:20, stiffness:260 }}
         style={{ background:"#fff", borderRadius:24, width:phase==="edit"?"860px":"740px", maxWidth:"100%", maxHeight:"92vh", overflowY:"auto", boxShadow:"0 40px 100px rgba(0,0,0,0.35)", border:"1px solid #dde3ec", transition:"width 0.3s" }}
       >
-        <div style={{ background:"linear-gradient(130deg,#050f23 0%,#0f2744 50%,#1a4570 100%)", padding:"24px 30px", borderRadius:"24px 24px 0 0", display:"flex", alignItems:"center", gap:14, position:"sticky", top:0, zIndex:10 }}>
-          <div style={{ width:46, height:46, borderRadius:14, background:"rgba(79,156,249,0.2)", border:"1px solid rgba(79,156,249,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            {phase==="edit" ? <FileText size={22} color="#7db3e8" /> : <PenLine size={22} color="#7db3e8" />}
+        <div style={{ background:"#193648", padding:"24px 30px", borderRadius:"24px 24px 0 0", display:"flex", alignItems:"center", gap:14, position:"sticky", top:0, zIndex:10 }}>
+          <div style={{ width:46, height:46, borderRadius:14, background:"rgba(122,169,214,0.2)", border:"1px solid rgba(122,169,214,0.4)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            {phase==="edit" ? <FileText size={22} color="#7AA9D6" /> : <PenLine size={22} color="#7AA9D6" />}
           </div>
           <div style={{ flex:1 }}>
             <div style={{ color:"white", fontWeight:700, fontSize:"1.05rem", fontFamily:"'Playfair Display', Georgia, serif" }}>
               {phase==="edit"?"✏️ Review & Edit Minutes":"Write Meeting Notes"}
             </div>
-            <div style={{ color:"rgba(150,180,230,0.8)", fontSize:"0.8rem", marginTop:2 }}>{meeting.agenda} — {meeting.date}</div>
+            <div style={{ color:"rgba(150,180,230,0.8)", fontSize:"0.8rem", marginTop:2 }}>{meeting.agenda} - {meeting.date}</div>
           </div>
           {["Write","Edit","Save"].map((p,i)=>{
             const active=(i===0&&["write","error","processing"].includes(phase))||(i===1&&phase==="edit");
             const done=i===0&&phase==="edit";
             return (
-              <div key={p} style={{ display:"flex", alignItems:"center", gap:4, background:done?"rgba(16,185,129,0.25)":active?"rgba(79,156,249,0.2)":"rgba(255,255,255,0.06)", borderRadius:20, padding:"3px 11px", fontSize:"0.7rem", color:done?"#6ee7b7":active?"#7db3e8":"rgba(255,255,255,0.35)", fontWeight:600, border:`1px solid ${done?"rgba(110,231,183,0.3)":active?"rgba(79,156,249,0.3)":"transparent"}` }}>
+              <div key={p} style={{ display:"flex", alignItems:"center", gap:4, background:done?"rgba(58,112,176,0.25)":active?"rgba(122,169,214,0.2)":"rgba(255,255,255,0.06)", borderRadius:20, padding:"3px 11px", fontSize:"0.7rem", color:done?"#6ee7b7":active?"#7AA9D6":"rgba(255,255,255,0.35)", fontWeight:600, border:`1px solid ${done?"rgba(110,231,183,0.3)":active?"rgba(122,169,214,0.3)":"transparent"}` }}>
                 {done?"✓":`${i+1}.`} {p}
               </div>
             );
@@ -4581,22 +4583,22 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
         <div style={{ padding:"28px 30px" }}>
           {(phase==="write"||phase==="error") && (
             <>
-              <div style={{ display:"flex", alignItems:"center", gap:8, color:"#0f2240", fontWeight:700, fontSize:"0.95rem", marginBottom:8 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, color:"#193648", fontWeight:700, fontSize:"0.95rem", marginBottom:8 }}>
                 <ClipboardList size={17} color="#3a70b0" /> Rough Meeting Notes
               </div>
               <p style={{ color:"#64748b", fontSize:"0.83rem", margin:"0 0 12px", lineHeight:1.6 }}>
-                Write everything that happened — decisions, who said what, tasks, deadlines. AI will structure it into formal minutes.
+                Write everything that happened - decisions, who said what, tasks, deadlines. AI will structure it into formal minutes.
               </p>
               <textarea
                 value={notes} onChange={e=>setNotes(e.target.value)}
-                placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update — agreed to add AI module in semester 3..."}
-                style={{ width:"100%", boxSizing:"border-box", minHeight:240, padding:"15px 17px", border:"2px solid #dde3ec", borderRadius:14, fontSize:"0.88rem", lineHeight:1.75, fontFamily:"inherit", resize:"vertical", outline:"none", color:"#0f2240", background:"#f8fbff", transition:"all 0.2s" }}
+                placeholder={"Example:\n\nDean opened the meeting. Discussed curriculum update - agreed to add AI module in semester 3..."}
+                style={{ width:"100%", boxSizing:"border-box", minHeight:240, padding:"15px 17px", border:"2px solid #dde3ec", borderRadius:14, fontSize:"0.88rem", lineHeight:1.75, fontFamily:"inherit", resize:"vertical", outline:"none", color:"#193648", background:"#f8fbff", transition:"all 0.2s" }}
                 onFocus={e=>{e.target.style.borderColor="#3a70b0";e.target.style.background="#fff";e.target.style.boxShadow="0 0 0 4px rgba(58,112,176,0.1)";}}
                 onBlur={e=>{e.target.style.borderColor="#dde3ec";e.target.style.background="#f8fbff";e.target.style.boxShadow="none";}}
               />
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:8, fontSize:"0.77rem", color:"#94a3b8" }}>
                 <span>{words} words · {chars} chars</span>
-                <span style={{ color:chars<30?"#ef4444":"#10b981", fontWeight:600 }}>{chars<30?`${30-chars} more chars needed`:"✓ Ready to generate"}</span>
+                <span style={{ color:chars<30?"#ef4444":"#3A70B0", fontWeight:600 }}>{chars<30?`${30-chars} more chars needed`:"✓ Ready to generate"}</span>
               </div>
               {phase==="error" && (
                 <div style={{ background:"#fef2f2", border:"1px solid #fecaca", borderRadius:12, padding:"12px 16px", display:"flex", gap:10, alignItems:"flex-start", margin:"16px 0" }}>
@@ -4608,7 +4610,7 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
                 </div>
               )}
               <div style={{ background:"linear-gradient(135deg,#f0f7ff,#e8f0fb)", border:"1px solid #c7d9f5", borderRadius:14, padding:"14px 17px", margin:"16px 0 20px" }}>
-                <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.81rem", marginBottom:9 }}>📋 Attendees (auto-included)</div>
+                <div style={{ fontWeight:700, color:"#193648", fontSize:"0.81rem", marginBottom:9 }}>📋 Attendees (auto-included)</div>
                 <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                   {meeting.boardMembers.map((m,i)=>(
                     <span key={i} style={{ background:"white", border:"1px solid #c7d9f5", borderRadius:22, padding:"4px 12px", fontSize:"0.75rem", color:"#334155", display:"flex", alignItems:"center", gap:6 }}>
@@ -4621,7 +4623,7 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
               <div style={{ display:"flex", justifyContent:"flex-end", gap:10 }}>
                 <button onClick={onClose} style={{ padding:"10px 22px", borderRadius:11, border:"1.5px solid #dde3ec", background:"white", color:"#64748b", fontWeight:500, cursor:"pointer", fontSize:"0.86rem" }}>Cancel</button>
                 <motion.button whileHover={chars>=30?{scale:1.04}:{}} whileTap={chars>=30?{scale:0.96}:{}} onClick={sendToAI} disabled={chars<30}
-                  style={{ padding:"10px 24px", borderRadius:11, border:"none", background:chars>=30?"linear-gradient(120deg,#0f2744,#3a70b0)":"#e2e8f0", color:chars>=30?"white":"#94a3b8", fontWeight:600, cursor:chars>=30?"pointer":"not-allowed", display:"flex", alignItems:"center", gap:8, fontSize:"0.86rem", boxShadow:chars>=30?"0 8px 24px rgba(58,112,176,0.35)":"none" }}>
+                  style={{ padding:"10px 24px", borderRadius:11, border:"none", background:chars>=30?"#193648":"#e2e8f0", color:chars>=30?"white":"#94a3b8", fontWeight:600, cursor:chars>=30?"pointer":"not-allowed", display:"flex", alignItems:"center", gap:8, fontSize:"0.86rem", boxShadow:chars>=30?"0 8px 24px rgba(58,112,176,0.35)":"none" }}>
                   <Sparkles size={15} /> Send to AI <ChevronRight size={13} />
                 </motion.button>
               </div>
@@ -4631,11 +4633,11 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
           {phase==="processing" && (
             <div style={{ textAlign:"center", padding:"52px 20px", display:"flex", flexDirection:"column", alignItems:"center", gap:20 }}>
               <motion.div animate={{ rotate:360 }} transition={{ repeat:Infinity, duration:3, ease:"linear" }}
-                style={{ width:72, height:72, borderRadius:"50%", background:"linear-gradient(135deg,#0f2744,#3a70b0)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 12px 36px rgba(58,112,176,0.4)" }}>
+                style={{ width:72, height:72, borderRadius:"50%", background:"#193648", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 12px 36px rgba(58,112,176,0.4)" }}>
                 <Bot size={34} color="white" />
               </motion.div>
               <div>
-                <div style={{ fontWeight:700, fontSize:"1.1rem", color:"#0f2240", marginBottom:6, fontFamily:"'Playfair Display', Georgia, serif" }}>AI is processing your notes…</div>
+                <div style={{ fontWeight:700, fontSize:"1.1rem", color:"#193648", marginBottom:6, fontFamily:"'Playfair Display', Georgia, serif" }}>AI is processing your notes…</div>
                 <div style={{ color:"#64748b", fontSize:"0.86rem" }}>Structuring decisions & action items into formal minutes</div>
               </div>
               <div style={{ display:"flex", gap:8, flexWrap:"wrap", justifyContent:"center" }}>
@@ -4654,7 +4656,7 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
               <div style={{ background:"linear-gradient(135deg,#eff6ff,#dbeafe)", border:"1px solid #93c5fd", borderRadius:13, padding:"13px 17px", marginBottom:22, display:"flex", gap:11, alignItems:"center" }}>
                 <span style={{ fontSize:"1.2rem" }}>✏️</span>
                 <div>
-                  <div style={{ fontWeight:700, color:"#1e40af", fontSize:"0.88rem" }}>AI generated your minutes — edit anything before saving</div>
+                  <div style={{ fontWeight:700, color:"#1e40af", fontSize:"0.88rem" }}>AI generated your minutes - edit anything before saving</div>
                   <div style={{ color:"#3b82f6", fontSize:"0.76rem", marginTop:1 }}>All fields are fully editable below.</div>
                 </div>
               </div>
@@ -4671,7 +4673,7 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
                 {editData.keyDecisions.map((d,idx)=>(
                   <div key={d.id} style={{ background:"#f8fbff", border:"1px solid #dde3ec", borderRadius:11, padding:"13px 15px", marginBottom:10 }}>
                     <div style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
-                      <span style={{ minWidth:24, height:24, borderRadius:"50%", background:"linear-gradient(135deg,#0f2744,#3a70b0)", color:"white", fontSize:"0.69rem", fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{idx+1}</span>
+                      <span style={{ minWidth:24, height:24, borderRadius:"50%", background:"#193648", color:"white", fontSize:"0.69rem", fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{idx+1}</span>
                       <div style={{ flex:1 }}>
                         <input value={d.decision} onChange={e=>ud(d.id,"decision",e.target.value)} placeholder="Decision…" style={{ ...editInput, marginBottom:6, fontWeight:600 }} onFocus={onFocus} onBlur={onBlur} />
                         <input value={d.rationale||""} onChange={e=>ud(d.id,"rationale",e.target.value)} placeholder="Rationale…" style={{ ...editInput, fontSize:"0.78rem", color:"#64748b" }} onFocus={onFocus} onBlur={onBlur} />
@@ -4686,7 +4688,7 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
                 {editData.actionItems.map((a,idx)=>(
                   <div key={a.id} style={{ background:"#f8fbff", border:"1px solid #dde3ec", borderRadius:11, padding:"13px 15px", marginBottom:10 }}>
                     <div style={{ display:"flex", gap:9, alignItems:"flex-start" }}>
-                      <span style={{ minWidth:24, height:24, borderRadius:"50%", background:"linear-gradient(135deg,#1a4570,#4f9cf9)", color:"white", fontSize:"0.69rem", fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{idx+1}</span>
+                      <span style={{ minWidth:24, height:24, borderRadius:"50%", background:"#193648", color:"white", fontSize:"0.69rem", fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:2 }}>{idx+1}</span>
                       <div style={{ flex:1 }}>
                         <input value={a.task} onChange={e=>ua(a.id,"task",e.target.value)} placeholder="Task…" style={{ ...editInput, marginBottom:6, fontWeight:600 }} onFocus={onFocus} onBlur={onBlur} />
                         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr auto", gap:8 }}>
@@ -4719,21 +4721,21 @@ const NotesModal = ({ meeting, onClose, onGenerated }) => {
               </div>
               <div style={{ marginBottom:24 }}>
                 <div style={sectionLabel}>📅 Next Meeting Note</div>
-                <input value={editData.nextMeetingNote||""} onChange={e=>uf("nextMeetingNote",e.target.value)} placeholder="e.g. In 4 weeks — follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur} />
+                <input value={editData.nextMeetingNote||""} onChange={e=>uf("nextMeetingNote",e.target.value)} placeholder="e.g. In 4 weeks - follow up on action items" style={editInput} onFocus={onFocus} onBlur={onBlur} />
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, flexWrap:"wrap", paddingTop:16, borderTop:"1px solid #f0f4f9" }}>
                 <button onClick={()=>setPhase("write")} style={{ padding:"9px 19px", borderRadius:11, border:"1.5px solid #dde3ec", background:"white", color:"#64748b", fontWeight:500, cursor:"pointer", fontSize:"0.84rem" }}>← Back</button>
                 <div style={{ display:"flex", gap:9, flexWrap:"wrap" }}>
                   <motion.button whileHover={{ scale:1.04 }} whileTap={{ scale:0.96 }} onClick={handleEmailPDF} disabled={isRegen||sendingEmail}
-                    style={{ padding:"9px 17px", borderRadius:11, border:"none", background:"#0ea5e9", color:"white", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:sendingEmail?0.7:1, boxShadow:"0 6px 18px rgba(14,165,233,0.3)" }}>
+                    style={{ padding:"9px 17px", borderRadius:11, border:"none", background:"#193648", color:"white", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:sendingEmail?0.7:1, boxShadow:"0 6px 18px rgba(25,54,72,0.3)" }}>
                     {sendingEmail?<Loader size={13}/>:<Mail size={13}/>} Email PDF to All
                   </motion.button>
                   <motion.button whileHover={{ scale:1.04 }} whileTap={{ scale:0.96 }} onClick={handleSaveOnly} disabled={isRegen}
-                    style={{ padding:"9px 19px", borderRadius:11, border:"none", background:"#10b981", color:"white", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:isRegen?0.7:1, boxShadow:"0 6px 18px rgba(16,185,129,0.3)" }}>
+                    style={{ padding:"9px 19px", borderRadius:11, border:"none", background:"#3A70B0", color:"white", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:isRegen?0.7:1, boxShadow:"0 6px 18px rgba(58,112,176,0.3)" }}>
                     {isRegen?<Loader size={13}/>:<CheckCircle2 size={13}/>} Save & Close
                   </motion.button>
                   <motion.button whileHover={{ scale:1.04 }} whileTap={{ scale:0.96 }} onClick={handleDownloadSave} disabled={isRegen}
-                    style={{ padding:"9px 22px", borderRadius:11, border:"none", background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:isRegen?0.7:1, boxShadow:"0 8px 24px rgba(58,112,176,0.35)" }}>
+                    style={{ padding:"9px 22px", borderRadius:11, border:"none", background:"#193648", color:"white", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:isRegen?0.7:1, boxShadow:"0 8px 24px rgba(58,112,176,0.35)" }}>
                     {isRegen?<Loader size={13}/>:<Download size={13}/>} Download PDF & Save
                   </motion.button>
                 </div>
@@ -4758,7 +4760,7 @@ const AdvisoryMeeting = () => {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ✅ boardMembers for the schedule form — always starts with DEFAULT_BOARD
+  // ✅ boardMembers for the schedule form - always starts with DEFAULT_BOARD
   const [boardMembers, setBoardMembers] = useState(DEFAULT_BOARD);
   const [addMember, setAddMember] = useState({ name:"", role:"", email:"", org:"" });
   const [addMemberErrors, setAddMemberErrors] = useState({});
@@ -4921,7 +4923,7 @@ const AdvisoryMeeting = () => {
     width:"100%", boxSizing:"border-box", padding:"11px 15px",
     border:"1.5px solid #dde3ec", borderRadius:11,
     fontSize:"0.88rem", fontFamily:"inherit", outline:"none",
-    color:"#0f2240", background:"#f8fbff", transition:"all 0.2s"
+    color:"#193648", background:"#f8fbff", transition:"all 0.2s"
   };
 
   return (
@@ -4934,7 +4936,7 @@ const AdvisoryMeeting = () => {
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #c7d9f5; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #3a70b0; }
-        @keyframes pulse-ring { 0%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(79,156,249,0.5)} 70%{transform:scale(1);box-shadow:0 0 0 12px rgba(79,156,249,0)} 100%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(79,156,249,0)} }
+        @keyframes pulse-ring { 0%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(122,169,214,0.5)} 70%{transform:scale(1);box-shadow:0 0 0 12px rgba(122,169,214,0)} 100%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(122,169,214,0)} }
         @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @media (max-width: 768px) {
           .form-grid { grid-template-columns: 1fr !important; }
@@ -4946,53 +4948,25 @@ const AdvisoryMeeting = () => {
       `}</style>
 
       <div style={{ minHeight:"100vh", background:"#f0f5fc", fontFamily:"'DM Sans', sans-serif" }}>
+        <LiaisonNavbar />
         <AnimatePresence>
           {notesModalFor && <NotesModal meeting={notesModalFor} onClose={()=>setNotesModalFor(null)} onGenerated={handleMinutesGenerated} />}
           {showInvite && lastMeeting && <InviteModal meeting={lastMeeting} onClose={()=>setShowInvite(false)} onSent={()=>{}} />}
         </AnimatePresence>
 
-        {/* ── NAV ── */}
-        <nav style={{ background:"linear-gradient(110deg,#050f23 0%,#0a1e3d 60%,#0f2744 100%)", padding:"0 32px", height:64, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:100, boxShadow:"0 4px 24px rgba(5,15,35,0.5)", borderBottom:"1px solid rgba(79,156,249,0.2)" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:36, height:36, borderRadius:10, overflow:"hidden", boxShadow:"0 4px 16px rgba(79,156,249,0.5)", animation:"pulse-ring 2.5s infinite", flexShrink:0 }}>
-              <img src="../../src/images/collaxionlogo.jpeg" alt="CollaXion Logo" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-            </div>
-            <div>
-              <span style={{ fontFamily:"'Playfair Display', Georgia, serif", fontWeight:800, fontSize:"1.2rem", color:"white", letterSpacing:"-0.3px" }}>CollaXion</span>
-              <div style={{ fontSize:"0.58rem", color:"rgba(150,180,230,0.7)", letterSpacing:"2px", textTransform:"uppercase", marginTop:-3 }}>Advisory Board</div>
-            </div>
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-            {[{id:"create",label:"Schedule Meeting",icon:<CalendarDays size={15}/>},{id:"records",label:"Meeting Records",icon:<FileText size={15}/>}].map(t=>(
-              <button key={t.id} onClick={()=>setActiveTab(t.id)} style={{ background:activeTab===t.id?"rgba(79,156,249,0.2)":"transparent", border:activeTab===t.id?"1px solid rgba(79,156,249,0.4)":"1px solid transparent", borderRadius:9, padding:"8px 18px", cursor:"pointer", color:activeTab===t.id?"#7db3e8":"rgba(180,210,240,0.7)", fontWeight:activeTab===t.id?600:500, fontSize:"0.84rem", fontFamily:"'DM Sans', sans-serif", display:"flex", alignItems:"center", gap:6, transition:"all 0.2s" }}>
-                {t.icon} {t.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ background:"rgba(79,156,249,0.15)", border:"1px solid rgba(79,156,249,0.3)", borderRadius:22, padding:"5px 14px", display:"flex", alignItems:"center", gap:7 }}>
-              <div style={{ width:7, height:7, borderRadius:"50%", background:"#4ade80", boxShadow:"0 0 6px #4ade80" }} />
-              <span style={{ color:"#7db3e8", fontSize:"0.76rem", fontWeight:600 }}>System Online</span>
-            </div>
-          </div>
-        </nav>
+        {/* (sub-tabs moved into main content area, below the hero - see "Tab switcher" below) */}
 
         {/* ── HERO ── */}
-        <div style={{ background:"linear-gradient(130deg,#050f23 0%,#0a1e3d 40%,#102a50 70%,#1a3a5c 100%)", padding:"48px 40px 52px", position:"relative", overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-60, right:-40, width:280, height:280, borderRadius:"50%", background:"radial-gradient(circle,rgba(79,156,249,0.15),transparent)", pointerEvents:"none" }} />
-          <div style={{ position:"absolute", bottom:-80, left:60, width:240, height:240, borderRadius:"50%", background:"radial-gradient(circle,rgba(74,222,128,0.08),transparent)", pointerEvents:"none" }} />
-          {[...Array(6)].map((_,i)=>(
-            <div key={i} style={{ position:"absolute", top:`${20+i*12}%`, right:`${10+(i%3)*12}%`, width:4, height:4, borderRadius:"50%", background:"rgba(79,156,249,0.4)", animation:`float ${2+i*0.4}s ease-in-out infinite`, animationDelay:`${i*0.3}s`, pointerEvents:"none" }} />
-          ))}
+        <div style={{ background:"#193648", padding:"48px 40px 52px", position:"relative", overflow:"hidden" }}>
           <div className="header-inner" style={{ display:"flex", alignItems:"center", justifyContent:"space-between", maxWidth:1200, margin:"0 auto", position:"relative" }}>
             <div>
-              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:14, background:"rgba(79,156,249,0.15)", border:"1px solid rgba(79,156,249,0.35)", borderRadius:24, padding:"6px 12px", width:"fit-content" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:14, background:"rgba(122,169,214,0.15)", border:"1px solid rgba(122,169,214,0.35)", borderRadius:24, padding:"6px 12px", width:"fit-content" }}>
                 <img src="../../src/images/collaxionlogo.jpeg" alt="CollaXion Logo" style={{ width:18, height:18, borderRadius:12, objectFit:"cover" }} />
-                <span style={{ fontSize:"0.72rem", color:"#7db3e8", fontWeight:600, letterSpacing:"0.5px" }}>UNIVERSITY ADVISORY SYSTEM</span>
+                <span style={{ fontSize:"0.72rem", color:"#7AA9D6", fontWeight:600, letterSpacing:"0.5px" }}>UNIVERSITY ADVISORY SYSTEM</span>
               </div>
               <h1 style={{ margin:"0 0 10px", color:"white", fontSize:"clamp(1.6rem, 4vw, 2.8rem)", fontWeight:800, fontFamily:"'Playfair Display', Georgia, serif", lineHeight:1.15, letterSpacing:"-0.5px" }}>
                 Advisory Board<br />
-                <span style={{ background:"linear-gradient(120deg, #193648, #00c6ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", textShadow:"0px 0px 8px rgba(77,163,217,0.6)" }}>Meeting Management</span>
+                <span style={{ color: "#fff" }}>Meeting Management</span>
               </h1>
               <p style={{ margin:0, color:"rgba(170,200,240,0.8)", fontSize:"1rem", lineHeight:1.6, maxWidth:480 }}>
                 Schedule meetings, send invitations, generate AI-powered minutes & collaborate with board members seamlessly.
@@ -5023,7 +4997,7 @@ const AdvisoryMeeting = () => {
           <div style={{ display:"flex", gap:0, marginBottom:28, background:"white", borderRadius:14, padding:5, width:"fit-content", boxShadow:"0 4px 20px rgba(15,39,68,0.08)", border:"1px solid #e8edf4" }}>
             {[{id:"create",label:"Schedule Meeting",icon:<CalendarDays size={15}/>},{id:"records",label:"Meeting Records",icon:<FileText size={15}/>}].map(t=>(
               <motion.button key={t.id} onClick={()=>setActiveTab(t.id)} layout
-                style={{ padding:"10px 26px", borderRadius:10, border:"none", background:activeTab===t.id?"linear-gradient(120deg,#0f2744,#3a70b0)":"transparent", color:activeTab===t.id?"white":"#64748b", fontWeight:600, cursor:"pointer", fontSize:"0.88rem", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans', sans-serif", transition:"all 0.25s", boxShadow:activeTab===t.id?"0 6px 18px rgba(58,112,176,0.3)":"none" }}>
+                style={{ padding:"10px 26px", borderRadius:10, border:"none", background:activeTab===t.id?"#193648":"transparent", color:activeTab===t.id?"white":"#64748b", fontWeight:600, cursor:"pointer", fontSize:"0.88rem", display:"flex", alignItems:"center", gap:7, fontFamily:"'DM Sans', sans-serif", transition:"all 0.25s", boxShadow:activeTab===t.id?"0 6px 18px rgba(58,112,176,0.3)":"none" }}>
                 {t.icon} {t.label}
               </motion.button>
             ))}
@@ -5037,10 +5011,10 @@ const AdvisoryMeeting = () => {
                 <div style={{ background:"white", borderRadius:22, padding:"36px 38px", boxShadow:"0 8px 40px rgba(15,39,68,0.09)", border:"1px solid #e8edf4" }}>
                   <div style={{ marginBottom:30 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                      <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg,#0f2744,#3a70b0)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <div style={{ width:38, height:38, borderRadius:11, background:"#193648", display:"flex", alignItems:"center", justifyContent:"center" }}>
                         <CalendarDays size={18} color="white" />
                       </div>
-                      <h2 style={{ margin:0, color:"#0f2240", fontSize:"1.15rem", fontWeight:700, fontFamily:"'Playfair Display', Georgia, serif" }}>Meeting Details</h2>
+                      <h2 style={{ margin:0, color:"#193648", fontSize:"1.15rem", fontWeight:700, fontFamily:"'Playfair Display', Georgia, serif" }}>Meeting Details</h2>
                     </div>
                     <p style={{ margin:0, color:"#94a3b8", fontSize:"0.82rem" }}>Complete all fields to schedule your advisory board meeting.</p>
                   </div>
@@ -5064,7 +5038,7 @@ const AdvisoryMeeting = () => {
                     ))}
                   </div>
                   <motion.button whileHover={{ scale:1.03, boxShadow:"0 14px 40px rgba(58,112,176,0.45)" }} whileTap={{ scale:0.97 }} onClick={handleSchedule}
-                    style={{ background:"linear-gradient(120deg,#0a1e3d 0%,#0f2744 40%,#3a70b0 100%)", color:"white", border:"none", borderRadius:13, padding:"14px 38px", fontWeight:700, fontSize:"0.95rem", cursor:"pointer", display:"flex", alignItems:"center", gap:9, boxShadow:"0 8px 28px rgba(58,112,176,0.35)", fontFamily:"'DM Sans', sans-serif" }}>
+                    style={{ background:"#193648", color:"white", border:"none", borderRadius:13, padding:"14px 38px", fontWeight:700, fontSize:"0.95rem", cursor:"pointer", display:"flex", alignItems:"center", gap:9, boxShadow:"0 8px 28px rgba(58,112,176,0.35)", fontFamily:"'DM Sans', sans-serif" }}>
                     <Send size={17}/> Schedule Meeting & Send Invites
                   </motion.button>
                 </div>
@@ -5073,16 +5047,16 @@ const AdvisoryMeeting = () => {
                 <div style={{ background:"white", borderRadius:22, padding:"28px 26px", boxShadow:"0 8px 40px rgba(15,39,68,0.09)", border:"1px solid #e8edf4" }}>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <div style={{ width:34, height:34, borderRadius:10, background:"linear-gradient(135deg,#1a4570,#4f9cf9)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      <div style={{ width:34, height:34, borderRadius:10, background:"#193648", display:"flex", alignItems:"center", justifyContent:"center" }}>
                         <Users size={16} color="white"/>
                       </div>
                       <div>
-                        <h3 style={{ margin:0, color:"#0f2240", fontSize:"0.95rem", fontWeight:700, fontFamily:"'Playfair Display', Georgia, serif" }}>Board Members</h3>
+                        <h3 style={{ margin:0, color:"#193648", fontSize:"0.95rem", fontWeight:700, fontFamily:"'Playfair Display', Georgia, serif" }}>Board Members</h3>
                         <div style={{ fontSize:"0.7rem", color:"#94a3b8" }}>{boardMembers.length} members (saved with meeting)</div>
                       </div>
                     </div>
                     <motion.button whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }} onClick={()=>setShowAddMember(p=>!p)}
-                      style={{ background:showAddMember?"linear-gradient(120deg,#0f2744,#3a70b0)":"#f0f7ff", color:showAddMember?"white":"#3a70b0", border:"1px solid "+(showAddMember?"transparent":"#c7d9f5"), borderRadius:9, padding:"7px 13px", fontSize:"0.76rem", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                      style={{ background:showAddMember?"#193648":"#f0f7ff", color:showAddMember?"white":"#3a70b0", border:"1px solid "+(showAddMember?"transparent":"#c7d9f5"), borderRadius:9, padding:"7px 13px", fontSize:"0.76rem", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
                       <UserPlus size={13}/> {showAddMember?"Cancel":"Add"}
                     </motion.button>
                   </div>
@@ -5090,7 +5064,7 @@ const AdvisoryMeeting = () => {
                   {/* ✅ Custom member notice */}
                   {boardMembers.some(m=>!m.isFixed) && (
                     <div style={{ background:"#f0fdf4", border:"1px solid #86efac", borderRadius:10, padding:"8px 12px", marginBottom:12, fontSize:"0.75rem", color:"#065f46", display:"flex", alignItems:"center", gap:6 }}>
-                      <CheckCircle2 size={13} color="#059669"/> Custom members will be saved with this meeting & included in PDF/emails.
+                      <CheckCircle2 size={13} color="#193648"/> Custom members will be saved with this meeting & included in PDF/emails.
                     </div>
                   )}
 
@@ -5109,7 +5083,7 @@ const AdvisoryMeeting = () => {
                     {showAddMember && (
                       <motion.div initial={{ opacity:0, height:0 }} animate={{ opacity:1, height:"auto" }} exit={{ opacity:0, height:0 }} style={{ overflow:"hidden", marginTop:14 }}>
                         <div style={{ background:"linear-gradient(135deg,#f0f7ff,#e8f0fb)", border:"1px solid #c7d9f5", borderRadius:14, padding:"16px 18px" }}>
-                          <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.8rem", marginBottom:12 }}>New Board Member</div>
+                          <div style={{ fontWeight:700, color:"#193648", fontSize:"0.8rem", marginBottom:12 }}>New Board Member</div>
                           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:9, marginBottom:11 }}>
                             {[{k:"name",pl:"Full Name *"},{k:"role",pl:"Role *"},{k:"email",pl:"Email"},{k:"org",pl:"Organisation"}].map(f=>(
                               <div key={f.k}>
@@ -5121,7 +5095,7 @@ const AdvisoryMeeting = () => {
                           </div>
                           <div style={{ display:"flex", gap:8 }}>
                             <motion.button whileHover={{ scale:1.04 }} onClick={handleAddMemberSubmit}
-                              style={{ background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", border:"none", borderRadius:8, padding:"8px 17px", fontSize:"0.78rem", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                              style={{ background:"#193648", color:"white", border:"none", borderRadius:8, padding:"8px 17px", fontSize:"0.78rem", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
                               <Plus size={12}/> Add
                             </motion.button>
                             <button onClick={()=>setShowAddMember(false)} style={{ background:"#f1f5f9", color:"#64748b", border:"none", borderRadius:8, padding:"8px 14px", fontSize:"0.78rem", cursor:"pointer" }}>Cancel</button>
@@ -5141,16 +5115,16 @@ const AdvisoryMeeting = () => {
               <div style={{ background:"white", borderRadius:22, padding:"32px", boxShadow:"0 8px 40px rgba(15,39,68,0.09)", border:"1px solid #e8edf4" }}>
                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                    <div style={{ width:38, height:38, borderRadius:11, background:"linear-gradient(135deg,#0f2744,#3a70b0)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <div style={{ width:38, height:38, borderRadius:11, background:"#193648", display:"flex", alignItems:"center", justifyContent:"center" }}>
                       <FileText size={18} color="white"/>
                     </div>
                     <div>
-                      <h2 style={{ margin:0, color:"#0f2240", fontSize:"1.1rem", fontWeight:700, fontFamily:"'Playfair Display', Georgia, serif" }}>Meeting Records</h2>
+                      <h2 style={{ margin:0, color:"#193648", fontSize:"1.1rem", fontWeight:700, fontFamily:"'Playfair Display', Georgia, serif" }}>Meeting Records</h2>
                       <div style={{ fontSize:"0.72rem", color:"#94a3b8" }}>{meetings.length} total meetings</div>
                     </div>
                   </div>
                   <motion.button whileHover={{ scale:1.04 }} whileTap={{ scale:0.96 }} onClick={()=>setActiveTab("create")}
-                    style={{ background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", border:"none", borderRadius:10, padding:"9px 18px", fontWeight:600, fontSize:"0.82rem", cursor:"pointer", display:"flex", alignItems:"center", gap:6, boxShadow:"0 6px 18px rgba(58,112,176,0.3)" }}>
+                    style={{ background:"#193648", color:"white", border:"none", borderRadius:10, padding:"9px 18px", fontWeight:600, fontSize:"0.82rem", cursor:"pointer", display:"flex", alignItems:"center", gap:6, boxShadow:"0 6px 18px rgba(58,112,176,0.3)" }}>
                     <Plus size={14}/> New Meeting
                   </motion.button>
                 </div>
@@ -5169,7 +5143,7 @@ const AdvisoryMeeting = () => {
                     <p style={{ margin:0, fontSize:"1rem", fontWeight:700, color:"#334155", fontFamily:"'Playfair Display', Georgia, serif" }}>No meetings yet</p>
                     <p style={{ margin:"6px 0 20px", fontSize:"0.84rem", color:"#94a3b8" }}>Schedule your first advisory board meeting to get started.</p>
                     <motion.button whileHover={{ scale:1.04 }} onClick={()=>setActiveTab("create")}
-                      style={{ background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", border:"none", borderRadius:11, padding:"11px 28px", fontWeight:600, cursor:"pointer", boxShadow:"0 8px 24px rgba(58,112,176,0.35)" }}>
+                      style={{ background:"#193648", color:"white", border:"none", borderRadius:11, padding:"11px 28px", fontWeight:600, cursor:"pointer", boxShadow:"0 8px 24px rgba(58,112,176,0.35)" }}>
                       Schedule First Meeting
                     </motion.button>
                   </div>
@@ -5192,7 +5166,7 @@ const AdvisoryMeeting = () => {
                           >
                             {/* Agenda */}
                             <td style={{ padding:"16px", maxWidth:200 }}>
-                              <div style={{ fontWeight:700, color:"#0f2240", fontSize:"0.88rem", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily:"'Playfair Display', Georgia, serif" }}>{m.agenda}</div>
+                              <div style={{ fontWeight:700, color:"#193648", fontSize:"0.88rem", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontFamily:"'Playfair Display', Georgia, serif" }}>{m.agenda}</div>
                             </td>
                             {/* Date */}
                             <td style={{ padding:"16px", whiteSpace:"nowrap" }}>
@@ -5233,12 +5207,12 @@ const AdvisoryMeeting = () => {
                             {/* Notes */}
                             <td style={{ padding:"16px" }}>
                               {m.minutesGenerated ? (
-                                <span style={{ display:"flex", alignItems:"center", gap:5, color:"#059669", fontWeight:700, fontSize:"0.78rem" }}>
+                                <span style={{ display:"flex", alignItems:"center", gap:5, color:"#193648", fontWeight:700, fontSize:"0.78rem" }}>
                                   <CheckCircle2 size={14}/> Generated
                                 </span>
                               ) : (
                                 <motion.button whileHover={{ scale:1.06 }} whileTap={{ scale:0.94 }} onClick={()=>setNotesModalFor(m)}
-                                  style={{ background:"linear-gradient(120deg,#0f2744,#3a70b0)", color:"white", border:"none", borderRadius:9, padding:"7px 14px", cursor:"pointer", fontWeight:600, fontSize:"0.76rem", display:"flex", alignItems:"center", gap:5, fontFamily:"'DM Sans', sans-serif", boxShadow:"0 4px 14px rgba(58,112,176,0.3)" }}>
+                                  style={{ background:"#193648", color:"white", border:"none", borderRadius:9, padding:"7px 14px", cursor:"pointer", fontWeight:600, fontSize:"0.76rem", display:"flex", alignItems:"center", gap:5, fontFamily:"'DM Sans', sans-serif", boxShadow:"0 4px 14px rgba(58,112,176,0.3)" }}>
                                   <Sparkles size={12}/> Write Notes
                                 </motion.button>
                               )}
@@ -5248,14 +5222,14 @@ const AdvisoryMeeting = () => {
                               {m.minutesGenerated ? (
                                 <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
                                   <motion.button whileHover={{ scale:1.06 }} whileTap={{ scale:0.94 }} onClick={()=>downloadMinutes(m)}
-                                    style={{ background:"#10b981", color:"white", border:"none", borderRadius:9, padding:"7px 12px", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:5, fontSize:"0.76rem", boxShadow:"0 4px 14px rgba(16,185,129,0.3)" }}>
+                                    style={{ background:"#16a34a", color:"white", border:"none", borderRadius:9, padding:"7px 12px", fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", gap:5, fontSize:"0.76rem", boxShadow:"0 4px 14px rgba(22,163,74,0.32)" }}>
                                     <Download size={12}/> Download
                                   </motion.button>
                                   {/* ✅ Email All Board Members button */}
                                   <motion.button whileHover={{ scale:1.06 }} whileTap={{ scale:0.94 }}
                                     onClick={()=>handleEmailFromRecords(m)}
                                     disabled={emailingMeeting===m.id}
-                                    style={{ background:emailingMeeting===m.id?"#94a3b8":"#0ea5e9", color:"white", border:"none", borderRadius:9, padding:"7px 12px", fontWeight:600, cursor:emailingMeeting===m.id?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:5, fontSize:"0.76rem", boxShadow:emailingMeeting===m.id?"none":"0 4px 14px rgba(14,165,233,0.3)", opacity:emailingMeeting===m.id?0.7:1 }}>
+                                    style={{ background:emailingMeeting===m.id?"#94a3b8":"#193648", color:"white", border:"none", borderRadius:9, padding:"7px 12px", fontWeight:600, cursor:emailingMeeting===m.id?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:5, fontSize:"0.76rem", boxShadow:emailingMeeting===m.id?"none":"0 4px 14px rgba(25,54,72,0.3)", opacity:emailingMeeting===m.id?0.7:1 }}>
                                     {emailingMeeting===m.id ? <Loader size={12}/> : <Mail size={12}/>}
                                     {emailingMeeting===m.id ? "Sending…" : "Email All"}
                                   </motion.button>
@@ -5277,18 +5251,8 @@ const AdvisoryMeeting = () => {
           )}
         </div>
 
-        {/* Footer */}
-        <footer style={{ background:"linear-gradient(110deg,#050f23,#0a1e3d)", padding:"20px 40px", marginTop:40, borderTop:"1px solid rgba(79,156,249,0.15)" }}>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", flexWrap:"wrap", gap:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:28, height:28, borderRadius:8, overflow:"hidden", boxShadow:"0 3px 12px rgba(79,156,249,0.4)", flexShrink:0 }}>
-                <img src="../../src/images/collaxionlogo.jpeg" alt="CollaXion Logo" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-              </div>
-              <span style={{ fontFamily:"'Playfair Display', Georgia, serif", fontWeight:700, color:"white", fontSize:"0.95rem" }}>CollaXion</span>
-            </div>
-            <div style={{ color:"rgba(130,160,200,0.6)", fontSize:"0.74rem" }}>© 2026 CollaXion. Where collaboration meets innovation.</div>
-          </div>
-        </footer>
+        {/* Footer (shared) */}
+        <LiaisonFooter />
       </div>
     </>
   );

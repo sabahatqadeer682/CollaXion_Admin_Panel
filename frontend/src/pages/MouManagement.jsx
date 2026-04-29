@@ -11,6 +11,8 @@ import {
   ThumbsUp, ThumbsDown, RefreshCw, Vote
 } from "lucide-react";
 import axios from "axios";
+import LiaisonNavbar from "../components/LiaisonNavbar";
+import LiaisonFooter from "../components/LiaisonFooter";
 
 const API_URL = "http://localhost:5000/api/mous";
 
@@ -40,8 +42,8 @@ const CHANGE_TYPES = {
 };
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" }) : "—";
-const fmtDateTime = (d) => d ? new Date(d).toLocaleString("en-PK", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—";
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+const fmtDateTime = (d) => d ? new Date(d).toLocaleString("en-PK", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
 const calcProgress = (s, e) => {
   const start = new Date(s), end = new Date(e), now = new Date();
   if (!start || !end || end <= start) return 100;
@@ -103,7 +105,7 @@ const normalizeLogoSrc = (raw) => {
   const v = raw.trim();
   if (!v) return "";
   if (v.startsWith("data:") || v.startsWith("http://") || v.startsWith("https://") || v.startsWith("blob:")) return v;
-  // Heuristic: long base64-ish string with no scheme — assume PNG
+  // Heuristic: long base64-ish string with no scheme - assume PNG
   if (v.length > 100 && /^[A-Za-z0-9+/=\s]+$/.test(v)) return "data:image/png;base64," + v.replace(/\s+/g, "");
   return "";
 };
@@ -236,14 +238,14 @@ const renderSignatureMark = (sig) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  PDF HTML BUILDER — returns the printable HTML string (also used for DB store)
+//  PDF HTML BUILDER - returns the printable HTML string (also used for DB store)
 // ═══════════════════════════════════════════════════════════════════════════════
 const buildMouHtml = (mou) => {
   let n = 1;
   const sec = (t) => `${n++}. ${t.toUpperCase()}`;
   const refNo = `MOU-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`;
 
-  // Logos: accept full data URL, raw base64, or http(s) URL — embed safely.
+  // Logos: accept full data URL, raw base64, or http(s) URL - embed safely.
   const _uniSrc = normalizeLogoSrc(mou.universityLogo);
   const _indSrc = normalizeLogoSrc(mou.industryLogo);
 
@@ -262,7 +264,7 @@ const buildMouHtml = (mou) => {
 <html>
 <head>
 <meta charset="utf-8"/>
-<title>${refNo} — ${mou.title || "MOU"}</title>
+<title>${refNo} - ${mou.title || "MOU"}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:wght@500;600;700&family=Great+Vibes&display=swap');
   @page { size:A4; margin:0; }
@@ -381,7 +383,7 @@ const buildMouHtml = (mou) => {
     <div class="section">
       <div class="sec-title">${sec("Parties to This Agreement")}</div>
       <table class="ptable">
-        <tr class="h"><td>First Party — University</td><td>Second Party — Industry Partner</td></tr>
+        <tr class="h"><td>First Party - University</td><td>Second Party - Industry Partner</td></tr>
         <tr class="b">
           <td>
             <div class="p-name">${mou.university}</div>
@@ -451,14 +453,14 @@ const buildMouHtml = (mou) => {
 
     <div class="sig-row">
       <div class="sig-box">
-        <div class="sig-lbl">Authorized Signatory — First Party</div>
+        <div class="sig-lbl">Authorized Signatory - First Party</div>
         <div class="sig-line">${renderSignatureMark(mou.universitySignature)}</div>
         <div class="sig-name">${mou.universitySignature?.signedBy || mou.signatories?.university || "University Authority"}</div>
         <div class="sig-org">${mou.university}</div>
         <div class="sig-date">Date: ${mou.universitySignature?.signedAt ? fmtDate(mou.universitySignature.signedAt) : (mou.universityStamp ? fmtDate(mou.universityStamp.date) : "____________________")}</div>
       </div>
       <div class="sig-box">
-        <div class="sig-lbl">Authorized Signatory — Second Party</div>
+        <div class="sig-lbl">Authorized Signatory - Second Party</div>
         <div class="sig-line">${renderSignatureMark(mou.industrySignature)}</div>
         <div class="sig-name">${mou.industrySignature?.signedBy || mou.signatories?.industry || "Industry Authority"}</div>
         <div class="sig-org">${mou.industry}</div>
@@ -467,7 +469,7 @@ const buildMouHtml = (mou) => {
     </div>
 
     <div class="doc-footer">
-      <span>MOU Portal — University Administration System</span>
+      <span>MOU Portal - University Administration System</span>
       <span>Ref: ${refNo}</span>
       <span>Generated: ${new Date().toLocaleDateString("en-PK", { day: "2-digit", month: "long", year: "numeric" })}</span>
     </div>
@@ -505,7 +507,7 @@ const openHtmlInPrintTab = (html, { autoPrint = true } = {}) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  CHANGE LOG HELPER — add entry to change log
+//  CHANGE LOG HELPER - add entry to change log
 // ═══════════════════════════════════════════════════════════════════════════════
 const addChangeLogEntry = (mou, type, data = {}) => {
   const entry = {
@@ -517,7 +519,7 @@ const addChangeLogEntry = (mou, type, data = {}) => {
   return [...(mou.changeLog || []), entry];
 };
 
-// ─── BUILD PAYLOAD — safe explicit fields (avoids spread issues with large base64) ──
+// ─── BUILD PAYLOAD - safe explicit fields (avoids spread issues with large base64) ──
 const buildPayload = (mou) => ({
   title:              mou.title,
   university:         mou.university,
@@ -554,7 +556,11 @@ const buildPayload = (mou) => ({
 //  MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
 const MouManagement = () => (
-  <NotificationProvider><MouApp /></NotificationProvider>
+  <NotificationProvider>
+    <LiaisonNavbar />
+    <MouApp />
+    <LiaisonFooter />
+  </NotificationProvider>
 );
 
 const MouApp = () => {
@@ -717,7 +723,7 @@ const MouApp = () => {
         try { generateMouPdf(res.data); }
         catch (e) { console.warn("PDF preview failed:", e.message); }
       }
-      pushNotif(`MOU + PDF sent to ${target.industry} — saved to database.`, "success");
+      pushNotif(`MOU + PDF sent to ${target.industry} - saved to database.`, "success");
       return res.data;
     } catch (err) {
       console.error("send error:", err?.response?.data || err.message);
@@ -726,7 +732,7 @@ const MouApp = () => {
     }
   };
 
-  // Initial send (Draft → Sent to Industry) — no signature, no meeting yet.
+  // Initial send (Draft → Sent to Industry) - no signature, no meeting yet.
   const handleSend = () => sendMouToIndustry(selected);
 
   // Same direct send for the list-card quick action.
@@ -742,7 +748,7 @@ const MouApp = () => {
     if (!selected) return;
     dispatchDraftRef.current = { signature: selected.universitySignature || null };
     if (selected.universitySignature?.signedAt) {
-      // Already signed — go straight to meeting step.
+      // Already signed - go straight to meeting step.
       setMeetingModal(true);
       dispatchDraftRef.current.skipSign = true;
     } else {
@@ -792,7 +798,7 @@ const MouApp = () => {
       const changeLog = addChangeLogEntry(selected, type === "approve" ? "university_approve" : "university_reject", {
         party: "University",
         action: type === "approve" ? "Approved" : "Rejected",
-        message: isMutual ? "University approved — MOU is now Mutually Approved" : `University ${type === "approve" ? "approved" : "rejected"} the MOU`,
+        message: isMutual ? "University approved - MOU is now Mutually Approved" : `University ${type === "approve" ? "approved" : "rejected"} the MOU`,
       });
 
       // Compose the post-stamp MOU first so the regenerated PDF reflects the
@@ -813,7 +819,7 @@ const MouApp = () => {
       if (isMutual) pushNotif("🎉 Mutually Approved! PDF download available.", "success");
       else if (type === "approve") {
         pushNotif("MOU approved by University.", "success");
-        setTimeout(() => pushNotif(`Notification sent to ${selected.industry} — University approved.`, "info"), 1200);
+        setTimeout(() => pushNotif(`Notification sent to ${selected.industry} - University approved.`, "info"), 1200);
       } else {
         pushNotif("MOU rejected. Industry will be notified.", "error");
       }
@@ -823,7 +829,7 @@ const MouApp = () => {
   // ── University saves meeting (with options or single slot) ──
   const handleMeetingSave = async (meetingData) => {
     if (!selected) return;
-    // Fresh meeting object — no confirmedSlot, no industryProposedSlot
+    // Fresh meeting object - no confirmedSlot, no industryProposedSlot
     const freshMeeting = {
       venue:       meetingData.venue,
       agenda:      meetingData.agenda,
@@ -947,7 +953,7 @@ const MouApp = () => {
       setSignModal(null);
 
       if (kind === "send") {
-        // Legacy path (currently unused) — direct send right after signing.
+        // Legacy path (currently unused) - direct send right after signing.
         await sendMouToIndustry(signedMou, { confirm: false });
       } else if (kind === "resend") {
         // Final dispatch: stash signature, then open meeting modal.
@@ -963,92 +969,30 @@ const MouApp = () => {
 
   return (
     <div style={S.page}>
-      <div style={S.topbar}>
-        <div style={S.brand}>
-          <FileText size={20} color="#fff" />
-          <span style={S.brandText}>MOU</span>
-          <span style={S.brandSub}>Industry Liaison Incharge</span>
-        </div>
-        <div style={S.topActions}>
-          {expiringSoon.length > 0 && <div style={S.alertChip}><Bell size={13} /> {expiringSoon.length} expiring soon</div>}
-          <div style={{ position: "relative" }}>
-            <motion.button whileHover={{ scale: 1.05 }} style={S.notifBtn} onClick={() => setNotifPanel(p => !p)}>
-              <Bell size={16} color="#fff" />
-              {(() => {
-                const unread = notifLog.filter(n => !n.seen).length;
-                return unread > 0 ? <span style={S.notifDot}>{unread > 9 ? "9+" : unread}</span> : null;
-              })()}
-            </motion.button>
-            <AnimatePresence>
-              {notifPanel && (
-                <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} style={S.notifPanel}>
-                  <div style={S.notifPanelHeader}>
-                    <span style={{ fontWeight: 700, fontSize: 14, color: "#193648" }}>Notifications</span>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {notifLog.some(n => !n.seen) && (
-                        <button
-                          style={S.clearBtn}
-                          onClick={() => {
-                            setNotifLog((prev) => prev.map(n => ({ ...n, seen: true })));
-                            fetch("http://localhost:5000/api/liaison-notifications/mark-all-seen", { method: "PATCH" }).catch(() => {});
-                          }}
-                        >Mark all read</button>
-                      )}
-                      {notifLog.length > 0 && (
-                        <button
-                          style={S.clearBtn}
-                          onClick={() => {
-                            setNotifLog([]);
-                            liaisonSeenRef.current = new Set();
-                            fetch("http://localhost:5000/api/liaison-notifications", { method: "DELETE" }).catch(() => {});
-                          }}
-                        >Clear all</button>
-                      )}
-                    </div>
-                  </div>
-                  {notifLog.length === 0
-                    ? <div style={{ padding: 20, color: "#94a3b8", fontSize: 13, textAlign: "center" }}>No notifications yet</div>
-                    : notifLog.map((n) => (
-                      <div
-                        key={n.id}
-                        style={{ ...S.notifItem, background: n.seen ? "#fff" : "#f5f9fc", cursor: n.backendId ? "pointer" : "default" }}
-                        onClick={() => {
-                          if (!n.backendId || n.seen) return;
-                          setNotifLog((prev) => prev.map(x => x.id === n.id ? { ...x, seen: true } : x));
-                          fetch(`http://localhost:5000/api/liaison-notifications/${n.backendId}/seen`, { method: "PATCH" }).catch(() => {});
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                          {!n.seen && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3A70B0", marginTop: 6, flexShrink: 0 }} />}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, color: "#193648", fontWeight: n.seen ? 500 : 700 }}>{n.msg}</div>
-                            <div style={{ fontSize: 11, color: "#94a3b8" }}>{n.time?.toLocaleTimeString?.() || ""}</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div style={S.avatar}>CX</div>
-        </div>
-      </div>
-
       <div style={S.body}>
         {view === "list" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div style={S.statsRow}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
               {[
-                { label: "Total MOUs",        val: mous.length,                                                                              color: "#193648" },
-                { label: "Ongoing",           val: mous.filter(m => new Date(m.endDate) > new Date()).length,                                  color: "#0284c7" },
-                { label: "Pending Review",    val: mous.filter(m => ["Changes Proposed", "Approved by Industry", "Industry Responded"].includes(m.status)).length, color: "#7c3aed" },
-                { label: "Expiring Soon",     val: expiringSoon.length,                                                                        color: "#d97706" },
-                { label: "Mutually Approved", val: mous.filter(m => m.status === "Mutually Approved").length,                                  color: "#16a34a" },
+                { label: "Total MOUs",        val: mous.length,                                                                                                       color: "#193648", halo: "rgba(25,54,72,0.15)" },
+                { label: "Ongoing",           val: mous.filter(m => new Date(m.endDate) > new Date()).length,                                                          color: "#3A70B0", halo: "rgba(58,112,176,0.18)" },
+                { label: "Pending Review",    val: mous.filter(m => ["Changes Proposed", "Approved by Industry", "Industry Responded"].includes(m.status)).length,    color: "#F59E0B", halo: "rgba(245,158,11,0.20)" },
+                { label: "Expiring Soon",     val: expiringSoon.length,                                                                                                color: "#EF4444", halo: "rgba(239,68,68,0.20)" },
+                { label: "Mutually Approved", val: mous.filter(m => m.status === "Mutually Approved").length,                                                          color: "#16a34a", halo: "rgba(22,163,74,0.20)" },
               ].map((s, i) => (
-                <div key={i} style={S.statCard}>
-                  <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.val}</div>
+                <div key={i} style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "7px 12px", borderRadius: 8,
+                  background: "#fff", border: "1px solid #E2EEF9",
+                  boxShadow: "0 1px 3px rgba(25,54,72,0.06)",
+                }}>
+                  <span style={{
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: s.color,
+                    boxShadow: `0 0 0 3px ${s.halo}`,
+                  }} />
+                  <span style={{ fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" }}>{s.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.val}</span>
                 </div>
               ))}
             </div>
@@ -1278,7 +1222,7 @@ const CreateMou = ({ onBack, onSaved }) => {
 
       <div style={S.createBody}>
         <Section title="🖼️ Party Logos">
-          <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>Upload logos for both parties — they will appear in the header and in the PDF.</p>
+          <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>Upload logos for both parties - they will appear in the header and in the PDF.</p>
           <div style={S.grid2}>
             <LogoUploadField label="University Logo" value={form.universityLogo} onChange={v => set("universityLogo", v)} />
             <LogoUploadField label="Industry / Company Logo" value={form.industryLogo} onChange={v => set("industryLogo", v)} />
@@ -1388,7 +1332,7 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
   const isMutual      = mou.status === "Mutually Approved";
   const meeting       = mou.scheduledMeeting;
   const hasMeetingOptions = meeting?.options && meeting.options.length > 0;
-  // Check confirmedSlot safely — must have .date to be valid
+  // Check confirmedSlot safely - must have .date to be valid
   const hasConfirmedSlot  = !!(meeting?.confirmedSlot?.date);
 
   const saveEdit = async () => {
@@ -1464,11 +1408,11 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
           {hasChanges && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={S.changesAlert}>
               <AlertTriangle size={16} color="#7c3aed" />
-              <span style={{ color: "#7c3aed", fontWeight: 600 }}>Industry has proposed {mou.proposedChanges.length} change(s) — review in the sidebar</span>
+              <span style={{ color: "#7c3aed", fontWeight: 600 }}>Industry has proposed {mou.proposedChanges.length} change(s) - review in the sidebar</span>
             </motion.div>
           )}
 
-          {/* ─── MEETING CARD — 4-state flow ─── */}
+          {/* ─── MEETING CARD - 4-state flow ─── */}
           {meeting && (
             <div style={{ ...S.meetingCard, padding: 0, overflow: "hidden" }}>
               {/* Header */}
@@ -1541,16 +1485,16 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
                     </motion.button>
                     <button style={{ ...S.btnOutline, width: "100%", justifyContent: "center", marginTop: 6, fontSize: 12 }}
                       onClick={() => onScheduleMeeting()}>
-                      ✏️ University — Edit Meeting Options
+                      ✏️ University - Edit Meeting Options
                     </button>
                   </motion.div>
                 )}
 
-                {/* ── STATE 3: OPTIONS LIST — awaiting industry selection from their app ── */}
+                {/* ── STATE 3: OPTIONS LIST - awaiting industry selection from their app ── */}
                 {!hasConfirmedSlot && !meeting.industryProposedSlot && hasMeetingOptions && (
                   <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ fontSize: 12, color: "#0284c7", fontWeight: 600, marginBottom: 8 }}>
-                      📋 University proposed these slots — awaiting {mou.industry} to pick or propose
+                      📋 University proposed these slots - awaiting {mou.industry} to pick or propose
                     </div>
                     {meeting.options.map((opt, i) => (
                       <div key={i}
@@ -1567,7 +1511,7 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
                   </motion.div>
                 )}
 
-                {/* ── STATE 4: SINGLE SLOT — awaiting industry to confirm via their app ── */}
+                {/* ── STATE 4: SINGLE SLOT - awaiting industry to confirm via their app ── */}
                 {!hasConfirmedSlot && !meeting.industryProposedSlot && !hasMeetingOptions && (
                   <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
                     <MeetingRow icon={<Clock size={12} />}  label="Date & Time" val={`${fmtDate(meeting.date)} at ${meeting.time}`} />
@@ -1634,7 +1578,7 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
                             title={`${doc.sub} preview`}
                             srcDoc={doc.html}
                             sandbox="allow-same-origin"
-                            style={{ width: "100%", height: "100%", border: "none", transform: "scale(0.45)", transformOrigin: "top left", width: "222%", height: "488px" }}
+                            style={{ border: "none", transform: "scale(0.45)", transformOrigin: "top left", width: "222%", height: "488px" }}
                           />
                         </div>
                         <div style={{ display: "flex", gap: 6 }}>
@@ -1696,7 +1640,7 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <CheckSquare size={22} color="#16a34a" />
                 <div>
-                  <div style={{ fontWeight: 800, color: "#166534", fontSize: 14 }}>{isMutual ? "🎉 Both parties have approved this MOU!" : "✅ MOU approved — PDF ready"}</div>
+                  <div style={{ fontWeight: 800, color: "#166534", fontSize: 14 }}>{isMutual ? "🎉 Both parties have approved this MOU!" : "✅ MOU approved - PDF ready"}</div>
                   <div style={{ fontSize: 12, color: "#4ade80" }}>{isMutual ? "The MOU is fully finalized. Download the official PDF." : "Download the approved MOU PDF."}</div>
                 </div>
               </div>
@@ -1743,7 +1687,7 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
             </motion.div>
           )}
 
-          {/* CHANGE LOG — full activity */}
+          {/* CHANGE LOG - full activity */}
           <div style={S.sidebarTitle}><History size={15} /> Activity Log</div>
           {(!mou.changeLog || mou.changeLog.length === 0) && (!hasChanges)
             ? <div style={S.sidebarEmpty}>No activity yet.</div>
@@ -1758,9 +1702,9 @@ const DetailView = ({ mou, onBack, onSend, onDelete, onScheduleMeeting, onApprov
                 <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} style={S.changeItem}>
                   <div style={{ fontWeight: 700, color: "#7c3aed", fontSize: 12, marginBottom: 3 }}>🏭 {c.field || `Change #${i + 1}`}</div>
                   <div style={{ fontSize: 12, marginBottom: 3 }}>
-                    <span style={{ color: "#dc2626", textDecoration: "line-through" }}>{c.oldValue || "—"}</span>
+                    <span style={{ color: "#dc2626", textDecoration: "line-through" }}>{c.oldValue || "-"}</span>
                     <span style={{ color: "#64748b", margin: "0 6px" }}>→</span>
-                    <span style={{ color: "#16a34a" }}>{c.newValue || "—"}</span>
+                    <span style={{ color: "#16a34a" }}>{c.newValue || "-"}</span>
                   </div>
                   {c.reason && <div style={{ fontSize: 11, color: "#94a3b8" }}>Reason: {c.reason}</div>}
                   <div style={{ fontSize: 10, color: "#cbd5e1", marginTop: 3 }}>{fmtDate(c.date)}</div>
@@ -1834,7 +1778,7 @@ const ViewMou = ({ mou }) => (
     <div style={{ textAlign: "center", fontSize: 13, color: "#64748b", marginBottom: 16 }}>{mou.university} & {mou.industry}</div>
     <hr style={{ borderColor: "#e2e8f0", margin: "12px 0" }} />
     <MouSection title="1. Parties"><p><strong>University:</strong> {mou.university}</p><p><strong>Industry:</strong> {mou.industry}</p></MouSection>
-    <MouSection title="2. Purpose"><p>{mou.description || "—"}</p></MouSection>
+    <MouSection title="2. Purpose"><p>{mou.description || "-"}</p></MouSection>
     <MouSection title="3. Collaboration Type"><p>{mou.collaborationType}</p></MouSection>
     <MouSection title="4. Duration"><p>From <strong>{fmtDate(mou.startDate)}</strong> to <strong>{fmtDate(mou.endDate)}</strong></p></MouSection>
     {mou.objectives?.filter(Boolean).length > 0 && <MouSection title="5. Objectives"><ul>{mou.objectives.filter(Boolean).map((o, i) => <li key={i}>{o}</li>)}</ul></MouSection>}
@@ -1866,7 +1810,7 @@ const EditableMou = ({ data, onChange }) => {
       <div style={S.mouDocTitle}>MEMORANDUM OF UNDERSTANDING - EDIT MODE</div>
       <hr style={{ borderColor: "#e2e8f0", margin: "12px 0" }} />
       <MouSection title="Party Logos">
-        <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>Upload or replace logos — they will appear in the header and the PDF sent to industry.</p>
+        <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 12 }}>Upload or replace logos - they will appear in the header and the PDF sent to industry.</p>
         <div style={S.grid2}>
           <LogoUploadField label="University Logo" value={data.universityLogo} onChange={v => onChange("universityLogo", v)} />
           <LogoUploadField label="Industry / Company Logo" value={data.industryLogo} onChange={v => onChange("industryLogo", v)} />
@@ -1892,7 +1836,7 @@ const EditableMou = ({ data, onChange }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  INDUSTRY RESPONSE MODAL — NEW
+//  INDUSTRY RESPONSE MODAL - NEW
 // ═══════════════════════════════════════════════════════════════════════════════
 const IndustryResponseModal = ({ mou, onClose, onSave }) => {
   const [responseType, setResponseType] = useState("comment"); // 'accept' | 'reject' | 'comment' | 'change'
@@ -1926,7 +1870,7 @@ const IndustryResponseModal = ({ mou, onClose, onSave }) => {
         style={{ ...S.modal, maxWidth: 560 }}>
         <div style={S.modalHeader}>
           <div style={{ fontWeight: 700, fontSize: 16, color: "#193648", display: "flex", alignItems: "center", gap: 8 }}>
-            <MessageSquare size={18} /> Industry Response — {mou.industry}
+            <MessageSquare size={18} /> Industry Response - {mou.industry}
           </div>
           <X size={20} style={{ cursor: "pointer" }} onClick={onClose} />
         </div>
@@ -2004,7 +1948,7 @@ const IndustryResponseModal = ({ mou, onClose, onSave }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  INDUSTRY MEETING MODAL — industry proposes their own slot
+//  INDUSTRY MEETING MODAL - industry proposes their own slot
 // ═══════════════════════════════════════════════════════════════════════════════
 const IndustryMeetingModal = ({ mou, onClose, onSave }) => {
   const existing = mou.scheduledMeeting?.industryProposedSlot;
@@ -2026,7 +1970,7 @@ const IndustryMeetingModal = ({ mou, onClose, onSave }) => {
         exit={{ y: 40, opacity: 0, scale: 0.95 }} style={{ ...S.modal, maxWidth: 440 }}>
         <div style={S.modalHeader}>
           <div style={{ fontWeight: 700, fontSize: 16, color: "#193648", display: "flex", alignItems: "center", gap: 8 }}>
-            <Edit3 size={18} /> {mou.industry} — Propose Meeting Slot
+            <Edit3 size={18} /> {mou.industry} - Propose Meeting Slot
           </div>
           <X size={20} style={{ cursor: "pointer" }} onClick={onClose} />
         </div>
@@ -2086,7 +2030,7 @@ const IndustryMeetingModal = ({ mou, onClose, onSave }) => {
   );
 };
 
-// ─── MEETING MODAL — Updated with multiple time options ───────────────────────
+// ─── MEETING MODAL - Updated with multiple time options ───────────────────────
 const MeetingModal = ({ existing, onClose, onSave, dispatchMode = false }) => {
   const [mode, setMode] = useState(existing?.options ? "options" : "single"); // 'single' | 'options'
   const [form, setForm] = useState(existing || { date: "", time: "", venue: "", agenda: "", menu: "", attendees: "", options: [] });
@@ -2211,7 +2155,7 @@ const StampModal = ({ type, mou, onClose, onConfirm }) => (
 );
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  SIGNATURE MODAL — Draw OR Type a digital signature
+//  SIGNATURE MODAL - Draw OR Type a digital signature
 // ═══════════════════════════════════════════════════════════════════════════════
 const SignatureModal = ({ mou, defaultName = "", onClose, onConfirm }) => {
   const [tab, setTab]         = useState("draw");
@@ -2333,7 +2277,7 @@ const SignatureModal = ({ mou, defaultName = "", onClose, onConfirm }) => {
         </div>
         <div style={{ padding: 20 }}>
           <p style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>
-            Sign now — your signature will be embedded in the PDF sent to <strong>{mou?.industry}</strong>.
+            Sign now - your signature will be embedded in the PDF sent to <strong>{mou?.industry}</strong>.
             When industry signs back, both signatures appear in the final document.
           </p>
 
@@ -2420,7 +2364,7 @@ const FormField = ({ label, value, onChange, type = "text", placeholder = "", op
 );
 const StampBadge = ({ stamp, label }) => (
   <div style={{ border: `2px solid ${stamp.type === "approve" ? "#16a34a" : "#dc2626"}`, borderRadius: 8, padding: "8px 14px", background: stamp.type === "approve" ? "#f0fdf4" : "#fef2f2" }}>
-    <div style={{ fontWeight: 800, fontSize: 12, color: stamp.type === "approve" ? "#16a34a" : "#dc2626" }}>{stamp.type === "approve" ? "✅ APPROVED" : "❌ REJECTED"} — {label}</div>
+    <div style={{ fontWeight: 800, fontSize: 12, color: stamp.type === "approve" ? "#16a34a" : "#dc2626" }}>{stamp.type === "approve" ? "✅ APPROVED" : "❌ REJECTED"} - {label}</div>
     <div style={{ fontSize: 11, color: "#64748b" }}>By: {stamp.by} on {fmtDate(stamp.date)}</div>
   </div>
 );
@@ -2428,7 +2372,7 @@ const MeetingRow = ({ icon, label, val }) => (
   <div style={{ display: "flex", gap: 6, marginBottom: 4, fontSize: 12 }}>
     <span style={{ color: "#0284c7" }}>{icon}</span>
     <span style={{ color: "#64748b", minWidth: 120 }}>{label}:</span>
-    <span style={{ color: "#193648", fontWeight: 600 }}>{val || "—"}</span>
+    <span style={{ color: "#193648", fontWeight: 600 }}>{val || "-"}</span>
   </div>
 );
 // ═══════════════════════════════════════════════════════════════════════════════

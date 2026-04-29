@@ -40,8 +40,8 @@ router.post("/cocurricular/login", asyncHandler(async (req, res) => {
             token,
             user: {
                 username,
-                name: "Prof. Sarah Ahmed",
-                email: "sarah.ahmed@collxion.edu",
+                name: "Prof. Habiba Ahmed",
+                email: "habiba.ahmed@riphah.edu.pk",
                 role: "Co-Curricular Incharge"
             }
         });
